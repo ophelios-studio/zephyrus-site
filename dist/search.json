@@ -1,0 +1,87 @@
+[
+    {
+        "title": "Configuration",
+        "section": "fundamentals",
+        "url": "\/fundamentals\/configuration",
+        "excerpt": "Configuration Your environment, in one place. Zephyrus uses YAML configuration with environment values and typed sections. This chapter will explain the settings available in the updated framework. #A readable starting point This visual specimen shows the style of configuration used in a Leaf site b...",
+        "headings": [
+            "A readable starting point",
+            "What this chapter will cover"
+        ]
+    },
+    {
+        "title": "Data access",
+        "section": "fundamentals",
+        "url": "\/fundamentals\/data",
+        "excerpt": "Data access Your SQL. Your data model. Brokers group SQL queries for a domain. Query helpers handle bound parameters and returned data while keeping the query visible. #An explicit query use stdClass; use Zephyrus\\Data\\Broker; final class ProductBroker extends Broker { public function find(int $id):...",
+        "headings": [
+            "An explicit query",
+            "Each responsibility has a home",
+            "What comes next"
+        ]
+    },
+    {
+        "title": "HTTP",
+        "section": "fundamentals",
+        "url": "\/fundamentals\/http",
+        "excerpt": "HTTP Every response, explicit. Request and response objects are central to Zephyrus. This chapter will explain their structure and how immutability shapes the flow through an application. #Intentional changes A response can be created with an explicit status. Updating a header returns a new response...",
+        "headings": [
+            "Intentional changes",
+            "What this chapter will cover"
+        ]
+    },
+    {
+        "title": "Localization",
+        "section": "fundamentals",
+        "url": "\/fundamentals\/localization",
+        "excerpt": "Localization Another language. A JSON file. The locale loader merges JSON files from a locale directory. Nested messages can be reached with dot notation, such as demo.greeting. #Readable messages { &quot;demo&quot;: { &quot;greeting&quot;: &quot;Hello, {name}&quot;, &quot;items&quot;: &quot;{count}...",
+        "headings": [
+            "Readable messages",
+            "Locale fallback",
+            "What comes next"
+        ]
+    },
+    {
+        "title": "Routing",
+        "section": "fundamentals",
+        "url": "\/fundamentals\/routing",
+        "excerpt": "Routing A direct path to your logic. Zephyrus declares routes with PHP attributes on controller methods. This chapter is reserved for the updated routing reference. #Routes in plain sight The following example is a visual preview. It shows a URL parameter and the typed method that receives it. use Z...",
+        "headings": [
+            "Routes in plain sight",
+            "What this chapter will cover"
+        ]
+    },
+    {
+        "title": "Security",
+        "section": "fundamentals",
+        "url": "\/fundamentals\/security",
+        "excerpt": "Security Thoughtful boundaries. Security middleware and input validation belong to the framework's foundation. This chapter is reserved for the updated security reference and practical guidance. #Middleware The guide will explain where middleware runs, how it is registered and how a route declares t...",
+        "headings": [
+            "Middleware",
+            "Input validation",
+            "What comes next"
+        ]
+    },
+    {
+        "title": "Introduction",
+        "section": "getting-started",
+        "url": "\/getting-started\/introduction",
+        "excerpt": "Introduction A clear place to begin. Zephyrus is a cohesive PHP framework that brings attribute routing, immutable HTTP objects, typed configuration and security middleware into one foundation. This field guide is taking shape alongside the next framework update. For now, it offers a first look at t...",
+        "headings": [
+            "A considered foundation",
+            "What belongs in the core",
+            "A small first example",
+            "Reading the field guide"
+        ]
+    },
+    {
+        "title": "Project structure",
+        "section": "getting-started",
+        "url": "\/getting-started\/project-structure",
+        "excerpt": "Project structure A home for each part of your application. This chapter will describe the application template after the current framework update. The outline below is a visual specimen for the field guide. #The application at a glance Controllers, views and configuration each have a visible place....",
+        "headings": [
+            "The application at a glance",
+            "A path through the application"
+        ]
+    }
+]

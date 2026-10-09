@@ -1,0 +1,4 @@
+{var $localePrefix = ($currentLocale ?? 'en') === ($defaultLocale ?? 'en') ? '' : '/' . $currentLocale}
+<aside class="docs-toc" n:if="isset($toc) && count($toc) > 0"><h4 class="toc-title">{localize('docs.toc')}</h4><nav aria-label="{localize('docs.toc')}"><ul class="toc-links">
+{foreach $toc as $heading}<li class="toc-item{if $heading['level'] > 2} toc-item-sub{/if}"><a href="#{$heading['id']}" class="toc-link">{$heading['text']}</a></li>{/foreach}
+</ul></nav><a class="toc-home" href="{$leafBaseUrl}{$localePrefix}/">{localize('docs.back')}</a></aside>

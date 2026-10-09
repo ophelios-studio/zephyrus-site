@@ -1,0 +1,17 @@
+{var $localePrefix = ($currentLocale ?? 'en') === ($defaultLocale ?? 'en') ? '' : '/' . $currentLocale}
+<!DOCTYPE html>
+<html lang="{$currentLocale ?? 'en'}">
+<head>{include '../partials/head.latte'}<title>{$title ?? 'Documentation'} · Zephyrus</title></head>
+<body class="docs-page" data-locale-prefix="{$localePrefix}">
+{include '../partials/nav.latte', docsMode: true}
+<div class="docs-mobile-bar"><button class="docs-menu-button" aria-controls="docs-sidebar" aria-expanded="false"><span aria-hidden="true">☰</span> {localize('docs.chapters')}</button><span class="mono">{localize('docs.mobile_caption')}</span></div>
+<button class="sidebar-shade" aria-label="{localize('docs.sidebar_close')}" tabindex="-1"></button>
+<div class="docs-layout">
+    {include '../partials/sidebar.latte'}
+    <main class="docs-main" id="main">{block content}{/block}</main>
+    {include '../partials/toc.latte'}
+</div>
+{include '../partials/search-modal.latte'}
+{include '../partials/ui-strings.latte'}
+</body>
+</html>

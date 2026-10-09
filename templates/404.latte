@@ -1,0 +1,4 @@
+{layout 'layouts/landing.latte'}
+{block content}
+{var $localePrefix = ($currentLocale ?? 'en') === ($defaultLocale ?? 'en') ? '' : '/' . $currentLocale}
+<main id="main" class="error-page"><span class="mono">{localize('error.label')}</span><h1>{localize('error.title')}</h1><p>{localize('error.body')}</p><a class="button button-dark" href="{$leafBaseUrl}{$localePrefix}/">{localize('error.back')} <span>↗</span></a></main>{/block}

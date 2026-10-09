@@ -1,0 +1,17 @@
+<div id="panel-localization" class="code-panel locale-panel" role="tabpanel" aria-labelledby="tab-localization" tabindex="0" hidden>
+    <div class="locale-specimen"><span class="mono">locale/en/general.json</span><pre><code class="language-json">{syntax off}{
+  "demo": {
+    "greeting": "Hello, {name}",
+    "items": "{count} {count|plural:item:items}"
+  }
+}{/syntax}</code></pre></div>
+    <div class="locale-specimen"><span class="mono">locale/fr/general.json</span><pre><code class="language-json">{syntax off}{
+  "demo": {
+    "greeting": "Bonjour, {name}",
+    "items": "{count} {count|plural:article:articles}"
+  }
+}{/syntax}</code></pre></div>
+    <div class="locale-call"><pre><code class="language-php">{syntax off}localize('demo.greeting', ['name' => 'Sam']);
+localize('demo.items', ['count' => 3]);{/syntax}</code></pre></div>
+    <div class="locale-result"><div><span class="mono">{localize('landing.message_result')}</span><p><span data-demo-greeting>{localize('demo.greeting', ['name' => 'Sam'])}</span><span data-demo-items>{localize('demo.items', ['count' => 3])}</span></p></div><div class="example-languages" role="group" aria-label="{localize('landing.locale_demo_label')}"><button data-example-locale="en" data-example-greeting="Hello, Sam" data-example-items="3 items" aria-pressed="{$currentLocale === 'en' ? 'true' : 'false'}">EN</button><button data-example-locale="fr" data-example-greeting="Bonjour, Sam" data-example-items="3 articles" aria-pressed="{$currentLocale === 'fr' ? 'true' : 'false'}">FR</button></div></div>
+</div>

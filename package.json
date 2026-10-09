@@ -1,0 +1,15 @@
+{
+  "name": "zephyrus-site",
+  "private": true,
+  "version": "0.1.0",
+  "scripts": {
+    "dev": "leaf dev --addr 127.0.0.1:4173",
+    "build": "leaf build",
+    "qa": "node scripts/qa.cjs && node scripts/pixels-qa.cjs",
+    "capture": "node scripts/capture.cjs",
+    "social": "node scripts/social.cjs"
+  },
+  "devDependencies": {
+    "playwright": "1.63.0"
+  }
+}

@@ -1,0 +1,12 @@
+{layout '../layouts/docs.latte'}
+{block content}
+{var $localePrefix = ($currentLocale ?? 'en') === ($defaultLocale ?? 'en') ? '' : '/' . $currentLocale}
+
+<div class="docs-breadcrumb"><a href="{$leafBaseUrl}{$localePrefix}/">Zephyrus</a><span>/</span><span>{localize('common.documentation')}</span><span>/</span><span>{$title}</span></div>
+<div class="doc-preview-notice"><span class="notice-dot" aria-hidden="true"></span><p><strong>{localize('docs.notice_title')}</strong> {localize('docs.notice_body')}</p></div>
+<article class="docs-content"><div class="prose">{$content|noescape}</div>
+<nav class="docs-pagination" aria-label="{localize('docs.pagination')}" n:if="$prevPage || $nextPage">
+{if $prevPage}<a href="{$localePrefix}{$prevPage['url']}/" class="pagination-link pagination-prev"><span class="pagination-label">{localize('docs.previous')}</span><span class="pagination-title">{$prevPage['title']}</span></a>{else}<span></span>{/if}
+{if $nextPage}<a href="{$localePrefix}{$nextPage['url']}/" class="pagination-link pagination-next"><span class="pagination-label">{localize('docs.next')}</span><span class="pagination-title">{$nextPage['title']}</span></a>{/if}
+</nav><p class="docs-article-footer">{localize('docs.footer')}</p></article>
+{/block}

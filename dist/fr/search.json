@@ -1,0 +1,87 @@
+[
+    {
+        "title": "Configuration",
+        "section": "fundamentals",
+        "url": "\/fundamentals\/configuration",
+        "excerpt": "Configuration Votre environnement, au même endroit. Zephyrus utilise une configuration YAML avec des valeurs d’environnement et des sections typées. Ce chapitre expliquera les réglages du framework mis à jour. #Un point de départ lisible Cet aperçu montre le style de configuration utilisé par un sit...",
+        "headings": [
+            "Un point de départ lisible",
+            "Ce que ce chapitre couvrira"
+        ]
+    },
+    {
+        "title": "Accès aux données",
+        "section": "fundamentals",
+        "url": "\/fundamentals\/data",
+        "excerpt": "Accès aux données Votre SQL. Votre modèle de données. Les Brokers regroupent les requêtes SQL d’un domaine. Les méthodes utilitaires gèrent les paramètres liés et le retour des données, tout en gardant la requête visible. #Une requête explicite use stdClass; use Zephyrus\\Data\\Broker; final class Pro...",
+        "headings": [
+            "Une requête explicite",
+            "Une place pour chaque responsabilité",
+            "Ce qui suivra"
+        ]
+    },
+    {
+        "title": "HTTP",
+        "section": "fundamentals",
+        "url": "\/fundamentals\/http",
+        "excerpt": "HTTP Chaque réponse, explicite. Les objets de requête et de réponse sont au cœur de Zephyrus. Ce chapitre expliquera leur structure et la façon dont l’immutabilité organise le parcours d’une application. #Des changements intentionnels Une réponse peut être créée avec un statut explicite. Modifier un...",
+        "headings": [
+            "Des changements intentionnels",
+            "Ce que ce chapitre couvrira"
+        ]
+    },
+    {
+        "title": "Localisation",
+        "section": "fundamentals",
+        "url": "\/fundamentals\/localization",
+        "excerpt": "Localisation Une autre langue. Un fichier JSON. Le chargeur de langues réunit les fichiers JSON d’un répertoire. Les clés imbriquées sont accessibles par notation avec des points, comme demo.greeting. #Des messages lisibles { &quot;demo&quot;: { &quot;greeting&quot;: &quot;Bonjour, {name}&quot;, &qu...",
+        "headings": [
+            "Des messages lisibles",
+            "Le repli des langues",
+            "Ce qui suivra"
+        ]
+    },
+    {
+        "title": "Routage",
+        "section": "fundamentals",
+        "url": "\/fundamentals\/routing",
+        "excerpt": "Routage Un chemin direct vers votre logique. Zephyrus déclare les routes avec des attributs PHP sur les méthodes des contrôleurs. Ce chapitre accueillera la référence du routage mis à jour. #Les routes, en clair Cet exemple visuel montre un paramètre d’URL et la méthode typée qui le reçoit. use Zeph...",
+        "headings": [
+            "Les routes, en clair",
+            "Ce que ce chapitre couvrira"
+        ]
+    },
+    {
+        "title": "Sécurité",
+        "section": "fundamentals",
+        "url": "\/fundamentals\/security",
+        "excerpt": "Sécurité Des limites réfléchies. Les middlewares de sécurité et la validation des entrées font partie des fondations du framework. Ce chapitre accueillera la référence mise à jour et les exemples pratiques. #Les middlewares Le guide expliquera où les middlewares s’exécutent, comment ils sont enregis...",
+        "headings": [
+            "Les middlewares",
+            "La validation des entrées",
+            "La suite"
+        ]
+    },
+    {
+        "title": "Introduction",
+        "section": "getting-started",
+        "url": "\/getting-started\/introduction",
+        "excerpt": "Introduction Un point de départ clair. Zephyrus est un framework PHP cohérent qui réunit le routage par attributs, les objets HTTP immuables, la configuration typée et les middlewares de sécurité sur une même fondation. Ce guide prend forme avec la prochaine mise à jour du framework. Il présente pou...",
+        "headings": [
+            "Une fondation réfléchie",
+            "Les composants du core",
+            "Un premier exemple",
+            "Parcourir le guide"
+        ]
+    },
+    {
+        "title": "Structure du projet",
+        "section": "getting-started",
+        "url": "\/getting-started\/project-structure",
+        "excerpt": "Structure du projet Une place pour chaque composant. Ce chapitre présentera le modèle d’application après la mise à jour du framework. L’organisation ci-dessous sert d’aperçu visuel pour le guide. #L’application en un regard Les contrôleurs, les vues et la configuration ont chacun leur place. Le gui...",
+        "headings": [
+            "L’application en un regard",
+            "Le parcours d’une requête"
+        ]
+    }
+]

@@ -1,0 +1,15 @@
+<div id="panel-data" class="code-panel" role="tabpanel" aria-labelledby="tab-data" tabindex="0" hidden><pre><code class="language-php">{syntax off}&lt;?php
+
+use stdClass;
+use Zephyrus\Data\Broker;
+
+final class ProductBroker extends Broker
+{
+    public function find(int $id): ?stdClass
+    {
+        return $this->selectOne(
+            'SELECT id, name FROM product WHERE id = ?',
+            [$id]
+        );
+    }
+}{/syntax}</code></pre></div>

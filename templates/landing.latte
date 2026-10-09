@@ -1,0 +1,130 @@
+{layout 'layouts/landing.latte'}
+{block content}
+{var $localePrefix = ($currentLocale ?? 'en') === ($defaultLocale ?? 'en') ? '' : '/' . $currentLocale}
+
+<main id="main">
+    <section class="hero" aria-labelledby="hero-title">
+        <div class="hero-topline"><span class="eyebrow"><span class="status-dot"></span> {localize('landing.hero_kicker')}</span><span class="hero-edition mono">{localize('landing.hero_edition')}</span></div>
+        <div class="hero-composition">
+            <div class="hero-copy">
+                <h1 id="hero-title">{localize('common.tagline')}<br><span>{localize('landing.hero_powerful')}<br> {localize('landing.hero_nature')}</span></h1>
+                <p>{localize('landing.hero_description_1')}<br class="desktop-break"> {localize('landing.hero_description_2')}</p>
+                <div class="hero-actions"><a class="button button-accent" href="{$leafBaseUrl}{$localePrefix}/getting-started/introduction/">{localize('landing.explore')} <span aria-hidden="true">↗</span></a><a class="text-link" href="#framework">{localize('landing.see_code')} <span aria-hidden="true">↓</span></a></div>
+            </div>
+            <div class="wind-art">
+                <canvas id="wind-canvas" aria-hidden="true"></canvas>
+                <span class="art-coordinate coordinate-top mono">{localize('landing.art_figure')}</span>
+                <span class="art-cross cross-one">+</span><span class="art-cross cross-two">+</span>
+                <div class="art-bottom"><span class="mono">{localize('landing.art_caption')}</span><button class="wind-control" data-wind-pause aria-label="{localize('ui.pause')}" aria-pressed="false"><span class="control-line" aria-hidden="true"></span><span class="mono">{localize('ui.live')}</span></button></div>
+            </div>
+        </div>
+        <div class="hero-bottom"><a href="#philosophy" class="scroll-cue"><span class="scroll-line"></span><span class="mono">{localize('landing.scroll')}</span></a><p>{localize('landing.hero_bottom')}</p><span class="mono hero-index">001 / ZEPHYRUS</span></div>
+    </section>
+    <div class="spec-strip"><span><i>01</i> PHP 8.4+</span><span><i>02</i> {localize('landing.spec_routing')}</span><span><i>03</i> {localize('landing.spec_http')}</span><span><i>04</i> {localize('landing.spec_license')}</span></div>
+    <section id="philosophy" class="philosophy section-pad">
+        <div class="section-label"><span class="eyebrow">{localize('landing.philosophy_label')}</span><span class="mono">{localize('landing.philosophy_caption')}</span></div>
+        <div class="philosophy-main"><h2 data-reveal>{localize('landing.philosophy_title')}<br>{localize('landing.philosophy_within')} <em>{localize('landing.philosophy_reach')}</em></h2><div class="philosophy-copy" data-reveal><span class="small-mark">{include 'partials/mark.latte'}</span><p>{localize('landing.philosophy_body_1')}</p><p>{localize('landing.philosophy_body_2')}</p><a class="inline-link" href="https://github.com/zephyrus-framework/core" target="_blank" rel="noopener">{localize('landing.source')} <span aria-hidden="true">↗</span></a></div></div>
+        <div class="principles"><div><span class="mono">{localize('landing.principle_1_label')}</span><p>{localize('landing.principle_1')}</p></div><div><span class="mono">{localize('landing.principle_2_label')}</span><p>{localize('landing.principle_2')}</p></div><div><span class="mono">{localize('landing.principle_3_label')}</span><p>{localize('landing.principle_3')}</p></div></div>
+    </section>
+    <section id="framework" class="code-section section-pad">
+        <div class="section-label"><span class="eyebrow">{localize('landing.code_label')}</span><span class="mono">{localize('landing.code_caption')}</span></div>
+        <div class="code-intro"><h2 data-reveal>{localize('landing.code_title')}<br><em>{localize('landing.code_title_accent')}</em></h2><p data-reveal>{localize('landing.code_intro_1')}<br>{localize('landing.code_intro_2')}<br>{localize('landing.code_intro_3')}</p></div>
+        <div class="code-workbench" data-reveal>
+            <div class="code-menu" role="tablist" aria-label="{localize('landing.code_examples_label')}" aria-orientation="vertical">
+                <button id="tab-routing" class="code-tab active" role="tab" aria-selected="true" aria-controls="panel-routing" data-code-tab="routing" data-file="ProductController.php" data-language="PHP"><span class="mono">01</span><span>{localize('landing.routing')}<small>{localize('landing.routing_caption')}</small></span><span class="tab-arrow">↗</span></button>
+                <button id="tab-responses" class="code-tab" role="tab" aria-selected="false" aria-controls="panel-responses" tabindex="-1" data-code-tab="responses" data-file="Response.php" data-language="PHP"><span class="mono">02</span><span>HTTP<small>{localize('landing.http_caption')}</small></span><span class="tab-arrow">↗</span></button>
+                <button id="tab-config" class="code-tab" role="tab" aria-selected="false" aria-controls="panel-config" tabindex="-1" data-code-tab="config" data-file="config.yml" data-language="YAML"><span class="mono">03</span><span>Configuration<small>{localize('landing.config_caption')}</small></span><span class="tab-arrow">↗</span></button>
+                <button id="tab-localization" class="code-tab" role="tab" aria-selected="false" aria-controls="panel-localization" tabindex="-1" data-code-tab="localization" data-file="locale/en + locale/fr" data-language="JSON / PHP"><span class="mono">04</span><span>{localize('landing.localization')}<small>{localize('landing.localization_caption')}</small></span><span class="tab-arrow">↗</span></button>
+                <button id="tab-data" class="code-tab" role="tab" aria-selected="false" aria-controls="panel-data" tabindex="-1" data-code-tab="data" data-file="ProductBroker.php" data-language="PHP / SQL"><span class="mono">05</span><span>{localize('landing.data')}<small>{localize('landing.data_caption')}</small></span><span class="tab-arrow">↗</span></button>
+                <a class="workbench-docs" href="{$leafBaseUrl}{$localePrefix}/getting-started/introduction/">{localize('landing.workbench_docs')} <span>↗</span></a>
+            </div>
+            <div class="code-window">
+                <div class="code-window-top"><span class="file-name mono">ProductController.php</span><span class="language-tag mono">PHP</span><button class="copy-button" aria-label="{localize('landing.code_copy')}" data-copy-example>{localize('ui.copy')} <span aria-hidden="true">⧉</span></button></div>
+                <div id="panel-routing" class="code-panel" role="tabpanel" aria-labelledby="tab-routing" tabindex="0"><pre><code class="language-php">{syntax off}&lt;?php
+
+namespace App\Controllers;
+
+use Zephyrus\Controller\Controller;
+use Zephyrus\Http\Response;
+use Zephyrus\Routing\Attribute\Get;
+
+final class ProductController extends Controller
+{
+    #[Get('/products/{id}')]
+    public function show(int $id): Response
+    {
+        return Response::json(['id' => $id]);
+    }
+}{/syntax}</code></pre></div>
+                <div id="panel-responses" class="code-panel" role="tabpanel" aria-labelledby="tab-responses" tabindex="0" hidden><pre><code class="language-php">{syntax off}&lt;?php
+
+use Zephyrus\Http\Response;
+
+// JSON, with an explicit status.
+$response = Response::json([
+    'id' => 42,
+    'name' => 'Something worth building',
+], 201);
+
+// Immutable objects. Intentional changes.
+$response = $response->withHeader(
+    'Cache-Control', 'no-store'
+);
+
+return $response;{/syntax}</code></pre></div>
+                <div id="panel-config" class="code-panel" role="tabpanel" aria-labelledby="tab-config" tabindex="0" hidden><pre><code class="language-yaml">{syntax off}# The essentials, in plain sight.
+application:
+  environment: !env APP_ENV, dev
+  debug: !env APP_DEBUG, true
+
+render:
+  engine: latte
+  directory: app/Views
+  cache: cache/latte
+
+localization:
+  locale: en
+  timezone: America/Toronto{/syntax}</code></pre></div>
+                {include 'partials/code-localization.latte'}
+                {include 'partials/code-data.latte'}
+                <div class="code-window-bottom"><span class="mono"><span class="status-dot"></span> {localize('landing.code_bottom')}</span><span class="mono">ZEPHYRUS / CORE</span></div>
+            </div>
+        </div>
+        <p class="code-footnote mono">{localize('landing.code_footnote')}</p>
+    </section>
+    <section class="architecture section-pad">
+        <div class="section-label"><span class="eyebrow">{localize('landing.architecture_label')}</span><span class="mono">{localize('landing.architecture_caption')}</span></div>
+        <div class="architecture-heading"><h2 data-reveal>{localize('landing.architecture_title')}<br><span>{localize('landing.architecture_accent')}</span></h2><p>{localize('landing.architecture_intro_1')}<br>{localize('landing.architecture_intro_2')}</p></div>
+        <div class="architecture-grid">
+            <div class="flow-diagram" aria-hidden="true"><div class="flow-orbit orbit-one"></div><div class="flow-orbit orbit-two"></div><div class="flow-orbit orbit-three"></div><span class="flow-axis axis-one"></span><span class="flow-axis axis-two"></span><div class="flow-center">{include 'partials/mark.latte'}</div><span class="flow-label label-one mono">{localize('landing.flow_request')}</span><span class="flow-label label-two mono">{localize('landing.flow_response')}</span><span class="flow-node node-one"></span><span class="flow-node node-two"></span><span class="flow-caption mono">{localize('landing.flow_caption')}</span></div>
+            <div class="architecture-list">
+                <details open><summary><span class="mono">01</span><span>{localize('landing.detail_routing')}</span><span class="detail-symbol"></span></summary><div class="detail-body"><p>{localize('landing.detail_routing_body')}</p><a href="{$leafBaseUrl}{$localePrefix}/fundamentals/routing/">{localize('landing.detail_routing_link')}</a></div></details>
+                <details><summary><span class="mono">02</span><span>{localize('landing.detail_http')}</span><span class="detail-symbol"></span></summary><div class="detail-body"><p>{localize('landing.detail_http_body')}</p><a href="{$leafBaseUrl}{$localePrefix}/fundamentals/http/">{localize('landing.detail_http_link')}</a></div></details>
+                <details><summary><span class="mono">03</span><span>{localize('landing.detail_security')}</span><span class="detail-symbol"></span></summary><div class="detail-body"><p>{localize('landing.detail_security_body')}</p><a href="{$leafBaseUrl}{$localePrefix}/fundamentals/security/">{localize('landing.detail_security_link')}</a></div></details>
+                <details><summary><span class="mono">04</span><span>{localize('landing.detail_config')}</span><span class="detail-symbol"></span></summary><div class="detail-body"><p>{localize('landing.detail_config_body')}</p><a href="{$leafBaseUrl}{$localePrefix}/fundamentals/configuration/">{localize('landing.detail_config_link')}</a></div></details>
+                <details><summary><span class="mono">05</span><span>{localize('landing.detail_localization')}</span><span class="detail-symbol"></span></summary><div class="detail-body"><p>{localize('landing.detail_localization_body')}</p><a href="{$leafBaseUrl}{$localePrefix}/fundamentals/localization/">{localize('landing.detail_localization_link')}</a></div></details>
+                <details><summary><span class="mono">06</span><span>{localize('landing.detail_data')}</span><span class="detail-symbol"></span></summary><div class="detail-body"><p>{localize('landing.detail_data_body')}</p><a href="{$leafBaseUrl}{$localePrefix}/fundamentals/data/">{localize('landing.detail_data_link')}</a></div></details>
+            </div>
+        </div>
+    </section>
+    {include 'partials/features.latte'}
+    <section class="ecosystem section-pad">
+        <div class="section-label"><span class="eyebrow">{localize('landing.ecosystem_label')}</span><span class="mono">{localize('landing.ecosystem_caption')}</span></div>
+        <div class="ecosystem-main"><h2 data-reveal>{localize('landing.ecosystem_title')}<br><em>{localize('landing.ecosystem_accent')}</em></h2><a class="ecosystem-leaf" href="https://leaf.ophelios.com" target="_blank" rel="noopener"><span class="leaf-symbol" aria-hidden="true">↗</span><div><span class="mono">{localize('landing.leaf_label')}</span><h3>Zephyrus Leaf<span>↗</span></h3><p>{localize('landing.leaf_body')}</p><span class="ecosystem-note mono">{localize('landing.leaf_note')}</span></div></a></div>
+        <div class="built-sites"><span class="mono">{localize('landing.built_sites')}</span><a href="https://codequill.xyz" target="_blank" rel="noopener">CodeQuill <span>↗</span></a><a href="https://leaf.ophelios.com" target="_blank" rel="noopener">Leaf <span>↗</span></a><a href="https://agreely.ca" target="_blank" rel="noopener">Agreely <span>↗</span></a><a href="https://corvee.ca" target="_blank" rel="noopener">Corvée <span>↗</span></a></div>
+    </section>
+    {include 'partials/agents.latte'}
+    {include 'partials/roadmap.latte'}
+    <section class="docs-teaser section-pad">
+        <div class="section-label"><span class="eyebrow">{localize('landing.docs_label')}</span><span class="mono">{localize('landing.docs_caption')}</span></div>
+        <div class="docs-teaser-main"><div><span class="preview-badge"><span class="status-dot"></span> {localize('landing.docs_preview')}</span><h2 data-reveal>{localize('landing.docs_title')}<br>{localize('landing.docs_way')} <em>{localize('landing.docs_accent')}</em></h2><p>{localize('landing.docs_intro_1')}<br>{localize('landing.docs_intro_2')}</p><a class="button button-dark" href="{$leafBaseUrl}{$localePrefix}/getting-started/introduction/">{localize('landing.docs_open')} <span>↗</span></a></div><a class="docs-mini" href="{$leafBaseUrl}{$localePrefix}/getting-started/introduction/" aria-label="{localize('landing.docs_preview_label')}"><div class="mini-top"><span>zephyrus<span>.</span></span><span class="mono">DOCUMENTATION <span>↗</span></span></div><div class="mini-body"><div class="mini-sidebar"><span>{localize('docs.start_upper')}</span><b>{localize('docs.introduction')}</b><span>{localize('docs.project_structure')}</span><span class="mini-group">{localize('docs.fundamentals_upper')}</span><span>{localize('landing.routing')}</span><span>HTTP</span><span>Configuration</span></div><div class="mini-content"><span class="mono">{localize('docs.mini_breadcrumb')}</span><h3>{localize('docs.introduction')}<span>.</span></h3><p>{localize('docs.intro_subtitle')}</p><div class="mini-rule"></div><span class="mini-text-line"></span><span class="mini-text-line shorter"></span><div class="mini-code mono">{syntax off}<span>#[Get('/hello')]</span><br>public function hello()<br>{<br>&nbsp;&nbsp; return Response::json(...);<br>}{/syntax}</div></div></div></a></div>
+    </section>
+    <section id="build" class="closing section-pad" aria-labelledby="closing-title">
+        <canvas id="pixel-canvas" aria-hidden="true"></canvas>
+        <div class="closing-top"><span class="eyebrow">{localize('landing.closing_label')}</span><button class="pixel-control" data-pixel-pause aria-label="{localize('ui.pause_cta')}" aria-pressed="false"><span class="control-line" aria-hidden="true"></span><span class="mono">{localize('ui.live')}</span></button></div>
+        <div class="closing-main"><h2 id="closing-title">{localize('landing.closing_title')}<br><em>{localize('landing.closing_accent')}</em></h2><a href="https://github.com/zephyrus-framework/core" class="closing-link" target="_blank" rel="noopener" aria-label="{localize('landing.github_label')}">↗</a></div>
+        <div class="pixel-caption mono"><span>FIG. 03 / ZEPHYRUS</span><span class="pixel-pointer-hint">{localize('landing.pixel_hint')}</span><span class="pixel-touch-hint">{localize('landing.pixel_touch_hint')}</span></div>
+        <div class="closing-bottom"><span class="mono">{localize('landing.closing_caption')}</span><a href="{$leafBaseUrl}{$localePrefix}/getting-started/introduction/">{localize('landing.closing_docs')}</a></div>
+    </section>
+</main>
+{/block}

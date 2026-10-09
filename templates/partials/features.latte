@@ -1,0 +1,11 @@
+<section id="features" class="features-section section-pad">
+    <div class="section-label"><span class="eyebrow">04 / {localize('features.label')}</span><span class="mono">{localize('features.caption')}</span></div>
+    <div class="features-heading"><h2 data-reveal>{localize('features.title')}<br><em>{localize('features.title_accent')}</em></h2><p>{localize('features.intro')}</p></div>
+    <div class="feature-ledger">
+        <article class="feature-entry" data-reveal><span class="mono">01 / {localize('features.runtime.label')}</span><h3>{localize('features.runtime.title')}</h3><p>{localize('features.runtime.body')}</p><code>{syntax off}#[RequiresEnv('MODE', 'API')]{/syntax}</code></article>
+        <article class="feature-entry" data-reveal><span class="mono">02 / {localize('features.container.label')}</span><h3>{localize('features.container.title')}</h3><p>{localize('features.container.body')}</p><code>bind() / singleton() / make()</code></article>
+        <article class="feature-entry" data-reveal><span class="mono">03 / {localize('features.guards.label')}</span><h3>{localize('features.guards.title')}</h3><p>{localize('features.guards.body')}</p><code>AllAuthGuard / AnyAuthGuard / NotAuthGuard</code></article>
+        <article class="feature-entry" data-reveal><span class="mono">04 / {localize('features.streaming.label')}</span><h3>{localize('features.streaming.title')}</h3><p>{localize('features.streaming.body')}</p><code>Generator → SseEvent → SseEmitter</code></article>
+    </div>
+    <a class="inline-link" href="{$leafGithubUrl}" target="_blank" rel="noopener">{localize('features.source')} <span aria-hidden="true">↗</span></a>
+</section>

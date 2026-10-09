@@ -1,0 +1,21 @@
+{var $localePrefix = ($currentLocale ?? 'en') === ($defaultLocale ?? 'en') ? '' : '/' . $currentLocale}
+<a class="skip-link" href="#main">{localize('common.skip')}</a>
+<header class="site-header">
+    <a href="{$leafBaseUrl}{$localePrefix}/" class="brand" aria-label="{localize('common.home')}">{include 'mark.latte'}<span>zephyrus<span class="brand-period">.</span></span></a>
+    <nav class="main-nav" aria-label="{localize('common.navigation')}">
+        {if !($docsMode ?? false)}
+        <a href="#philosophy">{localize('common.philosophy')}</a>
+        <a href="#framework">{localize('common.framework')}</a>
+        {/if}
+        <a href="{$leafBaseUrl}{$localePrefix}/getting-started/introduction/"{if $docsMode ?? false} aria-current="page"{/if}>{localize('common.documentation')} <span class="nav-preview">{localize('common.preview')}</span></a>
+    </nav>
+    <div class="header-actions">
+        {include 'languages.latte'}
+        <a class="github-link" href="{$leafGithubUrl}" target="_blank" rel="noopener">GitHub <span aria-hidden="true">↗</span></a>
+        {if $docsMode ?? false}<button class="search-trigger" aria-label="{localize('common.search_label')}" data-search-open><svg width="15" height="15" viewBox="0 0 20 20" fill="none" aria-hidden="true"><circle cx="8" cy="8" r="5.5" stroke="currentColor" stroke-width="1.5"/><path d="m12 12 5 5" stroke="currentColor" stroke-width="1.5"/></svg><span>{localize('common.search')}</span><kbd>⌘ K</kbd></button>{/if}
+        <button class="menu-toggle" aria-label="{localize('ui.open_menu')}" aria-expanded="false" aria-controls="mobile-nav"><span></span><span></span></button>
+    </div>
+    <nav id="mobile-nav" class="mobile-nav" aria-label="{localize('common.mobile_navigation')}" hidden>
+        <a href="{$leafBaseUrl}{$localePrefix}/#philosophy">{localize('common.philosophy')}</a><a href="{$leafBaseUrl}{$localePrefix}/#framework">{localize('common.framework')}</a><a href="{$leafBaseUrl}{$localePrefix}/getting-started/introduction/">{localize('common.documentation')}</a><a href="{$leafGithubUrl}" target="_blank" rel="noopener">GitHub ↗</a>
+    </nav>
+</header>

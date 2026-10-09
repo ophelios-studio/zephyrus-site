@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Un aperçu du chapitre sur la structure d’une application Zephyrus.">
+<meta name="theme-color" content="#151b18">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Structure du projet · Zephyrus">
+<meta property="og:description" content="Un aperçu du chapitre sur la structure d’une application Zephyrus.">
+<meta property="og:locale" content="fr_CA">
+<meta property="og:locale:alternate" content="en_US">
+<meta property="og:site_name" content="Zephyrus">
+<meta property="og:image" content="/assets/images/og-fr.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="/assets/images/og-fr.png">
+<link rel="icon" type="image/svg+xml" href="/assets/favicon.svg">
+<link rel="preload" href="/assets/fonts/space-grotesk-500.ttf" as="font" type="font/ttf" crossorigin>
+<link rel="stylesheet" href="/assets/css/site.css">
+<link rel="stylesheet" href="/assets/css/extensions.css">
+<script defer src="/assets/js/site.js"></script>
+<title>Structure du projet · Zephyrus</title></head>
+<body class="docs-page" data-locale-prefix="/fr">
+<a class="skip-link" href="#main">Aller au contenu</a>
+<header class="site-header">
+    <a href="/fr/" class="brand" aria-label="Accueil Zephyrus"><svg class="brand-mark" viewBox="0 0 36 36" fill="none" aria-hidden="true"><path d="M5 9h25L7 27h24M5 15h17M14 21h17" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+<span>zephyrus<span class="brand-period">.</span></span></a>
+    <nav class="main-nav" aria-label="Navigation principale">
+        <a href="/fr/getting-started/introduction/" aria-current="page">Documentation <span class="nav-preview">aperçu</span></a>
+    </nav>
+    <div class="header-actions">
+<nav class="language-switch" aria-label="Langue du site">
+    <a href="/getting-started/project-structure/" lang="en" hreflang="en" data-language-link="en">EN</a>
+    <a href="/fr/getting-started/project-structure/" lang="fr" hreflang="fr" data-language-link="fr" aria-current="true">FR</a>
+</nav>
+        <a class="github-link" href="https://github.com/zephyrus-framework/core" target="_blank" rel="noopener">GitHub <span aria-hidden="true">↗</span></a>
+        <button class="search-trigger" aria-label="Rechercher dans la documentation" data-search-open><svg width="15" height="15" viewBox="0 0 20 20" fill="none" aria-hidden="true"><circle cx="8" cy="8" r="5.5" stroke="currentColor" stroke-width="1.5"></circle><path d="m12 12 5 5" stroke="currentColor" stroke-width="1.5"></path></svg><span>Recherche</span><kbd>⌘ K</kbd></button>
+        <button class="menu-toggle" aria-label="Ouvrir la navigation" aria-expanded="false" aria-controls="mobile-nav"><span></span><span></span></button>
+    </div>
+    <nav id="mobile-nav" class="mobile-nav" aria-label="Navigation mobile" hidden>
+        <a href="/fr/#philosophy">Philosophie</a><a href="/fr/#framework">Framework</a><a href="/fr/getting-started/introduction/">Documentation</a><a href="https://github.com/zephyrus-framework/core" target="_blank" rel="noopener">GitHub ↗</a>
+    </nav>
+</header>
+<div class="docs-mobile-bar"><button class="docs-menu-button" aria-controls="docs-sidebar" aria-expanded="false"><span aria-hidden="true">☰</span> Chapitres</button><span class="mono">DOCUMENTATION / APERÇU</span></div>
+<button class="sidebar-shade" aria-label="Fermer la navigation de la documentation" tabindex="-1"></button>
+<div class="docs-layout">
+<aside class="docs-sidebar" id="docs-sidebar">
+    <div class="sidebar-caption"><span class="mono">LE GUIDE DE TERRAIN</span><span>APERÇU</span></div>
+    <nav aria-label="Chapitres de la documentation">
+        <div class="sidebar-group"><h3 class="sidebar-group-title">Pour commencer</h3><ul class="sidebar-links">
+            <li><a href="/fr/getting-started/introduction/" class="sidebar-link">Introduction</a></li>
+            <li><a href="/fr/getting-started/project-structure/" class="sidebar-link active" aria-current="page">Structure du projet</a></li>
+        </ul></div>
+        <div class="sidebar-group"><h3 class="sidebar-group-title">Les fondamentaux</h3><ul class="sidebar-links">
+            <li><a href="/fr/fundamentals/routing/" class="sidebar-link">Routage</a></li>
+            <li><a href="/fr/fundamentals/http/" class="sidebar-link">HTTP</a></li>
+            <li><a href="/fr/fundamentals/configuration/" class="sidebar-link">Configuration</a></li>
+            <li><a href="/fr/fundamentals/localization/" class="sidebar-link">Localisation</a></li>
+            <li><a href="/fr/fundamentals/data/" class="sidebar-link">Accès aux données</a></li>
+            <li><a href="/fr/fundamentals/security/" class="sidebar-link">Sécurité</a></li>
+        </ul></div>
+    </nav>
+    <div class="sidebar-footer"><p>Un framework PHP cohérent.<br>Clair, par choix.</p><a href="https://leaf.ophelios.com" target="_blank" rel="noopener">Conçu avec Leaf <span aria-hidden="true">↗</span></a></div>
+</aside>
+    <main class="docs-main" id="main">
+<div class="docs-breadcrumb"><a href="/fr/">Zephyrus</a><span>/</span><span>Documentation</span><span>/</span><span>Structure du projet</span></div>
+<div class="doc-preview-notice"><span class="notice-dot" aria-hidden="true"></span><p><strong>Un premier aperçu du guide.</strong> Le framework évolue. Les chapitres et les exemples d’API seront finalisés avec la prochaine mise à jour.</p></div>
+<article class="docs-content"><div class="prose"><h1>Structure du projet</h1>
+<p>Une place pour chaque composant.</p>
+<p>Ce chapitre présentera le modèle d’application après la mise à jour du framework. L’organisation ci-dessous sert d’aperçu visuel pour le guide.</p>
+<h2 id="lapplication-en-un-regard"><a href="#lapplication-en-un-regard" class="heading-permalink" aria-hidden="true" title="Permalink">#</a>L’application en un regard</h2>
+<p>Les contrôleurs, les vues et la configuration ont chacun leur place. Le guide final parcourra le modèle d’application et expliquera où votre propre code s’intègre.</p>
+<pre><code class="language-text">app/
+  Controllers/     Routes et traitement des requêtes
+  Models/          Logique de votre application
+  Views/           Templates Latte
+public/            Point d’entrée web et ressources
+config.yml         Configuration applicative
+</code></pre>
+<blockquote>
+<p><strong>Chapitre en préparation</strong>
+L’arborescence finale et les commandes seront vérifiées avec le modèle d’application mis à jour.</p>
+</blockquote>
+<h2 id="le-parcours-dune-requête"><a href="#le-parcours-dune-requête" class="heading-permalink" aria-hidden="true" title="Permalink">#</a>Le parcours d’une requête</h2>
+<ol>
+<li>Une requête entre dans l’application.</li>
+<li>Le routeur trouve la méthode de contrôleur correspondante.</li>
+<li>Les middlewares gèrent les étapes qui s’appliquent.</li>
+<li>Le contrôleur retourne une réponse.</li>
+</ol>
+<p>Le chapitre <a href="/fr/fundamentals/routing/">Routage</a> précisera comment une URL rejoint votre code.</p>
+</div>
+<nav class="docs-pagination" aria-label="Chapitres précédent et suivant">
+<a href="/fr/getting-started/introduction/" class="pagination-link pagination-prev"><span class="pagination-label">← CHAPITRE PRÉCÉDENT</span><span class="pagination-title">Introduction</span></a>
+<a href="/fr/fundamentals/routing/" class="pagination-link pagination-next"><span class="pagination-label">CHAPITRE SUIVANT →</span><span class="pagination-title">Routage</span></a>
+</nav><p class="docs-article-footer">ZEPHYRUS / LE GUIDE / APERÇU DE LA DOCUMENTATION</p></article>
+</main>
+<aside class="docs-toc"><h4 class="toc-title">Sur cette page</h4><nav aria-label="Sur cette page"><ul class="toc-links">
+<li class="toc-item"><a href="#lapplication-en-un-regard" class="toc-link">L’application en un regard</a></li><li class="toc-item"><a href="#le-parcours-dune-requête" class="toc-link">Le parcours d’une requête</a></li>
+</ul></nav><a class="toc-home" href="/fr/">← Retour à Zephyrus</a></aside>
+</div>
+<dialog class="search-dialog" aria-label="Rechercher dans la documentation">
+<div class="search-input-row"><svg width="18" height="18" viewBox="0 0 20 20" fill="none" aria-hidden="true"><circle cx="8" cy="8" r="5.5" stroke="currentColor" stroke-width="1.5"></circle><path d="m12 12 5 5" stroke="currentColor" stroke-width="1.5"></path></svg><input id="doc-search" type="search" placeholder="Trouvez votre chemin..." autocomplete="off" aria-label="Rechercher les chapitres de la documentation"><button class="search-close" aria-label="Fermer la recherche">ESC</button></div>
+<div class="search-results" aria-live="polite"></div><div class="search-hint"><span>↑ ↓ PARCOURIR   ↵ OUVRIR</span><span>LE GUIDE ZEPHYRUS</span></div>
+</dialog>
+<div id="ui-strings" hidden
+    data-copy="Copier"
+    data-copied="Copié ✓"
+    data-select-code="Sélectionner"
+    data-copy-block="Copier le bloc de code"
+    data-open-menu="Ouvrir la navigation"
+    data-close-menu="Fermer la navigation"
+    data-loading="Chargement des chapitres..."
+    data-search-error="La recherche n’a pas pu charger. Fermez-la puis réessayez."
+    data-no-results="Aucun chapitre trouvé. Essayez « routage » ou « configuration »."
+    data-start-section="Pour commencer"
+    data-fundamentals-section="Les fondamentaux"
+    data-pause="Mettre l’animation en pause"
+    data-resume="Reprendre l’animation"
+    data-pause-cta="Mettre les pixels en pause"
+    data-resume-cta="Reprendre l’animation des pixels"
+    data-live="EN DIRECT"
+    data-paused="EN PAUSE"></div>
+</body>
+</html>

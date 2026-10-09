@@ -1,0 +1,14 @@
+{var $localePrefix = ($currentLocale ?? 'en') === ($defaultLocale ?? 'en') ? '' : '/' . $currentLocale}
+<aside class="docs-sidebar" id="docs-sidebar" n:if="isset($sidebar)">
+    <div class="sidebar-caption"><span class="mono">{localize('docs.field_guide')}</span><span>{localize('common.preview_upper')}</span></div>
+    <nav aria-label="{localize('docs.chapters_label')}">
+        {foreach $sidebar as $group}
+        <div class="sidebar-group"><h3 class="sidebar-group-title">{localize('docs.sections.' . $group['items'][0]['section'])}</h3><ul class="sidebar-links">
+            {foreach $group['items'] as $item}
+            <li><a href="{$leafBaseUrl}{$localePrefix}/{$item['section']}/{$item['slug']}/" class="sidebar-link{if $item['url'] === $leafBaseUrl . '/' . $section . '/' . $slug} active{/if}"{if $item['url'] === $leafBaseUrl . '/' . $section . '/' . $slug} aria-current="page"{/if}>{$item['title']}</a></li>
+            {/foreach}
+        </ul></div>
+        {/foreach}
+    </nav>
+    <div class="sidebar-footer"><p>{localize('common.description')}<br>{localize('common.tagline')}</p><a href="https://leaf.ophelios.com" target="_blank" rel="noopener">{localize('docs.built_with')} <span aria-hidden="true">↗</span></a></div>
+</aside>

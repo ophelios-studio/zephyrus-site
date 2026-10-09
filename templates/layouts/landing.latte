@@ -1,0 +1,13 @@
+{var $localePrefix = ($currentLocale ?? 'en') === ($defaultLocale ?? 'en') ? '' : '/' . $currentLocale}
+<!DOCTYPE html>
+<html lang="{$currentLocale ?? 'en'}">
+<head>{include '../partials/head.latte'}<title>{localize('common.meta_title')}</title></head>
+<body class="landing-page" data-locale-prefix="{$localePrefix}">
+{include '../partials/nav.latte'}
+{block content}{/block}
+<footer class="site-footer"><a class="brand" href="{$leafBaseUrl}{$localePrefix}/">{include '../partials/mark.latte'}<span>zephyrus.</span></a><p>{localize('common.footer_location')}</p><div><a href="https://ophelios.com" target="_blank" rel="noopener">{localize('common.footer_project')}</a><span>© {date('Y')}</span></div></footer>
+<script defer src="{$leafBaseUrl}/assets/js/wind.js"></script>
+<script defer src="{$leafBaseUrl}/assets/js/pixels.js"></script>
+{include '../partials/ui-strings.latte'}
+</body>
+</html>

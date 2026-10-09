@@ -1,0 +1,6 @@
+{var $languagePath = isset($section) && isset($slug) ? '/' . $section . '/' . $slug . '/' : '/'}
+<nav class="language-switch" aria-label="{localize('common.language')}">
+    {foreach ['en', 'fr'] as $language}
+    <a href="{$leafBaseUrl}{$language === ($defaultLocale ?? 'en') ? '' : '/' . $language}{$languagePath}" lang="{$language}" hreflang="{$language}" data-language-link="{$language}"{if $language === ($currentLocale ?? 'en')} aria-current="true"{/if}>{$language|upper}</a>
+    {/foreach}
+</nav>
