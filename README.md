@@ -22,6 +22,22 @@ The deployable output is `dist/`. All styles, scripts and fonts are served local
 
 Stop `leaf dev` before running a separate `leaf build`, since both commands publish into `dist/`.
 
+## GitHub Pages deployment
+
+The public repository deploys through `.github/workflows/pages.yml`. Every push to `main`, or a manual workflow run, builds both languages with Leaf v0.1.6 and PHP 8.4, then uploads `dist/` to GitHub Pages. The Linux CLI download is checked against the release's SHA-256 digest. No deployment secrets are required.
+
+Pages uses **GitHub Actions** as its publishing source. Its custom domain is configured in the repository's Pages settings as `zephyrus.ophelios.com`. With this publishing mode, GitHub uses the domain setting rather than a `CNAME` file.
+
+For the `ophelios.com` DNS zone, configure:
+
+| Type | Name | Target |
+| --- | --- | --- |
+| CNAME | `zephyrus` | `ophelios-studio.github.io` |
+
+The target is the organization's Pages hostname, without a repository path. After DNS validation and certificate issuance, enable **Enforce HTTPS** in the repository's Pages settings.
+
+Generated output remains committed for local previews. CI rebuilds from the templates, Markdown, catalogs and public assets before deployment. Social cards are committed assets; regenerate them with `npm run social` when their artwork or copy changes.
+
 ## Editing
 
 - `templates/landing.latte`: landing composition.
