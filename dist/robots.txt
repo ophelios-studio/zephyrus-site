@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://zephyrus.ophelios.com/sitemap.xml

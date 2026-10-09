@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" role="img" aria-label="La Corvée">
+  
+  <g fill="none" stroke-linecap="round">
+    <path stroke="#118951"    stroke-width="2.6" d="M26.87 28.1 A5 5 0 1 1 26.87 19.9"/>
+    <path stroke="#3188be"   stroke-width="2.6" d="M29.16 31.37 A9 9 0 1 1 29.16 16.63"/>
+    <path stroke="#865eb1"    stroke-width="2.6" d="M31.46 34.65 A13 13 0 1 1 31.46 13.35"/>
+    <path stroke="#ce533e"  stroke-width="2.6" d="M33.75 37.93 A17 17 0 1 1 33.75 10.07"/>
+    <path stroke="#ecae4a" stroke-width="2.6" d="M36.05 41.2 A21 21 0 1 1 36.05 6.8"/>
+  </g>
+  <circle cx="28.33" cy="21.5"  r="1.5" fill="#118951"/>
+  <circle cx="30.79" cy="18.1"  r="1.5" fill="#3188be"/>
+  <circle cx="33.14" cy="14.76" r="1.5" fill="#865eb1"/>
+  <circle cx="35.46" cy="11.45" r="1.5" fill="#ce533e"/>
+  <circle cx="37.78" cy="8.15"  r="1.5" fill="#ecae4a"/>
+  <circle cx="24" cy="24" r="2.4" fill="#251c17"/>
+</svg>

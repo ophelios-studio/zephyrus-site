@@ -24,9 +24,10 @@ const url = process.env.PREVIEW_URL || 'http://127.0.0.1:4173';
       if (name !== 'tablet') {
         await page.locator('#tab-localization').click();
         await page.locator('#framework').screenshot({ path: 'artifacts/localization-' + locale + '-' + name + '.png' });
-        for (const section of ['features', 'agents', 'roadmap', 'build']) await page.locator('#' + section).screenshot({ path: 'artifacts/' + section + '-' + locale + '-' + name + '.png' });
+        for (const section of ['start', 'features', 'ecosystem', 'agents', 'roadmap', 'build']) await page.locator('#' + section).screenshot({ path: 'artifacts/' + section + '-' + locale + '-' + name + '.png' });
       }
       console.log(locale + ' ' + name + ' home', JSON.stringify({ width: await page.evaluate(() => document.documentElement.scrollWidth), errors }));
+      await page.locator('.site-footer').screenshot({ path: 'artifacts/footer-' + locale + '-' + name + '.png' });
       await page.goto(url + prefix + '/getting-started/introduction/', { waitUntil: 'networkidle' });
       await page.screenshot({ path: 'artifacts/docs-' + locale + '-' + name + '.png', fullPage: true });
       console.log(locale + ' ' + name + ' docs', JSON.stringify({ width: await page.evaluate(() => document.documentElement.scrollWidth), errors }));

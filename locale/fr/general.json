@@ -13,11 +13,13 @@
     "search": "Recherche",
     "search_label": "Rechercher dans la documentation",
     "footer_location": "Conçu avec soin au Québec.",
-    "footer_project": "Un projet Ophelios ↗",
+    "footer_project": "Un projet Ophelios",
     "description": "Un framework PHP cohérent.",
     "tagline": "Clair, par choix.",
-    "meta_title": "Zephyrus · Clair, par choix. Puissant par nature.",
-    "meta_description": "Un framework PHP cohérent : routage par attributs, localisation JSON, SQL explicite, HTTP immuable et skill ouvert pour vos agents."
+    "meta_title": "Zephyrus · Framework PHP, clair par choix",
+    "meta_description": "Créez vos applications PHP avec le routage par attributs, la traduction JSON, le SQL explicite et HTTP immuable. Découvrez Zephyrus, ses outils et sa documentation.",
+    "image_alt": "Framework PHP Zephyrus. Clair, par choix. Puissant par nature. Un Z vert acide sur fond sombre.",
+    "meta_docs": "le guide"
   },
   "landing": {
     "hero_kicker": "LE FRAMEWORK PHP, REPENSÉ",
@@ -232,16 +234,67 @@
   },
   "roadmap": {
     "label": "07 / LA SUITE",
-    "caption": "UNE NOUVELLE DIRECTION.",
+    "caption": "LA BLOCKCHAIN, À L’ÉCHELLE DE VOTRE APP.",
     "status": "SUR LA ROADMAP",
     "title_accent": "en PHP.",
-    "body": "Des outils Web3 natifs arrivent dans Zephyrus. Un accès simplifié aux smart contracts, depuis le PHP que vous connaissez déjà.",
+    "body": "Des outils blockchain natifs arrivent dans Zephyrus. D’abord les smart contracts, puis tout le chemin entre un réseau et votre application.",
     "direction": "Accès aux smart contracts",
-    "study": "FIG. 02 / ÉTUDE D’UNE CONNEXION",
+    "study": "FIG. 02 / DU RÉSEAU À L’APPLICATION",
     "contract": "SMART CONTRACT",
     "interface": "UNE INTERFACE NATIVE",
-    "study_footer": "UN LANGAGE FAMILIER. DE NOUVELLES POSSIBILITÉS.",
-    "note_label": "À VENIR",
-    "note": "Un aperçu de la suite. L’API et les réseaux pris en charge seront annoncés au fil du développement."
+    "study_footer": "LIRE. COMPRENDRE. PASSER À L’ACTION.",
+    "note_label": "EXPLORATION",
+    "note": "L’accès aux smart contracts est sur la roadmap. Les pistes ci-dessous sont des idées à étudier, sans API publiée ni calendrier arrêté.",
+    "paths_label": "DES PISTES À EXPLORER",
+    "paths_caption": "UNE ESQUISSE POUR OUVRIR LA DISCUSSION.",
+    "planned": "PRÉVU",
+    "exploring": "À EXPLORER",
+    "node": "CHAIN / RPC",
+    "engine": "APPLICATION PHP",
+    "output": "SQL + ÉVÉNEMENTS",
+    "signal": "BLOCS → ÉVÉNEMENTS → APPLICATION",
+    "contracts": {
+      "title": "Les contracts, sans la plomberie.",
+      "body": "Lire l’état d’un contract, encoder les appels et décoder les événements ABI avec une interface PHP."
+    },
+    "providers": {
+      "title": "Votre provider. Votre choix.",
+      "body": "Brancher Alchemy, Infura ou votre nœud RPC. Explorer des adaptateurs cohérents, les reprises et le basculement entre endpoints."
+    },
+    "indexing": {
+      "title": "L’historique du réseau, dans votre base.",
+      "body": "Indexer les événements des contracts dans SQL. Reprendre depuis un checkpoint, rattraper l’historique et tenir compte des réorganisations."
+    },
+    "webhooks": {
+      "title": "Des événements qui arrivent à votre app.",
+      "body": "Recevoir les webhooks signés des providers, dédupliquer les livraisons et diriger les événements vers votre logique applicative."
+    },
+    "receipts": {
+      "title": "De la transaction à la confirmation.",
+      "body": "Suivre les reçus et la profondeur de confirmation, puis transmettre les changements au navigateur avec les Server-Sent Events."
+    },
+    "wallets": {
+      "title": "Un wallet devient une session.",
+      "body": "Explorer Sign-In with Ethereum, la validation des nonces et les sessions limitées dans le temps avec les guards Zephyrus."
+    }
+  },
+  "start": {
+    "label": "VOTRE PREMIER COMMIT COMMENCE ICI.",
+    "title": "Installez Zephyrus.",
+    "accent": "À vous la suite.",
+    "body": "Ajoutez le core avec Composer. Routage, HTTP, traductions JSON et SQL explicite deviennent la fondation de votre application.",
+    "action": "Démarrer un projet",
+    "terminal": "TERMINAL / POUR COMMENCER",
+    "copy": "Copier la commande Composer",
+    "status": "Open source. Licence MIT.",
+    "source": "Voir le core",
+    "github": "Explorer le code"
+  },
+  "social": {
+    "eyebrow": "LE FRAMEWORK PHP",
+    "title": "Clair, par choix.",
+    "accent": "Puissant par nature.",
+    "description": "Une fondation bien pensée pour la suite.",
+    "features": "Routage par attributs / Traductions JSON / SQL explicite"
   }
 }

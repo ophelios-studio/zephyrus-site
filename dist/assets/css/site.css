@@ -1353,25 +1353,7 @@ details[open] summary {
   color:#71864e;
 }
 
-.closing-link {
-  width:110px;
-  height:110px;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  border:1px solid #9cba69;
-  border-radius:50%;
-  font-family:var(--heading);
-  font-size:60px;
-  flex-shrink:0;
-  transition:background .2s,transform .2s;
-}
 
-.closing-link:hover {
-  background:var(--ink);
-  color:var(--acid);
-  transform:rotate(8deg);
-}
 
 .closing-bottom {
   display:flex;
@@ -2705,12 +2687,6 @@ html.motion-ready [data-reveal].is-visible {
   }
   .closing-main h2 {
     font-size:clamp(32px,8.2vw,47px);
-  }
-  .closing-link {
-    width:58px;
-    height:58px;
-    font-size:33px;
-    margin-bottom:4px;
   }
   .closing-bottom {
     align-items:flex-start;

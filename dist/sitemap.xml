@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
+  <url>
+    <loc>https://zephyrus.ophelios.com/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://zephyrus.ophelios.com/"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://zephyrus.ophelios.com/fr/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://zephyrus.ophelios.com/"/>
+  </url>
+  
+  <url>
+    <loc>https://zephyrus.ophelios.com/fundamentals/configuration/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://zephyrus.ophelios.com/fundamentals/configuration/"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://zephyrus.ophelios.com/fr/fundamentals/configuration/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://zephyrus.ophelios.com/fundamentals/configuration/"/>
+  </url>
+  <url>
+    <loc>https://zephyrus.ophelios.com/fundamentals/data/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://zephyrus.ophelios.com/fundamentals/data/"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://zephyrus.ophelios.com/fr/fundamentals/data/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://zephyrus.ophelios.com/fundamentals/data/"/>
+  </url>
+  <url>
+    <loc>https://zephyrus.ophelios.com/fundamentals/http/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://zephyrus.ophelios.com/fundamentals/http/"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://zephyrus.ophelios.com/fr/fundamentals/http/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://zephyrus.ophelios.com/fundamentals/http/"/>
+  </url>
+  <url>
+    <loc>https://zephyrus.ophelios.com/fundamentals/localization/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://zephyrus.ophelios.com/fundamentals/localization/"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://zephyrus.ophelios.com/fr/fundamentals/localization/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://zephyrus.ophelios.com/fundamentals/localization/"/>
+  </url>
+  <url>
+    <loc>https://zephyrus.ophelios.com/fundamentals/routing/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://zephyrus.ophelios.com/fundamentals/routing/"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://zephyrus.ophelios.com/fr/fundamentals/routing/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://zephyrus.ophelios.com/fundamentals/routing/"/>
+  </url>
+  <url>
+    <loc>https://zephyrus.ophelios.com/fundamentals/security/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://zephyrus.ophelios.com/fundamentals/security/"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://zephyrus.ophelios.com/fr/fundamentals/security/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://zephyrus.ophelios.com/fundamentals/security/"/>
+  </url>
+  <url>
+    <loc>https://zephyrus.ophelios.com/getting-started/introduction/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://zephyrus.ophelios.com/getting-started/introduction/"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://zephyrus.ophelios.com/fr/getting-started/introduction/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://zephyrus.ophelios.com/getting-started/introduction/"/>
+  </url>
+  <url>
+    <loc>https://zephyrus.ophelios.com/getting-started/project-structure/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://zephyrus.ophelios.com/getting-started/project-structure/"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://zephyrus.ophelios.com/fr/getting-started/project-structure/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://zephyrus.ophelios.com/getting-started/project-structure/"/>
+  </url>
+  <url>
+    <loc>https://zephyrus.ophelios.com/fr/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://zephyrus.ophelios.com/"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://zephyrus.ophelios.com/fr/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://zephyrus.ophelios.com/"/>
+  </url>
+  
+  <url>
+    <loc>https://zephyrus.ophelios.com/fr/fundamentals/configuration/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://zephyrus.ophelios.com/fundamentals/configuration/"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://zephyrus.ophelios.com/fr/fundamentals/configuration/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://zephyrus.ophelios.com/fundamentals/configuration/"/>
+  </url>
+  <url>
+    <loc>https://zephyrus.ophelios.com/fr/fundamentals/data/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://zephyrus.ophelios.com/fundamentals/data/"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://zephyrus.ophelios.com/fr/fundamentals/data/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://zephyrus.ophelios.com/fundamentals/data/"/>
+  </url>
+  <url>
+    <loc>https://zephyrus.ophelios.com/fr/fundamentals/http/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://zephyrus.ophelios.com/fundamentals/http/"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://zephyrus.ophelios.com/fr/fundamentals/http/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://zephyrus.ophelios.com/fundamentals/http/"/>
+  </url>
+  <url>
+    <loc>https://zephyrus.ophelios.com/fr/fundamentals/localization/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://zephyrus.ophelios.com/fundamentals/localization/"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://zephyrus.ophelios.com/fr/fundamentals/localization/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://zephyrus.ophelios.com/fundamentals/localization/"/>
+  </url>
+  <url>
+    <loc>https://zephyrus.ophelios.com/fr/fundamentals/routing/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://zephyrus.ophelios.com/fundamentals/routing/"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://zephyrus.ophelios.com/fr/fundamentals/routing/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://zephyrus.ophelios.com/fundamentals/routing/"/>
+  </url>
+  <url>
+    <loc>https://zephyrus.ophelios.com/fr/fundamentals/security/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://zephyrus.ophelios.com/fundamentals/security/"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://zephyrus.ophelios.com/fr/fundamentals/security/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://zephyrus.ophelios.com/fundamentals/security/"/>
+  </url>
+  <url>
+    <loc>https://zephyrus.ophelios.com/fr/getting-started/introduction/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://zephyrus.ophelios.com/getting-started/introduction/"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://zephyrus.ophelios.com/fr/getting-started/introduction/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://zephyrus.ophelios.com/getting-started/introduction/"/>
+  </url>
+  <url>
+    <loc>https://zephyrus.ophelios.com/fr/getting-started/project-structure/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://zephyrus.ophelios.com/getting-started/project-structure/"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://zephyrus.ophelios.com/fr/getting-started/project-structure/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://zephyrus.ophelios.com/getting-started/project-structure/"/>
+  </url>
+</urlset>

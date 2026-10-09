@@ -27,6 +27,9 @@ leaf:
     fundamentals: "Fundamentals"
   output_path: "dist"
   base_url: ""
+  production_url: "https://zephyrus.ophelios.com"
   author: "Ophelios"
   author_url: "https://ophelios.com"
   license: "MIT"
+  post_build:
+    - ["php", "scripts/finalize-seo.php"]

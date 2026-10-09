@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="{{locale}}">
+<head>
+<meta charset="utf-8">
+<base href="{{base}}/">
+<style>
+@font-face{font-family:Space;src:url('/assets/fonts/space-grotesk-500.ttf');font-weight:500}
+@font-face{font-family:DM;src:url('/assets/fonts/dm-sans-400.ttf')}
+@font-face{font-family:Mono;src:url('/assets/fonts/ibm-plex-mono-400.ttf')}
+*{box-sizing:border-box}body{margin:0;width:1200px;height:630px;overflow:hidden;background:#151b18;color:#edf0e5;font-family:DM}
+.card{position:relative;width:1200px;height:630px;padding:42px 54px;isolation:isolate;overflow:hidden}
+header{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #3b4c33;padding-bottom:27px}
+.brand{display:flex;align-items:center;gap:13px;font:500 34px Space;letter-spacing:-1.7px}.brand svg{width:39px;height:39px;color:#d8f39d}.brand .dot{color:#d8f39d}.mono{font:11px Mono;letter-spacing:.09em;color:#8ca779}
+.edition{display:flex;align-items:center;gap:25px}.edition b{font-weight:400;color:#d8f39d}
+.copy{position:relative;z-index:2;width:810px;padding-top:36px}.kicker{font:11px Mono;letter-spacing:.12em;color:#a3c287;display:flex;align-items:center;gap:10px}.kicker:before{content:'';width:5px;height:5px;background:#d8f39d}
+h1{font:500 68px/1.07 Space;letter-spacing:-3.8px;margin:28px 0 23px}h1 span{color:#d8f39d}html[lang=fr] h1{font-size:64px}
+p{font:19px DM;color:#9db08f;margin:0;line-height:1.6}.art{position:absolute;width:595px;height:540px;top:56px;right:-34px;z-index:-1}canvas{width:100%;height:100%;opacity:.8}.art:after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,#151b18,transparent 33%)}
+.mark-study{position:absolute;right:52px;top:262px;width:180px;height:180px;color:#d8f39d;opacity:.12;z-index:-1}
+footer{position:absolute;bottom:38px;left:54px;right:54px;border-top:1px solid #3b4c33;padding-top:22px;display:flex;align-items:center;justify-content:space-between;gap:25px}.features{font:11px Mono;color:#b0c49e;letter-spacing:-.3px}.url{font:12px Mono;color:#d8f39d}
+</style>
+</head>
+<body><div class="card">
+<header><div class="brand">{{mark}}<span>zephyrus<span class="dot">.</span></span></div><div class="edition mono">OPEN SOURCE <b>PHP 8.4+</b> {{locale_label}}</div></header>
+<div class="copy"><div class="kicker">{{eyebrow}}</div><h1>{{title}}<br><span>{{accent}}</span></h1><p>{{description}}</p></div>
+<div class="art"><canvas id="wind-canvas"></canvas></div><div class="mark-study">{{mark}}</div>
+<footer><span class="features">{{features}}</span><span class="url">zephyrus.ophelios.com</span></footer>
+</div><script src="/assets/js/wind.js"></script></body></html>

@@ -5,28 +5,38 @@
             <span class="roadmap-status mono"><span class="status-dot"></span>{localize('roadmap.status')}</span>
             <h2 id="roadmap-title">Web3,<br><em>{localize('roadmap.title_accent')}</em></h2>
             <p>{localize('roadmap.body')}</p>
-            <div class="roadmap-direction"><span class="mono">01 /</span><span>{localize('roadmap.direction')}</span></div>
         </div>
-        <div class="contract-study" data-reveal>
-            <div class="contract-study-header mono"><span>{localize('roadmap.study')}</span><span>PHP ↗ WEB3</span></div>
-            <div class="contract-visual" aria-hidden="true">
-                <svg class="contract-wire" viewBox="0 0 600 410" fill="none">
-                    <path class="wire-grid" d="M0 340H600M0 270H600M0 200H600M0 130H600M100 0V410M200 0V410M300 0V410M400 0V410M500 0V410"/>
-                    <path class="wire-path" d="M96 235H177C232 235 202 143 257 143H366M177 235C232 235 202 313 257 313H366"/>
-                    <path class="wire-signal" d="M96 235H177C232 235 202 143 257 143H366"/>
-                    <path class="wire-signal wire-signal-return" d="M366 313H257C202 313 232 235 177 235H96"/>
-                    <circle cx="177" cy="235" r="4"/>
+        <div class="chain-study" data-reveal>
+            <div class="chain-study-header mono"><span>{localize('roadmap.study')}</span><span>PHP / EVM</span></div>
+            <div class="chain-visual" aria-hidden="true">
+                <svg viewBox="0 0 600 390" fill="none" class="chain-topology">
+                    <defs><pattern id="chain-grid" width="30" height="30" patternUnits="userSpaceOnUse"><path d="M30 0H0V30" stroke="#aa98ba" stroke-width=".5"/></pattern></defs>
+                    <rect width="600" height="390" fill="url(#chain-grid)" opacity=".22"/>
+                    <g class="chain-blocks" stroke="#9779ab" stroke-width="1.2">
+                        <path d="M32 95L89 64L146 95V156L89 189L32 156Z" fill="#d4c6df"/><path d="M32 95L89 127L146 95M89 127V189"/>
+                        <path d="M55 149L112 118L169 149V210L112 243L55 210Z" fill="#dcd0e7"/><path d="M55 149L112 181L169 149M112 181V243"/>
+                        <path d="M78 203L135 172L192 203V264L135 297L78 264Z" fill="#e5e0ef"/><path d="M78 203L135 235L192 203M135 235V297"/>
+                    </g>
+                    <g class="chain-lines"><path d="M192 234H223V195H258M342 195H395V108H466M395 195V282H466"/><circle cx="395" cy="195" r="4"/></g>
+                    <path class="chain-signal" d="M192 234H223V195H258M342 195H395V108H466"/>
+                    <path class="chain-signal chain-signal-return" d="M342 195H395V282H466"/>
+                    <rect x="258" y="153" width="84" height="84" fill="#151b18"/>
+                    <svg x="266" y="161" width="68" height="68" viewBox="0 0 36 36"><path d="M5 9h25L7 27h24M5 15h17M14 21h17" stroke="#d8f39d" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    <g class="chain-ledger" stroke="#9d87af" stroke-width="1.2">
+                        <rect x="466" y="65" width="104" height="86" fill="#e5e0ef"/><path d="M466 94H570M480 110H516M480 126H544M533 110H555"/>
+                        <rect x="466" y="239" width="104" height="86" fill="#e5e0ef"/><path d="M480 277H490L500 264L512 294L522 276H555"/>
+                    </g>
                 </svg>
-                <span class="php-port">&lt;?php</span>
-                <div class="contract-stack">
-                    <div class="contract-sheet sheet-back"><span class="mono">0x / 03</span><span class="contract-rule"></span><span class="contract-rule short"></span></div>
-                    <div class="contract-sheet sheet-middle"><span class="mono">0x / 02</span><span class="contract-rule"></span><span class="contract-rule short"></span></div>
-                    <div class="contract-sheet sheet-front"><div class="contract-sheet-top mono"><span>0x / 01</span><span>↗</span></div><span class="contract-glyph">{ }</span><span class="mono">{localize('roadmap.contract')}</span><span class="contract-rule"></span><span class="contract-rule short"></span></div>
-                </div>
-                <span class="contract-axis mono">{localize('roadmap.interface')}</span>
+                <span class="chain-node-label mono">{localize('roadmap.node')}</span><span class="chain-php-label mono">&lt;?php</span><span class="chain-output-label mono">{localize('roadmap.output')}</span>
             </div>
-            <div class="contract-study-footer"><span class="mono">{localize('roadmap.study_footer')}</span><span aria-hidden="true">↗</span></div>
+            <div class="chain-study-footer mono"><span>{localize('roadmap.study_footer')}</span>{include 'icon.latte', name: 'arrow-up-right'}</div>
         </div>
+    </div>
+    <div class="roadmap-paths-heading"><h3 class="eyebrow">{localize('roadmap.paths_label')}</h3><span class="mono">{localize('roadmap.paths_caption')}</span></div>
+    <div class="roadmap-paths">
+        {foreach ['contracts' => 'stack-2', 'providers' => 'plug-connected', 'indexing' => 'database-import', 'webhooks' => 'webhook', 'receipts' => 'receipt', 'wallets' => 'wallet'] as $topic => $icon}
+        <article class="roadmap-path" data-reveal><div class="roadmap-path-top">{include 'icon.latte', name: $icon}<span class="mono">{$iterator->counter < 10 ? '0' : ''}{$iterator->counter} / {localize($topic === 'contracts' ? 'roadmap.planned' : 'roadmap.exploring')}</span></div><h4>{localize('roadmap.' . $topic . '.title')}</h4><p>{localize('roadmap.' . $topic . '.body')}</p></article>
+        {/foreach}
     </div>
     <div class="roadmap-note"><span class="mono">{localize('roadmap.note_label')}</span><p>{localize('roadmap.note')}</p></div>
 </section>

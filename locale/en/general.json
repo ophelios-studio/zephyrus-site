@@ -13,11 +13,13 @@
     "search": "Search",
     "search_label": "Search documentation",
     "footer_location": "Thoughtfully built in Québec.",
-    "footer_project": "An Ophelios project ↗",
+    "footer_project": "An Ophelios project",
     "description": "A cohesive PHP framework.",
     "tagline": "Clear by design.",
-    "meta_title": "Zephyrus · Clear by design. Powerful by nature.",
-    "meta_description": "A cohesive PHP framework with attribute routing, JSON localization, explicit SQL, immutable HTTP and an open agent skill."
+    "meta_title": "Zephyrus · PHP framework, clear by design",
+    "meta_description": "Build PHP applications with attribute routing, JSON localization, explicit SQL and immutable HTTP. Discover Zephyrus, its developer tools and documentation.",
+    "image_alt": "Zephyrus PHP framework. Clear by design. Powerful by nature. An acid-green Z on a dark background.",
+    "meta_docs": "documentation"
   },
   "landing": {
     "hero_kicker": "THE PHP FRAMEWORK, RECONSIDERED",
@@ -232,16 +234,67 @@
   },
   "roadmap": {
     "label": "07 / COMING NEXT",
-    "caption": "A NEW DIRECTION.",
+    "caption": "BLOCKCHAIN, AT APPLICATION SCALE.",
     "status": "ON THE ROADMAP",
     "title_accent": "in PHP.",
-    "body": "Native Web3 tools are coming to Zephyrus. A simpler way to access smart contracts, from the PHP you already know.",
+    "body": "Native blockchain tools are coming to Zephyrus. Starting with smart contracts, then looking at the whole path from a chain to your application.",
     "direction": "Smart contract access",
-    "study": "FIG. 02 / A CONNECTION STUDY",
+    "study": "FIG. 02 / FROM CHAIN TO APPLICATION",
     "contract": "SMART CONTRACT",
     "interface": "A NATIVE INTERFACE",
-    "study_footer": "FAMILIAR LANGUAGE. NEW POSSIBILITIES.",
-    "note_label": "COMING SOON",
-    "note": "A look at what comes next. The API and supported chains will be announced as development progresses."
+    "study_footer": "READ. UNDERSTAND. PUT IT TO WORK.",
+    "note_label": "EXPLORATION",
+    "note": "Smart contract access is on the roadmap. The directions below are ideas under consideration, not released features or a fixed delivery plan.",
+    "paths_label": "DIRECTIONS WORTH EXPLORING",
+    "paths_caption": "A WORKING SKETCH, OPEN FOR DISCUSSION.",
+    "planned": "PLANNED",
+    "exploring": "TO EXPLORE",
+    "node": "CHAIN / RPC",
+    "engine": "PHP APPLICATION",
+    "output": "SQL + EVENTS",
+    "signal": "BLOCKS → EVENTS → APPLICATION",
+    "contracts": {
+      "title": "Contracts, without the plumbing.",
+      "body": "Read contract state, encode calls and decode ABI events through a PHP interface."
+    },
+    "providers": {
+      "title": "Your provider. Your choice.",
+      "body": "Connect Alchemy, Infura or your own RPC node. Explore consistent adapters, retries and endpoint fallback."
+    },
+    "indexing": {
+      "title": "Chain history, in your database.",
+      "body": "Index contract events into SQL. Resume from checkpoints, backfill history and account for chain reorganizations."
+    },
+    "webhooks": {
+      "title": "Events that reach your app.",
+      "body": "Receive signed provider webhooks, deduplicate deliveries and route events to application handlers."
+    },
+    "receipts": {
+      "title": "From transaction to confirmation.",
+      "body": "Follow receipts and confirmation depth, then stream status changes to the browser with Server-Sent Events."
+    },
+    "wallets": {
+      "title": "A wallet becomes a session.",
+      "body": "Explore Sign-In with Ethereum, nonce validation and expiring sessions through Zephyrus guards."
+    }
+  },
+  "start": {
+    "label": "YOUR FIRST COMMIT STARTS HERE.",
+    "title": "Install Zephyrus.",
+    "accent": "Make it yours.",
+    "body": "Add the core with Composer. Routing, HTTP, JSON localization and explicit SQL become the foundation for your application.",
+    "action": "Start a project",
+    "terminal": "TERMINAL / QUICK START",
+    "copy": "Copy Composer command",
+    "status": "Open source. MIT licensed.",
+    "source": "Browse the core",
+    "github": "Explore the source"
+  },
+  "social": {
+    "eyebrow": "THE PHP FRAMEWORK",
+    "title": "Clear by design.",
+    "accent": "Powerful by nature.",
+    "description": "A considered foundation for what comes next.",
+    "features": "Attribute routing / JSON localization / Explicit SQL"
   }
 }

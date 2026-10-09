@@ -12,7 +12,11 @@ const base = process.env.PREVIEW_URL || 'http://127.0.0.1:4173';
     await page.context().grantPermissions(['clipboard-read', 'clipboard-write']);
     await page.goto(base, { waitUntil: 'networkidle' });
     assert.deepEqual(failures, [], 'Initial assets must load before interaction checks');
-    assert.equal(await page.title(), 'Zephyrus · Clear by design. Powerful by nature.');
+    for (const icon of await page.locator('.github-link .tabler-icon, .feature-entry-top .tabler-icon, .roadmap-path-top .tabler-icon').all()) {
+      const box = await icon.evaluate(svg => { const rect = svg.getBBox(); return { width: rect.width, height: rect.height }; });
+      assert(box.width > 3 && box.height > 3, 'SVG icon must have visible geometry');
+    }
+    assert.equal(await page.title(), 'Zephyrus · PHP framework, clear by design');
     assert.equal(await page.locator('html').getAttribute('lang'), 'en');
     assert.equal(await page.locator('[data-language-link="en"]').getAttribute('aria-current'), 'true');
     assert.deepEqual(await page.locator('.built-sites > a').evaluateAll(links => links.map(link => link.href)), [
@@ -30,6 +34,10 @@ const base = process.env.PREVIEW_URL || 'http://127.0.0.1:4173';
     await page.waitForTimeout(450);
     assert((await canvas.evaluate(el => el.toDataURL())) === pausedFrame, 'Pause should stop the canvas');
     checks.push('Hero renders, animates and pauses');
+    await page.getByRole('button', { name: 'Copy Composer command' }).click();
+    assert.equal(await page.evaluate(() => navigator.clipboard.readText()), 'composer require zephyrus-framework/core');
+    assert.equal(await page.locator('.closing-link').count(), 0);
+    checks.push('Core installation command copies correctly and GitHub uses an icon in the CTA');
 
     await page.getByRole('tab', { name: /HTTP/ }).click();
     assert(await page.locator('#panel-responses').isVisible());
@@ -50,7 +58,7 @@ const base = process.env.PREVIEW_URL || 'http://127.0.0.1:4173';
     assert.equal(await page.locator('[data-demo-items]').textContent(), '3 articles');
     await page.locator('#tab-data').click();
     assert((await page.locator('#panel-data').textContent()).includes('selectOne'));
-    await page.locator('[data-copy-target]').click();
+    await page.locator('[data-copy-target="skill-install-command"]').click();
     assert.equal(await page.evaluate(() => navigator.clipboard.readText()), 'npx skills add ophelios-studio/skills --skill zephyrus');
     assert((await page.locator('#roadmap').textContent()).includes('ON THE ROADMAP'));
     checks.push('JSON locale demo, explicit SQL, agent skill command and coming-soon roadmap');
@@ -123,9 +131,10 @@ const base = process.env.PREVIEW_URL || 'http://127.0.0.1:4173';
         await page.goto(base + route, { waitUntil: 'networkidle' });
         assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), 'Overflow at ' + width + ' ' + route);
         if (route === '/' || route === '/fr/') {
-          const sheet = await page.locator('.sheet-front').boundingBox();
-          const lastRule = await page.locator('.sheet-front .contract-rule.short').boundingBox();
-          assert(lastRule.y + lastRule.height <= sheet.y + sheet.height, 'Contract specimen content at ' + width);
+          assert.equal(await page.locator('.roadmap-path').count(), 6);
+          assert.equal(await page.locator('.ecosystem-leaf .tabler-icon').count(), 1);
+          assert.equal(await page.locator('.built-sites .product-mark').count(), 4);
+          assert.equal(await page.locator('.feature-entry-top .tabler-icon').count(), 4);
         }
       }
     }

@@ -1,0 +1,8 @@
+<section id="start" class="start-section section-pad" aria-labelledby="start-title">
+    <div class="start-copy"><span class="eyebrow">{localize('start.label')}</span><h2 id="start-title">{localize('start.title')}<br><em>{localize('start.accent')}</em></h2><p>{localize('start.body')}</p><span class="start-requirement mono">PHP 8.4+ <span aria-hidden="true">/</span> Composer</span></div>
+    <div class="install-command">
+        <div class="install-top"><span class="mono">{include 'icon.latte', name: 'terminal-2'} {localize('start.terminal')}</span><button class="copy-button" data-copy-target="starter-command" aria-label="{localize('start.copy')}">{localize('ui.copy')} {include 'icon.latte', name: 'copy'}</button></div>
+        <div class="install-line"><span class="install-prompt" aria-hidden="true">$</span><code id="starter-command">composer require zephyrus-framework/core</code></div>
+        <div class="install-footer"><span>{localize('start.status')}</span><a href="https://github.com/zephyrus-framework/core" target="_blank" rel="noopener">{localize('start.source')} {include 'icon.latte', name: 'arrow-up-right'}</a></div>
+    </div>
+</section>

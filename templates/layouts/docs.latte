@@ -1,7 +1,7 @@
 {var $localePrefix = ($currentLocale ?? 'en') === ($defaultLocale ?? 'en') ? '' : '/' . $currentLocale}
 <!DOCTYPE html>
 <html lang="{$currentLocale ?? 'en'}">
-<head>{include '../partials/head.latte'}<title>{$title ?? 'Documentation'} · Zephyrus</title></head>
+<head>{include '../partials/head.latte'}</head>
 <body class="docs-page" data-locale-prefix="{$localePrefix}">
 {include '../partials/nav.latte', docsMode: true}
 <div class="docs-mobile-bar"><button class="docs-menu-button" aria-controls="docs-sidebar" aria-expanded="false"><span aria-hidden="true">☰</span> {localize('docs.chapters')}</button><span class="mono">{localize('docs.mobile_caption')}</span></div>

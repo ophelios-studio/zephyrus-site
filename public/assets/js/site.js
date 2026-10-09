@@ -55,7 +55,7 @@
       button.textContent = ui.copied || 'Copied ✓';
     } catch {
       button.textContent = ui.selectCode || 'Select code';
-      const code = button.closest('.code-window, pre, .agent-command')?.querySelector('.code-panel:not([hidden]) code, code');
+      const code = button.closest('.code-window, pre, .agent-command, .install-command')?.querySelector('.code-panel:not([hidden]) code, code');
       if (code) { const range = document.createRange(); range.selectNodeContents(code); const selection = getSelection(); selection.removeAllRanges(); selection.addRange(range); }
     }
     setTimeout(() => { button.innerHTML = original; }, 1800);

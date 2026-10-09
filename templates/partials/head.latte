@@ -1,24 +1,54 @@
 {var $localePrefix = ($currentLocale ?? 'en') === ($defaultLocale ?? 'en') ? '' : '/' . $currentLocale}
+{var $isNotFound = $isNotFound ?? false}
 {var $pagePath = isset($section) && isset($slug) ? '/' . $section . '/' . $slug . '/' : '/'}
+{var $seoTitle = $isNotFound ? localize('error.title') . ' · Zephyrus' : (isset($section) ? $title . ' · Zephyrus ' . localize('common.meta_docs') : localize('common.meta_title'))}
+{var $seoDescription = $isNotFound ? localize('error.body') : ($pageDescription ?? localize('common.meta_description'))}
+{var $canonicalUrl = $leafProductionUrl . $localePrefix . $pagePath}
+{var $socialImage = $leafProductionUrl . '/assets/images/' . ($currentLocale === 'fr' ? 'og-fr' : 'og') . '.png'}
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="description" content="{$pageDescription ?? localize('common.meta_description')}">
+<title>{$seoTitle}</title>
+<meta name="description" content="{$seoDescription}">
+<meta name="robots" content="{$isNotFound ? 'noindex, follow' : 'index, follow, max-image-preview:large'}">
 <meta name="theme-color" content="#151b18">
 <meta property="og:type" content="website">
-<meta property="og:title" content="{if isset($section)}{$title} · Zephyrus{else}{localize('common.meta_title')}{/if}">
-<meta property="og:description" content="{$pageDescription ?? localize('common.meta_description')}">
-<meta property="og:locale" content="{$currentLocale === 'fr' ? 'fr_CA' : 'en_US'}">
-<meta property="og:locale:alternate" content="{$currentLocale === 'fr' ? 'en_US' : 'fr_CA'}">
+<meta property="og:title" content="{$seoTitle}">
+<meta property="og:description" content="{$seoDescription}">
+<meta property="og:locale" content="{$currentLocale === 'fr' ? 'fr_CA' : 'en_CA'}">
+<meta property="og:locale:alternate" content="{$currentLocale === 'fr' ? 'en_CA' : 'fr_CA'}">
 <meta property="og:site_name" content="Zephyrus">
-<meta property="og:image" content="{$leafProductionUrl ?? ''}/assets/images/{$currentLocale === 'fr' ? 'og-fr' : 'og'}.png">
+<meta property="og:image" content="{$socialImage}">
+<meta property="og:image:secure_url" content="{$socialImage}">
+<meta property="og:image:type" content="image/png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="{localize('common.image_alt')}">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="{$leafProductionUrl ?? ''}/assets/images/{$currentLocale === 'fr' ? 'og-fr' : 'og'}.png">
-{if ($leafProductionUrl ?? '') !== ''}
-<link rel="canonical" href="{$leafProductionUrl}{$localePrefix}{$pagePath}">
+<meta name="twitter:title" content="{$seoTitle}">
+<meta name="twitter:description" content="{$seoDescription}">
+<meta name="twitter:image" content="{$socialImage}">
+<meta name="twitter:image:alt" content="{localize('common.image_alt')}">
+{if !$isNotFound}
+<meta property="og:url" content="{$canonicalUrl}">
+<link rel="canonical" href="{$canonicalUrl}">
 {foreach ['en', 'fr'] as $language}<link rel="alternate" hreflang="{$language}" href="{$leafProductionUrl}{$language === ($defaultLocale ?? 'en') ? '' : '/' . $language}{$pagePath}">{/foreach}
 <link rel="alternate" hreflang="x-default" href="{$leafProductionUrl}{$pagePath}">
+{var $schema = [
+    '@context' => 'https://schema.org',
+    '@graph' => [
+        ['@type' => 'Organization', '@id' => 'https://ophelios.com/#organization', 'name' => 'Ophelios', 'url' => 'https://ophelios.com', 'logo' => ['@type' => 'ImageObject', 'url' => $leafProductionUrl . '/assets/brands/ophelios-black.png', 'width' => 3425, 'height' => 2365]],
+        ['@type' => 'WebSite', '@id' => $leafProductionUrl . '/#website', 'url' => $leafProductionUrl . '/', 'name' => 'Zephyrus', 'inLanguage' => ['en', 'fr'], 'publisher' => ['@id' => 'https://ophelios.com/#organization']],
+        ['@type' => 'SoftwareSourceCode', '@id' => $leafProductionUrl . '/#framework', 'name' => 'Zephyrus', 'url' => $leafProductionUrl . '/', 'description' => localize('common.meta_description'), 'programmingLanguage' => 'PHP', 'runtimePlatform' => 'PHP 8.4+', 'codeRepository' => $leafGithubUrl, 'license' => 'https://opensource.org/license/mit', 'author' => ['@id' => 'https://ophelios.com/#organization']],
+        ['@type' => 'WebPage', '@id' => $canonicalUrl . '#webpage', 'url' => $canonicalUrl, 'name' => $seoTitle, 'description' => $seoDescription, 'inLanguage' => $currentLocale, 'isPartOf' => ['@id' => $leafProductionUrl . '/#website'], 'about' => ['@id' => $leafProductionUrl . '/#framework'], 'primaryImageOfPage' => ['@type' => 'ImageObject', 'url' => $socialImage, 'width' => 1200, 'height' => 630]],
+    ]
+]}
+{if isset($section)}
+{var $schema['@graph'][] = ['@type' => 'BreadcrumbList', 'itemListElement' => [
+    ['@type' => 'ListItem', 'position' => 1, 'name' => 'Zephyrus', 'item' => $leafProductionUrl . $localePrefix . '/'],
+    ['@type' => 'ListItem', 'position' => 2, 'name' => $title, 'item' => $canonicalUrl]
+]]}
+{/if}
+<script type="application/ld+json">{json_encode($schema, 15) |noescape}</script>
 {/if}
 <link rel="icon" type="image/svg+xml" href="{$leafBaseUrl}/assets/favicon.svg">
 <link rel="preload" href="{$leafBaseUrl}/assets/fonts/space-grotesk-500.ttf" as="font" type="font/ttf" crossorigin>

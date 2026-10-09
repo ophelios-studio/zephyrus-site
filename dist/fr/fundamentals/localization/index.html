@@ -2,25 +2,38 @@
 <html lang="fr">
 <head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Localisation · Zephyrus le guide</title>
 <meta name="description" content="Catalogues JSON, clés imbriquées et paramètres de traduction dans Zephyrus.">
+<meta name="robots" content="index, follow, max-image-preview:large">
 <meta name="theme-color" content="#151b18">
 <meta property="og:type" content="website">
-<meta property="og:title" content="Localisation · Zephyrus">
+<meta property="og:title" content="Localisation · Zephyrus le guide">
 <meta property="og:description" content="Catalogues JSON, clés imbriquées et paramètres de traduction dans Zephyrus.">
 <meta property="og:locale" content="fr_CA">
-<meta property="og:locale:alternate" content="en_US">
+<meta property="og:locale:alternate" content="en_CA">
 <meta property="og:site_name" content="Zephyrus">
-<meta property="og:image" content="/assets/images/og-fr.png">
+<meta property="og:image" content="https://zephyrus.ophelios.com/assets/images/og-fr.png">
+<meta property="og:image:secure_url" content="https://zephyrus.ophelios.com/assets/images/og-fr.png">
+<meta property="og:image:type" content="image/png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Framework PHP Zephyrus. Clair, par choix. Puissant par nature. Un Z vert acide sur fond sombre.">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="/assets/images/og-fr.png">
+<meta name="twitter:title" content="Localisation · Zephyrus le guide">
+<meta name="twitter:description" content="Catalogues JSON, clés imbriquées et paramètres de traduction dans Zephyrus.">
+<meta name="twitter:image" content="https://zephyrus.ophelios.com/assets/images/og-fr.png">
+<meta name="twitter:image:alt" content="Framework PHP Zephyrus. Clair, par choix. Puissant par nature. Un Z vert acide sur fond sombre.">
+<meta property="og:url" content="https://zephyrus.ophelios.com/fr/fundamentals/localization/">
+<link rel="canonical" href="https://zephyrus.ophelios.com/fr/fundamentals/localization/">
+<link rel="alternate" hreflang="en" href="https://zephyrus.ophelios.com/fundamentals/localization/"><link rel="alternate" hreflang="fr" href="https://zephyrus.ophelios.com/fr/fundamentals/localization/">
+<link rel="alternate" hreflang="x-default" href="https://zephyrus.ophelios.com/fundamentals/localization/">
+<script type="application/ld+json">{"@context":"https:\/\/schema.org","@graph":[{"@type":"Organization","@id":"https:\/\/ophelios.com\/#organization","name":"Ophelios","url":"https:\/\/ophelios.com","logo":{"@type":"ImageObject","url":"https:\/\/zephyrus.ophelios.com\/assets\/brands\/ophelios-black.png","width":3425,"height":2365}},{"@type":"WebSite","@id":"https:\/\/zephyrus.ophelios.com\/#website","url":"https:\/\/zephyrus.ophelios.com\/","name":"Zephyrus","inLanguage":["en","fr"],"publisher":{"@id":"https:\/\/ophelios.com\/#organization"}},{"@type":"SoftwareSourceCode","@id":"https:\/\/zephyrus.ophelios.com\/#framework","name":"Zephyrus","url":"https:\/\/zephyrus.ophelios.com\/","description":"Cr\u00e9ez vos applications PHP avec le routage par attributs, la traduction JSON, le SQL explicite et HTTP immuable. D\u00e9couvrez Zephyrus, ses outils et sa documentation.","programmingLanguage":"PHP","runtimePlatform":"PHP 8.4+","codeRepository":"https:\/\/github.com\/zephyrus-framework\/core","license":"https:\/\/opensource.org\/license\/mit","author":{"@id":"https:\/\/ophelios.com\/#organization"}},{"@type":"WebPage","@id":"https:\/\/zephyrus.ophelios.com\/fr\/fundamentals\/localization\/#webpage","url":"https:\/\/zephyrus.ophelios.com\/fr\/fundamentals\/localization\/","name":"Localisation \u00b7 Zephyrus le guide","description":"Catalogues JSON, cl\u00e9s imbriqu\u00e9es et param\u00e8tres de traduction dans Zephyrus.","inLanguage":"fr","isPartOf":{"@id":"https:\/\/zephyrus.ophelios.com\/#website"},"about":{"@id":"https:\/\/zephyrus.ophelios.com\/#framework"},"primaryImageOfPage":{"@type":"ImageObject","url":"https:\/\/zephyrus.ophelios.com\/assets\/images\/og-fr.png","width":1200,"height":630}},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Zephyrus","item":"https:\/\/zephyrus.ophelios.com\/fr\/"},{"@type":"ListItem","position":2,"name":"Localisation","item":"https:\/\/zephyrus.ophelios.com\/fr\/fundamentals\/localization\/"}]}]}</script>
 <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg">
 <link rel="preload" href="/assets/fonts/space-grotesk-500.ttf" as="font" type="font/ttf" crossorigin>
 <link rel="stylesheet" href="/assets/css/site.css">
 <link rel="stylesheet" href="/assets/css/extensions.css">
 <script defer src="/assets/js/site.js"></script>
-<title>Localisation · Zephyrus</title></head>
+</head>
 <body class="docs-page" data-locale-prefix="/fr">
 <a class="skip-link" href="#main">Aller au contenu</a>
 <header class="site-header">
@@ -34,12 +47,15 @@
     <a href="/fundamentals/localization/" lang="en" hreflang="en" data-language-link="en">EN</a>
     <a href="/fr/fundamentals/localization/" lang="fr" hreflang="fr" data-language-link="fr" aria-current="true">FR</a>
 </nav>
-        <a class="github-link" href="https://github.com/zephyrus-framework/core" target="_blank" rel="noopener">GitHub <span aria-hidden="true">↗</span></a>
-        <button class="search-trigger" aria-label="Rechercher dans la documentation" data-search-open><svg width="15" height="15" viewBox="0 0 20 20" fill="none" aria-hidden="true"><circle cx="8" cy="8" r="5.5" stroke="currentColor" stroke-width="1.5"></circle><path d="m12 12 5 5" stroke="currentColor" stroke-width="1.5"></path></svg><span>Recherche</span><kbd>⌘ K</kbd></button>
+        <a class="github-link" href="https://github.com/zephyrus-framework/core" target="_blank" rel="noopener"><svg class="tabler-icon" width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/assets/icons/tabler.svg#brand-github"></use></svg>
+ GitHub</a>
+        <button class="search-trigger" aria-label="Rechercher dans la documentation" data-search-open><svg class="tabler-icon" width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/assets/icons/tabler.svg#search"></use></svg>
+<span>Recherche</span><kbd>⌘ K</kbd></button>
         <button class="menu-toggle" aria-label="Ouvrir la navigation" aria-expanded="false" aria-controls="mobile-nav"><span></span><span></span></button>
     </div>
     <nav id="mobile-nav" class="mobile-nav" aria-label="Navigation mobile" hidden>
-        <a href="/fr/#philosophy">Philosophie</a><a href="/fr/#framework">Framework</a><a href="/fr/getting-started/introduction/">Documentation</a><a href="https://github.com/zephyrus-framework/core" target="_blank" rel="noopener">GitHub ↗</a>
+        <a href="/fr/#philosophy">Philosophie</a><a href="/fr/#framework">Framework</a><a href="/fr/getting-started/introduction/">Documentation</a><a href="https://github.com/zephyrus-framework/core" target="_blank" rel="noopener"><svg class="tabler-icon" width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/assets/icons/tabler.svg#brand-github"></use></svg>
+ GitHub</a>
     </nav>
 </header>
 <div class="docs-mobile-bar"><button class="docs-menu-button" aria-controls="docs-sidebar" aria-expanded="false"><span aria-hidden="true">☰</span> Chapitres</button><span class="mono">DOCUMENTATION / APERÇU</span></div>
