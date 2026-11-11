@@ -77,7 +77,7 @@ A template is plain HTML with Latte tags:
 {/block}
 ```
 
-Latte's own documentation covers the full tag language. These are the tags you will use first.
+[Latte's own documentation](https://latte.nette.org/en/tags) covers the full tag language. These are the tags you will use first.
 
 ### Layouts and blocks
 

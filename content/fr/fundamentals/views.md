@@ -77,7 +77,7 @@ Un gabarit est du HTML ordinaire avec des balises Latte :
 {/block}
 ```
 
-La documentation de Latte couvre l'ensemble du langage de balises. Voici celles que vous utiliserez en premier.
+[La documentation de Latte](https://latte.nette.org/en/tags) couvre l’ensemble du langage de balises. Voici celles que vous utiliserez en premier.
 
 ### Mises en page et blocs
 
