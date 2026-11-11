@@ -154,7 +154,7 @@ session:
 
 `SessionConfig` is the typed object behind it, available as `$config->session`. Keys can be written in snake_case or camelCase, but one spelling per key. An unknown key, or a misspelled one, refuses to boot: `Configuration section 'session' field 'lifetim' is an unknown key: did you mean "lifetime"?`
 
-- **`secure: auto`** adds the `Secure` attribute on HTTPS requests and leaves it off on plain HTTP, so local development keeps working. In the run over plain HTTP the cookie was `APP_SESSION=...; path=/; HttpOnly; SameSite=Lax`. Set `secure: true` in production so the cookie is never sent over HTTP. `secure: false` never sets it. Behind a proxy that terminates TLS, `auto` sees HTTPS only when the proxy is listed in `security.trustedProxies`.
+- **`secure: auto`** adds the `Secure` attribute on HTTPS requests and leaves it off on plain HTTP, so local development keeps working. In the run over plain HTTP the cookie was `PHPSESSID=...; path=/; HttpOnly; SameSite=Lax`. Set `secure: true` in production so the cookie is never sent over HTTP. `secure: false` never sets it. Behind a proxy that terminates TLS, `auto` sees HTTPS only when the proxy is listed in `security.trustedProxies`.
 - **`http_only: true`** keeps JavaScript away from the cookie. Leave it on.
 - **`same_site: Lax`** sends the cookie on top-level navigations but not on cross-site requests that submit forms or load resources. `Strict` also withholds it when a visitor arrives from another site. `None` needs `Secure`.
 - **No `Domain` attribute** is ever set: the cookie belongs to the exact host that issued it.
@@ -219,12 +219,27 @@ With the files handler, PHP locks the session file for the length of the request
 
 `new SessionManager([])` keeps everything in the array you pass instead of PHP's session, with a simulated id. It is meant for tests and command-line scripts (see [Testing](../../digging-deeper/testing/)):
 
+The bootstrap class from [The application](../application/) builds its own `SessionManager`. To hand it yours, give `Kernel::application()` an optional third argument and fall back to a real manager:
+
+```php
+public static function application(string $root, Configuration $config, ?SessionManager $session = null): Application
+{
+    $session ??= new SessionManager();
+    $tokens = new SessionCsrfTokenManager($session);
+
+    // ...the rest of the method is unchanged: the same $session feeds
+    // SessionMiddleware and the CSRF token manager.
+}
+```
+
+A test then passes its own:
+
 ```php
 $session = new SessionManager([]);
 $application = Kernel::application($root, $config, $session);
 ```
 
-In this mode `start()` does nothing, `isStarted()` is always `true`, and `regenerate()` and `destroy()` change the simulated id and clear the array.
+In this mode `start()` does nothing and `isStarted()` is always `true`. `regenerate()` gives a new simulated id and keeps the data, while `destroy()` clears the data and sets the id to an empty string.
 
 ## Good to know
 
