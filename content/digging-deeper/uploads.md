@@ -105,7 +105,7 @@ When you do not pass a third argument to `store()`, the file is named with 32 ra
 new Uploader($root, mimeExtensionMap: ['application/octet-stream' => 'bin']);
 ```
 
-The map has no entry for HTML, PHP or shell scripts, on purpose: such a file is stored without an extension, so a web server cannot mistake it for something to run. It does contain `image/svg+xml`, and an SVG can carry script. Leave SVG out of `allowedMimeTypes` unless you need it, and serve one with the precautions below.
+The map has no entry for HTML, PHP or shell scripts, on purpose: such a file is stored without an extension, so a web server cannot mistake it for something to run. It does contain `image/svg+xml` (to `.svg`), `application/xml` and `text/xml` (to `.xml`), and both SVG and XML (an XHTML document, for one) can carry script. Served as static files they run it in the browser, even when the client named the upload `avatar.png`. Pass an explicit `allowedMimeTypes` list without them unless you need them, and serve one with the precautions below.
 
 `store($file, $subDirectory, $targetName)` accepts a name of your own. Do that only for a name your code builds, such as `avatar-7.png` from a user id. Never pass any part of the client's file name. A name you pass is checked against `allowedExtensions` only, not against the detected type, so choose its extension yourself from the types you accept. A name with a slash or a leading dot (`.htaccess`) is refused, and an existing file is not replaced unless the uploader was built with `overwriteExisting: true`.
 
