@@ -334,6 +334,8 @@ Generate your own `TIMING_HASH` once with `Cryptography::hashPassword(Cryptograp
 
 ### The forms
 
+`app/Views/sign-in.latte` holds the sign-in form:
+
 ```latte
 <form method="post" action="/sign-in">
     <input type="hidden" name="_csrf_token" value="{csrfToken()}">
@@ -345,35 +347,159 @@ Generate your own `TIMING_HASH` once with `Cryptography::hashPassword(Cryptograp
 </form>
 ```
 
-Signing out changes state, so it is a form with the token, not a link:
+Signing out changes state, so it is a form with the token, not a link. It lives in the layout that every page for a signed-in user extends, `app/Views/layout.latte`, so each page carries the button:
 
 ```latte
-<form method="post" action="/sign-out">
-    <input type="hidden" name="_csrf_token" value="{csrfToken()}">
-    <button>Sign out</button>
-</form>
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>{block title}{/block}</title>
+</head>
+<body>
+    <header>
+        <form method="post" action="/sign-out">
+            <input type="hidden" name="_csrf_token" value="{csrfToken()}">
+            <button>Sign out</button>
+        </form>
+    </header>
+    <main>{block content}{/block}</main>
+</body>
+</html>
 ```
+
+A page for a signed-in user begins with `{layout 'layout.latte'}` and fills `{block content}`, as in the [first application](../../getting-started/first-application/#the-views).
 
 ### Wiring it
 
-Add the container, so the controller receives its broker, and register the two named middleware:
+Add the database and the container, so the controller receives its broker, and register the named middleware. This is the whole bootstrap for a typical application served over HTTPS, with the `security:` section of the [security page](../security/#a-secure-bootstrap), the `api:` section above and a `database:` section. The security middleware are the ones from that page, in the same order:
 
-```php
-$container = new Container();
-$container->singleton(Database::class, fn (): Database => Database::fromConfig($config->database));
+```yaml
+application:
+  environment: !env APP_ENV, production
+  debug: !env APP_DEBUG, false
 
-return ApplicationBuilder::create()
-    ->withConfiguration($config, basePath: $root)
-    ->withRouter($router)
-    ->withContainer($container)
-    ->withRenderEngine($views)
-    // ... the global security middleware, SessionMiddleware and CsrfMiddleware
-    ->registerMiddleware('auth', new RequireUserMiddleware())
-    ->registerMiddleware('admin', new AuthGuardMiddleware(new RequestAttributeGuard('role', ['admin']), 403, 'Forbidden'))
-    ->build();
+database:
+  host: !env DB_HOST, localhost
+  database: !env DB_NAME
+  username: !env DB_USER
+  password: !env DB_PASSWORD
+
+api:
+  metrics_token: !env METRICS_TOKEN
+  webhook_secret: !env WEBHOOK_SECRET
+
+security:
+  force_https: true
+  allowed_hosts: [app.example.test]
+  max_body_size: 1048576
+  trusted_proxies: !env TRUSTED_PROXIES, ''
+  csrf:
+    enabled: true
+    exceptions: ['#^/webhooks/#']
+  headers:
+    x_frame_options: DENY
+    referrer_policy: same-origin
+    hsts_max_age: 31536000
 ```
 
-The global middleware are the ones from the [security bootstrap](../security/#a-secure-bootstrap). Then protect a controller:
+`app/Kernel.php`:
+
+```php
+namespace App;
+
+use App\Middleware\RequireUserMiddleware;
+use Zephyrus\Container\Container;
+use Zephyrus\Core\Application;
+use Zephyrus\Core\ApplicationBuilder;
+use Zephyrus\Core\Config\Configuration;
+use Zephyrus\Data\Database;
+use Zephyrus\Http\Request;
+use Zephyrus\Rendering\LatteEngine;
+use Zephyrus\Routing\Router;
+use Zephyrus\Security\AllowedHostsMiddleware;
+use Zephyrus\Security\AuthGuardMiddleware;
+use Zephyrus\Security\CsrfConfig;
+use Zephyrus\Security\CsrfMiddleware;
+use Zephyrus\Security\ForceHttpsMiddleware;
+use Zephyrus\Security\HeaderTokenGuard;
+use Zephyrus\Security\MaxBodySizeMiddleware;
+use Zephyrus\Security\PredicateAuthGuard;
+use Zephyrus\Security\RequestAttributeGuard;
+use Zephyrus\Security\SecureHeadersMiddleware;
+use Zephyrus\Session\SessionCsrfTokenManager;
+use Zephyrus\Session\SessionManager;
+use Zephyrus\Session\SessionMiddleware;
+
+final class Kernel
+{
+    public static function run(string $root): void
+    {
+        $config = Configuration::fromYamlFile($root . '/config.yml', ['api' => ApiConfig::class]);
+
+        $request = Request::fromGlobals(
+            trustedProxies: $config->security->trustedProxies,
+            trustedHeaders: $config->security->trustedHeaders,
+        );
+
+        self::application($root, $config)->handle($request)->send();
+    }
+
+    public static function application(string $root, Configuration $config): Application
+    {
+        $api = $config->section('api');
+
+        $session = new SessionManager();
+        $tokens = new SessionCsrfTokenManager($session);
+
+        $views = new LatteEngine($root . '/app/Views', $root . '/cache/latte');
+        $views->getLatteEngine()->addFunction('csrfToken', $tokens->getToken(...));
+
+        $router = (new Router())->discoverControllers('App\\Controllers', $root . '/app/Controllers');
+
+        $container = new Container();
+        $container->singleton(Database::class, fn (): Database => Database::fromConfig($config->database));
+
+        $signedByProvider = new PredicateAuthGuard(
+            static fn (Request $request): bool => hash_equals(
+                hash_hmac('sha256', $request->body()->raw(), $api->webhookSecret),
+                (string) $request->headers()->get('X-Signature'),
+            ),
+        );
+
+        return ApplicationBuilder::create()
+            ->withConfiguration($config, basePath: $root)
+            ->withRouter($router)
+            ->withContainer($container)
+            ->withRenderEngine($views)
+            ->withMiddleware(new SecureHeadersMiddleware($config->security->headers))
+            ->withMiddleware(new AllowedHostsMiddleware($config->security->allowedHosts))
+            ->withMiddleware(new ForceHttpsMiddleware())
+            ->withMiddleware(new MaxBodySizeMiddleware($config->security->maxBodySize))
+            ->withMiddleware(new SessionMiddleware($config->session, $session))
+            ->withMiddleware(new CsrfMiddleware($tokens, CsrfConfig::fromSecurityConfig($config->security)))
+            ->registerMiddleware('auth', new RequireUserMiddleware())
+            ->registerMiddleware('admin', new AuthGuardMiddleware(new RequestAttributeGuard('role', ['admin']), 403, 'Forbidden'))
+            ->registerMiddleware('metrics', new AuthGuardMiddleware(new HeaderTokenGuard($api->metricsToken)))
+            ->registerMiddleware('webhook-signature', new AuthGuardMiddleware($signedByProvider))
+            ->build();
+    }
+}
+```
+
+`public/index.php` calls it:
+
+```php
+<?php
+
+declare(strict_types=1);
+
+require dirname(__DIR__) . '/vendor/autoload.php';
+
+App\Kernel::run(dirname(__DIR__));
+```
+
+To run it on your machine, leave `force_https` and the `ForceHttpsMiddleware` line out together, and list `127.0.0.1` in `allowed_hosts` (see the [security page](../security/#a-secure-bootstrap)). Then protect a controller:
 
 ```php
 namespace App\Controllers;
@@ -408,10 +534,10 @@ An anonymous visitor to `/account` is redirected to `/sign-in`; a member who ope
 
 Each step above answers a known attack:
 
-- **Session fixation.** The attacker plants a session id in the victim's browser, waits for the sign-in, then uses the same id. `regenerate()` gives the signed-in session a new id, and the session refuses ids it did not create.
+- **Session fixation.** The attacker plants a session id in the victim's browser, waits for the sign-in, then uses the same id. `regenerate()` gives the signed-in session a new id, and a session save handler that implements `validateId()` refuses ids it did not create. PHP's default file handler and `DatabaseSessionHandler` do; with a custom handler that lacks `validateId()`, strict mode is inert and `start()` warns about it in debug mode (see [sessions](../sessions/)).
 - **A token read before sign-in.** `(new SessionCsrfTokenManager($session))->regenerate()` replaces the CSRF token, so one read from the anonymous page stops working: a post carrying it after sign-in is a 403.
 - **Login CSRF.** A forged form signs the victim into the attacker's account, to collect what they type. The sign-in form carries the token like any other.
-- **Account enumeration.** The answer to an unknown email and to a wrong password is the same page, the same status (422) and roughly the same time, because the unknown-email path verifies `TIMING_HASH` too.
+- **Account enumeration.** The answer to an unknown email and to a wrong password is the same page, the same status (422) and roughly the same time, because the unknown-email path verifies `TIMING_HASH` too. This holds only while every stored hash has the parameters of `TIMING_HASH`: an imported bcrypt hash, or an Argon2id hash with PHP's default parameters, takes a measurably different time to verify (126 ms for an unknown email, 147 ms for a hash from `hashPassword()`, 208 ms for a PHP-default Argon2id hash, almost nothing for bcrypt), so those accounts can be told apart until they are migrated.
 - **Open redirect.** The `next` field is the caller's choice. `localRedirect()` only follows a local path such as `/account`, and falls back to `/` for `https://evil.example/` or `//evil.example/`.
 - **Password guessing.** Zephyrus has no rate limiter. Limit sign-in attempts per account and per address, at your reverse proxy or in a middleware of your own on the `POST /sign-in` route.
 - **A stolen session cookie.** Keep the session cookie `http_only` and `secure`, with `same_site: Lax` or `Strict` (see [sessions](../sessions/)), and serve every page over HTTPS.
@@ -419,7 +545,7 @@ Each step above answers a known attack:
 
 ## Good to know
 
-- `verifyPassword()` accepts any Argon2id hash, including one from PHP's `password_hash($password, PASSWORD_ARGON2ID)`; `needsRehash()` then returns `true`, and the sign-in above stores the new hash. It returns `false` for a bcrypt hash: to migrate such accounts, check them with `password_verify()` and store `Cryptography::hashPassword()` on success.
+- `verifyPassword()` accepts any Argon2id hash, including one from PHP's `password_hash($password, PASSWORD_ARGON2ID)`; `needsRehash()` then returns `true`, and the sign-in above stores the new hash. It returns `false` for a bcrypt hash: to migrate such accounts, check them with `password_verify()` and store `Cryptography::hashPassword()` on success. Until an account is migrated, its sign-in time differs from the unknown-email path (see account enumeration above).
 - Show one message for both failures. "No account with this email" tells an attacker which emails are registered; offer that information only through a password reset email.
 - Without `SessionMiddleware` mounted globally, `$request->attribute('session')` is `null` and `session()` writes are dropped silently (see [sessions](../sessions/)). Mount it before any route middleware that reads the user.
 - `AuthGuardMiddleware` always answers JSON. For pages, redirect from your own middleware as `RequireUserMiddleware` does.
