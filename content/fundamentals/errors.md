@@ -35,7 +35,9 @@ $app = ApplicationBuilder::create()
     ->build();
 ```
 
-With this setup an uncaught exception becomes a `500` with a fixed body, and the line above lands in your error log. Nothing else is needed. The exception handlers below only change what the client sees.
+With this setup an uncaught exception becomes a `500` with a fixed body, and the line above lands in your error log. Nothing else is needed for a configuration that declares no `security:` settings (when it does, the matching middlewares must be mounted: see [Security](../security/)), apart from the PHP settings below. The exception handlers below only change what the client sees.
+
+Neither this page's setup nor the framework turns PHP's own `display_errors` off, and PHP's built-in default is on when no `php.ini` is loaded. A boot failure outside the kernel, such as a configuration typo, is then printed with its trace and vendor path. Production needs `display_errors=Off`, `display_startup_errors=Off` and `log_errors=On`: see [PHP settings for production](../../getting-started/installation/#php-settings-for-production).
 
 Without an event dispatcher, a failure reaches nobody: the client gets the fixed answer and the message is dropped. Register the listener.
 
@@ -84,16 +86,23 @@ $builder = $builder
     ->withExceptionHandler(RouteParameterException::class, $notFound);
 ```
 
-When several handlers match, the most specific class wins. A handler on `\Throwable` is a catch-all, and it also receives the exceptions the framework maps itself (`ValidationException` and `MethodNotAllowedException`). Decline for those, or your page replaces their 422 and 405:
+When several handlers match, the most specific class wins. A handler on `\Throwable` is a catch-all, and it also receives the exceptions the framework maps itself (`ValidationException`, `MethodNotAllowedException`, `RouteNotFoundException` and `RouteParameterException`). Decline for those, or your page replaces their 422, 405 and 404:
 
 ```php
 use Zephyrus\Routing\Exception\MethodNotAllowedException;
+use Zephyrus\Routing\Exception\RouteNotFoundException;
+use Zephyrus\Routing\Exception\RouteParameterException;
 use Zephyrus\Validation\ValidationException;
 
 $builder = $builder->withExceptionHandler(
     \Throwable::class,
     function (\Throwable $e, Request $request): ?Response {
-        if ($e instanceof ValidationException || $e instanceof MethodNotAllowedException) {
+        if (
+            $e instanceof ValidationException
+            || $e instanceof MethodNotAllowedException
+            || $e instanceof RouteNotFoundException
+            || $e instanceof RouteParameterException
+        ) {
             return null;
         }
         error_log($e::class . ': ' . $e->getMessage());
@@ -138,7 +147,7 @@ The event is observation only: a listener cannot replace the response. A listene
 
 ## Debugging in development
 
-With `application.debug: true` in a development or testing environment, `build()` enables the [Tracy](https://tracy.nette.org) debugger. Tracy shows its error page and debug bar only to loopback clients, and only when the request did not come through a proxy: its output includes stack-trace arguments, the environment and cookies, so it must never reach every client.
+With `application.debug: true` in a development or testing environment, `build()` enables the [Tracy](https://tracy.nette.org) debugger. Tracy always admits loopback clients, and nobody else unless they are on the allowlist below. It recognises a proxy only by an `X-Forwarded-For` or `Forwarded` header, so debug must stay off unless every proxy in front of PHP sends `X-Forwarded-For` (nginx: `proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;`). A remote client behind a proxy that sends no such header looks like a local one and gets the full error page. Its output includes stack-trace arguments, the environment and cookies, so it must never reach every client.
 
 The kernel catches exceptions before Tracy sees them. To get Tracy's page for an error, let the exception out of a handler in development only:
 
@@ -168,7 +177,7 @@ In `production` and `staging`, `build()` turns debug off whatever the file says,
 Zephyrus: application.debug is true while application.environment is production-like. Debug output has been FORCED OFF for this boot: ...
 ```
 
-An unrecognized environment name (`prodution`) is production too, so a typo fails safe. To debug a live tier on purpose, call `withProductionDebugAcknowledged()` in your bootstrap code. It is code on purpose, not a configuration key: a configuration value is what gets flipped on a server and forgotten. Even then, only the clients below see anything.
+An unrecognized environment name (`prodution`) is production too, so a typo fails safe. To debug a live tier on purpose, call `withProductionDebugAcknowledged()` in your bootstrap code. It is code on purpose, not a configuration key: a configuration value is what gets flipped on a server and forgotten. Even then, the clients below (and loopback) are the only ones meant to see anything, provided the proxy rule above holds.
 
 ```php
 $builder = $builder->withProductionDebugAcknowledged();
@@ -220,6 +229,9 @@ Every framework refusal is an exception whose message tells you what to fix. Rea
 Catch `ZephyrusException` to handle anything the framework throws on purpose:
 
 ```php
+use Zephyrus\Core\Config\Configuration;
+use Zephyrus\Exceptions\ZephyrusException;
+
 try {
     $config = Configuration::fromYamlFile($root . '/config.yml');
 } catch (ZephyrusException $e) {
@@ -228,7 +240,7 @@ try {
 }
 ```
 
-A boot error is addressed to you, and appears on the console or in the log, never on a page. The messages are stable enough to search for. These are the ones you will meet first:
+A boot error is addressed to you, and belongs on the console or in the log. It reaches a page only when PHP's `display_errors` is on, which is why production sets it to `Off` (see above). The messages are stable enough to search for. These are the ones you will meet first:
 
 ```text
 Configuration key 'sesion' is not a known section: did you mean "session"? ...
