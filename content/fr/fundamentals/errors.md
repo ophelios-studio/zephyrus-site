@@ -21,6 +21,10 @@ application:
 ```
 
 ```php
+use Zephyrus\Core\ApplicationBuilder;
+use Zephyrus\Core\ExceptionEvent;
+use Zephyrus\Event\EventDispatcher;
+
 $events = new EventDispatcher();
 $events->addListener(ExceptionEvent::class, function (ExceptionEvent $event): void {
     if (!$event->isRoutingFailure()) { // skip 404 and 405
