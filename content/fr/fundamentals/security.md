@@ -390,6 +390,8 @@ security:
 
 Sans `x-forwarded-proto`, une requête qu’un proxy a terminée en TLS n’est plus vue comme HTTPS : appliquez donc HTTPS au proxy et reconnaissez `forceHttps` (voir [forcer HTTPS](#forcer-https)). `allowed_hosts` est le filet de sécurité pour tous les en-têtes d’hôte, transmis ou non : inscrivez vos hôtes en production. Avec `app.example.test` inscrit, la requête ci-dessus reçoit un 400. Il ne vérifie pas les ports : un `X-Forwarded-Port` que le proxy n’écrase pas doit sortir de l’ensemble approuvé, sans quoi un client peut mettre son propre port dans les URL générées.
 
+Le port de l’en-tête `Host` lui-même n’est pas vérifié non plus : un client peut donc placer son propre port dans une URL construite à partir de la requête. Construisez les liens envoyés par courriel (réinitialisation de mot de passe, invitations) à partir d’une URL de base configurée, jamais à partir de la requête.
+
 `['*']` approuve tous les pairs. Il existe pour le développement local derrière un proxy de conteneur ; en production, il permet à n’importe quel client de choisir sa propre adresse.
 
 ### IpRange

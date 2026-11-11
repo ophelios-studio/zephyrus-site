@@ -390,6 +390,8 @@ security:
 
 Without `x-forwarded-proto`, a request that a proxy terminated over TLS is no longer seen as HTTPS, so enforce HTTPS at the proxy and acknowledge `forceHttps` (see [forcing HTTPS](#forcing-https)). `allowed_hosts` is the backstop for every host header, forwarded or not: list your hosts in production. With `app.example.test` listed, the request above is answered with a 400. It does not check ports: an `X-Forwarded-Port` that the proxy does not overwrite must leave the trusted set, or a client can put its own port into generated URLs.
 
+The port of the `Host` header itself is not checked either, so a client can put its own port into a URL built from the request. Build the links you send by email (password resets, invitations) from a configured base URL, never from the request.
+
 `['*']` trusts every peer. It exists for local development behind a container proxy; in production it lets any client choose its own address.
 
 ### IpRange
