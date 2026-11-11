@@ -49,7 +49,7 @@ Three files boot an application.
 
 ```yaml
 application:
-  environment: !env APP_ENV, dev
+  environment: !env APP_ENV, production
   debug: !env APP_DEBUG, false
 ```
 
@@ -108,10 +108,10 @@ This application has no sessions, no CSRF protection and no views, which is why 
 
 ## Run it
 
-PHP's built-in server is enough for development:
+PHP's built-in server is enough for development. The configuration defaults to `production`, so set `APP_ENV=dev` on your machine:
 
 ```bash
-php -S 127.0.0.1:8000 -t public
+APP_ENV=dev php -S 127.0.0.1:8000 -t public
 ```
 
 ```bash
@@ -124,6 +124,8 @@ content-type: application/json; charset=utf-8
 
 {"message":"Hello, world."}
 ```
+
+The output is abridged: the real response carries more headers (`Host`, `Date`, `X-Powered-By` and so on).
 
 An unknown path answers `404 Not Found`, and `POST /hello` answers `405 Method Not Allowed` with `allow: GET, HEAD`.
 
@@ -152,13 +154,25 @@ server {
 }
 ```
 
-Apache, in `public/.htaccess`:
+Apache needs `mod_rewrite` (`a2enmod rewrite` on Debian and Ubuntu) and, because the rules below live in `.htaccess`, `AllowOverride All` on the `public/` directory of the virtual host. Put them in `public/.htaccess`:
 
 ```apache
 RewriteEngine On
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteRule ^ index.php [L]
 ```
+
+### PHP settings for production
+
+Zephyrus does not change PHP's own error display, and PHP's built-in default is `display_errors=1` when no `php.ini` is loaded (some official container images ship none). Left on, an uncaught exception or a warning is printed to the client with its file path and trace. Set these in the `php.ini` that php-fpm or Apache loads (PHP ships a `php.ini-production` that already has them):
+
+```ini
+display_errors = Off
+display_startup_errors = Off
+log_errors = On
+```
+
+Check the value the server really uses with `php -i | grep display_errors` (for the CLI, which may load another `php.ini` than php-fpm), or with `ini_get('display_errors')` from the application.
 
 Terminate HTTPS in front of the application. If a reverse proxy sits in front of PHP, see [Security](../../fundamentals/security/) for the trusted proxy settings, and mount `ForceHttpsMiddleware` and `AllowedHostsMiddleware` there too.
 
@@ -173,7 +187,7 @@ Dotenv\Dotenv::createImmutable($root)->safeLoad();
 $config = Configuration::fromYamlFile($root . '/config.yml');
 ```
 
-With a `.env` file containing `APP_ENV=production`, `$config->application->environment` is `Environment::Production`. Without it, the default `dev` applies.
+With a `.env` file containing `APP_ENV=dev`, `$config->application->environment` is `Environment::Development`. Without it, the default `production` applies, so a server where `APP_ENV` is unset runs in production. A developer sets `APP_ENV=dev` locally.
 
 Good to know:
 
