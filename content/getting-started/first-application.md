@@ -41,7 +41,7 @@ Declare what the application promises. Each `security` key is enforced by a midd
 
 ```yaml
 application:
-  environment: !env APP_ENV, dev
+  environment: !env APP_ENV, production
   debug: !env APP_DEBUG, false
 
 session:
@@ -61,7 +61,7 @@ localization:
   timezone: UTC
 ```
 
-`debug` defaults to off. The session cookie is named `NOTES_SESSION` and is `SameSite=Lax`. See [Configuration](../../fundamentals/configuration/).
+The environment defaults to `production`, so an unset `APP_ENV` never means development: you set `APP_ENV=dev` on your machine. `debug` defaults to off. The session cookie is named `NOTES_SESSION` and is `SameSite=Lax`. See [Configuration](../../fundamentals/configuration/).
 
 ## Bootstrap
 
@@ -273,7 +273,7 @@ Latte escapes `{$note}` and every other output. There is no automatic token inje
 ## Run it
 
 ```bash
-php -S 127.0.0.1:8000 -t public
+APP_ENV=dev php -S 127.0.0.1:8000 -t public
 ```
 
 Open `http://127.0.0.1:8000/`, add a note, and the page redirects to the list with "Note added." shown once. Posting the form without the token is refused:
@@ -344,7 +344,7 @@ final class NotesTest extends TestCase
 ```
 
 ```bash
-vendor/bin/phpunit
+APP_ENV=dev vendor/bin/phpunit
 ```
 
 ```text
