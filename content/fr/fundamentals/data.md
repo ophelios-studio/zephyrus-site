@@ -336,7 +336,7 @@ Les pièces plus petites se trouvent à la fois sur `Database` et sur `Broker` :
 ## Bon à savoir
 
 - Laissez toujours le framework lier les valeurs. Le texte SQL lui-même ne doit jamais contenir de données issues de la requête : `SortRequest` et `FilterRequest` existent pour que les identifiants proviennent de votre liste blanche.
-- Les requêtes de filtre et de tri s'ajoutent à votre requête, de sorte que la requête de données et la requête de comptage ne doivent pas contenir déjà `WHERE` ou `ORDER BY` (ajoutez plutôt les conditions fixes dans une sous-requête ou une vue, avec des marqueurs nommés (`:min`) liés par le dernier argument `$params` : le filtre lui-même lie des paramètres nommés, et un `?` positionnel serait refusé comme un mélange) :
+- Les requêtes de filtre et de tri s'ajoutent à votre requête, de sorte que la requête de données et la requête de comptage ne doivent pas contenir déjà `WHERE` ou `ORDER BY`. Ajoutez plutôt les conditions fixes dans une sous-requête ou une vue. Utilisez des marqueurs nommés comme `:min` et liez-les par le dernier argument `$params`. Le filtre lui-même lie des paramètres nommés, donc un `?` positionnel serait refusé comme un mélange :
 
   ```php
   $result = $db->paginateFilteredSortedResultWith(

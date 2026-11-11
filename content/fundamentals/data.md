@@ -336,7 +336,7 @@ The smaller pieces are on both `Database` and `Broker`: `selectPageWith()`, `sel
 ## Good to know
 
 - Always let the framework bind values. The SQL text itself must never hold request input: `SortRequest` and `FilterRequest` exist so identifiers come from your allowlist.
-- The filter and sort requests append to your query, so the data and count queries must not already contain `WHERE` or `ORDER BY` (add fixed conditions in a subquery or a view instead, with named placeholders (`:min`) bound through the last `$params` argument: the filter itself binds named parameters, and a positional `?` would be refused as a mix):
+- The filter and sort requests append to your query, so the data and count queries must not already contain `WHERE` or `ORDER BY`. Add fixed conditions in a subquery or a view instead. Use named placeholders such as `:min` and bind them through the last `$params` argument. The filter itself binds named parameters, so a positional `?` would be refused as a mix:
 
   ```php
   $result = $db->paginateFilteredSortedResultWith(
