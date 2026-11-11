@@ -48,6 +48,36 @@ $builder = $builder->withContainer($container);
 
 ## Running queries
 
+The examples on this page use these tables:
+
+```sql
+CREATE TABLE project (
+    id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    name text NOT NULL UNIQUE,
+    status text NOT NULL DEFAULT 'active',
+    budget numeric(20, 2) NOT NULL DEFAULT 0,
+    tags text[] NOT NULL DEFAULT '{}',
+    meta jsonb,
+    archived boolean NOT NULL DEFAULT false,
+    created_at timestamptz NOT NULL DEFAULT now()
+);
+
+CREATE TABLE orders (
+    id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    total numeric(12, 2) NOT NULL
+);
+
+CREATE TABLE order_line (
+    order_id bigint NOT NULL REFERENCES orders (id),
+    sku text NOT NULL
+);
+
+CREATE TABLE blob (
+    id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    digest bytea NOT NULL
+);
+```
+
 Placeholders are positional (`?`) or named (`:name`), never mixed in one statement. Values are always bound, never concatenated:
 
 ```php
@@ -86,6 +116,8 @@ On PostgreSQL the id comes back through `RETURNING` only. `insertGetId()` refuse
 Parameters are bound by type: `null`, integers, floats, strings, booleans, `DateTimeInterface`, `BackedEnum` (its backing value), `Stringable`, `Binary` and streams. An array has no SQL form and throws an `InvalidArgumentException`: see [PostgreSQL types](#postgresql-types) for lists. Each call runs one statement: `"INSERT ...; INSERT ..."` fails and inserts nothing.
 
 `query()` returns the raw `PDOStatement` and `pdo()` the connection, for the rare case the helpers do not cover. A statement run through `pdo()` is not tracked by `transaction()`.
+
+`new Database($pdo)` wraps a PDO connection you opened yourself (a test database, for instance): it forces exceptions, object rows and server-side prepares on it. `inTransaction()` tells whether a transaction is open right now; do not cache the answer.
 
 ## Transactions
 
@@ -148,7 +180,7 @@ Register it right after creating the `Database`. Converters are keyed by the Pos
 
 Applications built on Zephyrus usually split data code in three, typically under `app/Models/<Domain>/{Brokers,Services,Entities}`. Only `Broker` and `Entity` are framework classes; the split itself is a convention.
 
-A **broker** holds the SQL of one domain. It extends `Zephyrus\Data\Broker`, receives the `Database` and exposes the query methods as protected helpers (`select`, `selectOne`, `selectValue`, `selectInt`, `selectCount`, `exists`, the pagination methods, `transaction`). Writes are named `insertRow`, `insertRowGetId`, `updateRows` and `deleteRows`, so they do not collide with your own method names:
+A **broker** holds the SQL of one domain. It extends `Zephyrus\Data\Broker`, receives the `Database` and exposes the query methods as protected helpers (`select`, `selectOne`, `selectValue`, `selectInt`, `selectString`, `selectBool`, `selectFloat`, `selectCount`, `exists`, `selectPage`, the other pagination methods, `execute`, `transaction`). `selectString()`, `selectBool()` and `selectFloat()` read the first column of the first row as a `?string`, a `bool` or a `float` (with a default), and `selectPage($sql, $page, $perPage, $params)` returns one page of rows as a list. `execute()` runs any statement and returns the affected row count. `lastInsertId()` is also there, and refused on PostgreSQL like its `Database` twin. Writes are named `insertRow`, `insertRowGetId`, `updateRows` and `deleteRows`, so they do not collide with your own method names:
 
 ```php
 namespace App\Models\Project\Brokers;
@@ -276,7 +308,7 @@ $result = $db->paginateFilteredSortedResultWith(
 );
 ```
 
-- `PaginationRequest::fromQuery()` reads `page` (or `offset`) and `per_page` (also `perPage`, `page_size`, `pageSize`, `limit`). The page size is clamped between 1 and `maxPerPage`, so `per_page=500` cannot ask for 500 rows, and the page is clamped so the offset cannot overflow. `fromArrayWithBounds()` is the same call. `fromArray()` applies no ceiling without its `maxPerPage` argument: use it for values you already validated, never for a raw request.
+- `PaginationRequest::fromQuery()` reads `page` (or `offset`) and `per_page` (also `perPage`, `page_size`, `pageSize`, `limit`). The page size is clamped between 1 and `maxPerPage`, so `per_page=500` cannot ask for 500 rows, and the page is clamped so the offset cannot overflow: a page beyond the last one returns an empty list, it does not fail. `fromArrayWithBounds()` is the same call. `fromArray()` applies no ceiling without its `maxPerPage` argument: use it for values you already validated, never for a raw request.
 - `SortRequest::fromQuery()` requires an allowlist of columns. A column outside it, including any injection attempt, falls back to the default column. It reads `sort` (`name` ascending, `-name` descending), `sort_by` or `orderBy`, and `sort_dir` or `direction`. `fromArray()` is for validated input and accepts any identifier-shaped column unless you pass `allowedColumns`.
 - `$sort->toSql()` already starts with ` ORDER BY` and quotes the identifier: never write `ORDER BY` before it.
 - `FilterRequest::fromQuery()` keeps only the allowed keys and builds exact-match conditions: `status=active` becomes `"status" = :f_status`, a repeated key (`status[]=a&status[]=b`) becomes an `IN` list, and a third argument lists keys read as comma-separated values. The values are bound parameters. Keys missing from the column map you pass to the query method are ignored.
@@ -304,7 +336,15 @@ The smaller pieces are on both `Database` and `Broker`: `selectPageWith()`, `sel
 ## Good to know
 
 - Always let the framework bind values. The SQL text itself must never hold request input: `SortRequest` and `FilterRequest` exist so identifiers come from your allowlist.
-- The filter and sort requests append to your query, so the data and count queries must not already contain `WHERE` or `ORDER BY` (add fixed conditions with `$params` placeholders in a subquery or a view instead).
+- The filter and sort requests append to your query, so the data and count queries must not already contain `WHERE` or `ORDER BY` (add fixed conditions in a subquery or a view instead, with named placeholders (`:min`) bound through the last `$params` argument: the filter itself binds named parameters, and a positional `?` would be refused as a mix):
+
+  ```php
+  $result = $db->paginateFilteredSortedResultWith(
+      'SELECT id, name, status FROM (SELECT * FROM project WHERE budget >= :min) AS p',
+      'SELECT count(*) FROM (SELECT * FROM project WHERE budget >= :min) AS p',
+      $filter, ['status' => 'status'], $sort, $page, ['min' => '100'],
+  );
+  ```
 - Pass a count query that matches the data query. They are separate statements, and the total comes from the count.
 - Inserts return ids through `RETURNING` only (`insertGetId()` in `Database`, `insertRowGetId()` in a `Broker`).
 - Keep a transaction short and let exceptions escape it.
