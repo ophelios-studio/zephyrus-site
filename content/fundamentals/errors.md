@@ -149,6 +149,8 @@ The event is observation only: a listener cannot replace the response. A listene
 
 With `application.debug: true` in a development or testing environment, `build()` enables the [Tracy](https://tracy.nette.org) debugger. Tracy always admits loopback clients, and nobody else unless they are on the allowlist below. It recognises a proxy only by an `X-Forwarded-For` or `Forwarded` header, so debug must stay off unless every proxy in front of PHP sends `X-Forwarded-For` (nginx: `proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;`). A remote client behind a proxy that sends no such header looks like a local one and gets the full error page. Its output includes stack-trace arguments, the environment and cookies, so it must never reach every client.
 
+Enabling debug does not show an exception by itself. With `APP_ENV=dev` and `APP_DEBUG=true`, a controller that throws still answers a plain `Internal Server Error`, and nothing is logged until an `ExceptionEvent` listener (the one in the first example) writes it to the error log.
+
 The kernel catches exceptions before Tracy sees them. To get Tracy's page for an error, let the exception out of a handler in development only:
 
 ```php

@@ -149,6 +149,8 @@ L'événement sert uniquement à l'observation : un écouteur ne peut pas rempl
 
 Avec `application.debug: true` dans un environnement de développement ou de test, `build()` active le débogueur [Tracy](https://tracy.nette.org). Tracy admet toujours les clients de bouclage, et personne d'autre à moins qu'ils figurent dans la liste d'autorisation ci-dessous. Il ne reconnaît un proxy que par un en-tête `X-Forwarded-For` ou `Forwarded` : le débogage doit donc rester désactivé à moins que chaque proxy devant PHP envoie `X-Forwarded-For` (nginx : `proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;`). Un client distant derrière un proxy qui n'envoie aucun en-tête de ce genre ressemble à un client local et obtient la page d'erreur complète. Sa sortie comprend les arguments de la trace d'appels, l'environnement et les témoins : elle ne doit donc jamais atteindre tous les clients.
 
+Activer le débogage n’affiche pas une exception à lui seul. Avec `APP_ENV=dev` et `APP_DEBUG=true`, un contrôleur qui lance une exception répond toujours un simple `Internal Server Error`, et rien n’est journalisé tant qu’un écouteur d’`ExceptionEvent` (celui du premier exemple) ne l’écrit pas dans le journal d’erreurs.
+
 Le noyau intercepte les exceptions avant que Tracy ne les voie. Pour obtenir la page de Tracy lors d'une erreur, laissez l'exception sortir d'un gestionnaire, en développement seulement :
 
 ```php
