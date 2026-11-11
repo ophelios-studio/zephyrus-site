@@ -25,6 +25,7 @@ leaf:
   sections:
     getting-started: "Start here"
     fundamentals: "Fundamentals"
+    digging-deeper: "Digging deeper"
   output_path: "dist"
   base_url: ""
   production_url: "https://zephyrus.ophelios.com"

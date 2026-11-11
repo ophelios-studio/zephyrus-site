@@ -179,7 +179,8 @@
     "fundamentals_upper": "LES FONDAMENTAUX",
     "sections": {
       "getting-started": "Pour commencer",
-      "fundamentals": "Les fondamentaux"
+      "fundamentals": "Les fondamentaux",
+      "digging-deeper": "Pour aller plus loin"
     },
     "chapters": "Chapitres",
     "chapters_label": "Chapitres de la documentation",
