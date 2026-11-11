@@ -46,6 +46,8 @@ security:
 ```text
 Zephyrus\Core\Config\ConfigurationException: Configuration declares security settings that this application does not enforce as declared:
   - security.csrf is not enforced as declared: mount new Zephyrus\Security\CsrfMiddleware(...) globally with withMiddleware(), built from the configuration's security through CsrfConfig::fromSecurityConfig()
+
+Apply the fix given for each setting, or acknowledge the gap explicitly with ApplicationBuilder::withAcknowledgedSecurityKeys([...]) when the protection is provided elsewhere (a reverse proxy, a wrapping middleware, the web server).
 ```
 
 A promise in the configuration that nothing keeps is the kind of mistake that ships unnoticed, so it fails at boot instead.
