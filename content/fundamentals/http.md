@@ -112,7 +112,7 @@ $request->cookies()->has('theme');       // true
 $request->cookies()->all();              // ['theme' => 'dark']
 ```
 
-The session cookie is managed for you by the [session middleware](../sessions/). `Response` has no cookie helper: see [Cookies on a response](#cookies-on-a-response).
+The session cookie is managed for you by the [session middleware](../sessions/). `Response` has no cookie helper, and setting a cookie on a response has side effects: see [Cookies on a response](#cookies-on-a-response).
 
 ## Uploaded files
 
@@ -218,6 +218,8 @@ Response::noContent()->withHeader(
 ```
 
 Always set `Secure`, `HttpOnly` and a `SameSite` value, and build the value from trusted data only. For login state use the session, which sets its own cookie.
+
+> **Caution:** the emitter sends each header with `header()`, which replaces the `Set-Cookie` headers PHP has already queued. A `Set-Cookie` on a response therefore drops every other cookie of that request: the session cookie included, so a visitor who has none gets no session cookie on that response, and any `setcookie()` call made earlier in the request is lost. Keep the value in the session instead, or send the response cookie only on a response where no session cookie or other cookie is being set.
 
 ## Emitting a response
 
