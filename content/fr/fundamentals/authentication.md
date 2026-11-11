@@ -291,7 +291,7 @@ final class SessionController extends Controller
     #[Get('/sign-in')]
     public function form(Request $request): Response
     {
-        return $this->render('sign-in', ['next' => $request->query('next', '/'), 'failed' => false]);
+        return $this->render('sign-in', ['next' => $request->query('next', '/account'), 'failed' => false]);
     }
 
     #[Post('/sign-in')]
@@ -305,7 +305,7 @@ final class SessionController extends Controller
             Cryptography::verifyPassword($password, self::TIMING_HASH);
         }
         if ($account === null || !Cryptography::verifyPassword($password, $account->password_hash)) {
-            return $this->render('sign-in', ['next' => $request->body()->get('next', '/'), 'failed' => true], 422);
+            return $this->render('sign-in', ['next' => $request->body()->get('next', '/account'), 'failed' => true], 422);
         }
         if (Cryptography::needsRehash($account->password_hash)) {
             $this->accounts->updatePasswordHash($account->id, Cryptography::hashPassword($password));
@@ -317,7 +317,7 @@ final class SessionController extends Controller
         $session->set('user_id', $account->id);
         $session->set('role', $account->role);
 
-        return $this->localRedirect($request->body()->get('next'), '/');
+        return $this->localRedirect($request->body()->get('next'), '/account');
     }
 
     #[Post('/sign-out')]
@@ -381,6 +381,7 @@ application:
 
 database:
   host: !env DB_HOST, localhost
+  port: !env DB_PORT, 5432
   database: !env DB_NAME
   username: !env DB_USER
   password: !env DB_PASSWORD
@@ -507,16 +508,19 @@ namespace App\Controllers;
 use Zephyrus\Controller\Controller;
 use Zephyrus\Http\Request;
 use Zephyrus\Http\Response;
+use Zephyrus\Rendering\RenderResponses;
 use Zephyrus\Routing\Attribute\Get;
 use Zephyrus\Routing\Attribute\Middleware;
 
 #[Middleware('auth')]
 final class AdminController extends Controller
 {
+    use RenderResponses;
+
     #[Get('/account')]
     public function account(Request $request): Response
     {
-        return $this->json(['user' => $request->attribute('userId')]);
+        return $this->render('account', ['user' => $request->attribute('userId')]);
     }
 
     #[Get('/admin/users')]
@@ -526,6 +530,19 @@ final class AdminController extends Controller
         return $this->json(['users' => []]);
     }
 }
+```
+
+`/account` affiche `app/Views/account.latte`, qui étend la mise en page, de sorte que le bouton de déconnexion se trouve sur la page :
+
+```latte
+{layout 'layout.latte'}
+
+{block title}Account{/block}
+
+{block content}
+    <h1>Your account</h1>
+    <p>You are signed in as user {$user}.</p>
+{/block}
 ```
 
 Un visiteur anonyme qui se rend à `/account` est redirigé vers `/sign-in` ; un membre qui ouvre `/admin/users` reçoit un 403 `{"error":"Forbidden"}` ; un administrateur obtient la liste.
@@ -538,7 +555,7 @@ Chaque étape ci-dessus répond à une attaque connue :
 - **Un jeton lu avant la connexion.** `(new SessionCsrfTokenManager($session))->regenerate()` remplace le jeton CSRF, de sorte que celui lu depuis la page anonyme cesse de fonctionner : un envoi qui le porte après la connexion reçoit un 403.
 - **CSRF de connexion.** Un formulaire forgé connecte la victime au compte de l'attaquant, pour recueillir ce qu'elle saisit. Le formulaire de connexion porte le jeton comme n'importe quel autre.
 - **Énumération de comptes.** La réponse pour un courriel inconnu et pour un mauvais mot de passe est la même page, le même statut (422) et à peu près le même temps, parce que le chemin du courriel inconnu vérifie aussi `TIMING_HASH`. Cela ne tient que tant que chaque empreinte stockée a les paramètres de `TIMING_HASH` : une empreinte bcrypt importée, ou une empreinte Argon2id avec les paramètres par défaut de PHP, prend un temps de vérification mesurablement différent (126 ms pour un courriel inconnu, 147 ms pour une empreinte issue de `hashPassword()`, 208 ms pour une empreinte Argon2id aux paramètres par défaut de PHP, presque rien pour bcrypt), de sorte que ces comptes peuvent être distingués tant qu'ils ne sont pas migrés.
-- **Redirection ouverte.** Le champ `next` est le choix de l'appelant. `localRedirect()` ne suit qu'un chemin local comme `/account`, et se rabat sur `/` pour `https://evil.example/` ou `//evil.example/`.
+- **Redirection ouverte.** Le champ `next` est le choix de l'appelant. `localRedirect()` ne suit qu'un chemin local, et se rabat sur `/account` pour `https://evil.example/` ou `//evil.example/`.
 - **Devinette de mots de passe.** Zephyrus n'a pas de limiteur de débit. Limitez les tentatives de connexion par compte et par adresse, à votre proxy inverse ou dans votre propre middleware sur la route `POST /sign-in`.
 - **Un témoin de session volé.** Gardez le témoin de session `http_only` et `secure`, avec `same_site: Lax` ou `Strict` (voir [sessions](../sessions/)), et servez chaque page en HTTPS.
 - **Déconnexion forcée.** Se déconnecter est un `POST` avec le jeton : un lien ou une image sur un autre site ne peut pas déconnecter vos utilisateurs.
