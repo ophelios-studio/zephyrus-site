@@ -132,7 +132,15 @@ The formatting helpers become Latte filters once you register them on the engine
 $views->registerFormatterFilters(App::getFormatter());
 ```
 
-After that, a template can write `{$total|money}`, `{$date|date}` or `{$bytes|filesize}`. The filters are `money`, `date`, `datetime`, `time`, `filesize`, `percent`, `decimal`, `timeago`, `duration`, `list`, `ordinal`, `spellOut` and `truncate`, plus every formatter you register with `$formatter->register()`. Each one is described on [Localization](../localization/). With the `en_CA` locale and `CAD` currency from the scratch configuration, `{$total|money}` printed `$1,234.50`, `{$date|date}` printed `Mar 9, 2026` and `{$bytes|filesize}` printed `1.0 MB`.
+After that, a template can write `{$total|money}`, `{$date|date}` or `{$bytes|filesize}`. The filters are `money`, `date`, `datetime`, `time`, `filesize`, `percent`, `decimal`, `timeago`, `duration`, `list`, `ordinal`, `spellOut` and `truncate`, plus every formatter you register with `$formatter->register()`. Each one is described on [Localization](../localization/). The `money` filter needs a currency, so the configuration must say which one:
+
+```yaml
+localization:
+  locale: en_CA
+  currency: CAD
+```
+
+With a locale that has no native currency, such as `en`, the filter throws `Currency required: locale "en" has no native currency...`. With the `en_CA` locale and `CAD` currency above, `{$total|money}` printed `$1,234.50`, `{$date|date}` printed `Mar 9, 2026` and `{$bytes|filesize}` printed `1.0 MB`.
 
 `App::getFormatter()` returns the formatter that `build()` installs, so call `registerFormatterFilters()` after `build()`.
 
@@ -167,6 +175,8 @@ use Zephyrus\Rendering\RenderConfig;
 $config = Configuration::fromYamlFile($root . '/config.yml', ['render' => RenderConfig::class]);
 $views = $config->section('render')->createEngine($root);
 ```
+
+The `render:` section must be present in `config.yml`: without it `$config->section('render')` is `null` and `createEngine()` is a fatal error.
 
 `createEngine()` takes the project root and resolves a relative `directory` and `cache` against it; an absolute path is used as it is. It returns a `LatteEngine` or a `PhpEngine`, both implementing `RenderEngine`. An unknown engine name throws a `RenderException`: `Unknown render engine [twig]. Supported engines: latte, php.`
 
