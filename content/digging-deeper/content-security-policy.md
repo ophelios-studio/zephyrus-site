@@ -205,7 +205,12 @@ Anyone can post to this route: re-encoding the report with `json_encode()` keeps
 3. When the reports stop, switch to `reportOnly: false`. Keep the `report-uri` directive to hear about what you missed.
 4. Then tighten further: keep `'unsafe-inline'` and `'unsafe-eval'` out of `script-src`, add `upgrade-insecure-requests` once everything is served over HTTPS, and with nonces in place consider `->appendValue('script-src', "'strict-dynamic'")`, which lets your nonced scripts load their own dependencies and ignores host allowlists in browsers that support it.
 
-Run one `ContentSecurityPolicyMiddleware` with `nonceDirectives`. Each one mints its own nonce for the request, and `nonce()` returns the last one minted: with an enforced and a report-only middleware both taking nonces, the enforced header names a nonce no tag carries, and the browser blocks every script. To trial a stricter policy, run it alone in report-only mode on a staging copy.
+Mount one `ContentSecurityPolicyMiddleware` that takes nonces per request. Each one mints its own nonce, and `nonce()` returns the last one minted, which is the one of the innermost middleware. The outer middleware then sends a header that names a nonce no tag carries. With two middleware that both take nonces, one enforced and one report-only:
+
+- Enforced outer, report-only inner: `Content-Security-Policy` carries the stale nonce, so the browser blocks every script that has the nonce attribute. Only `Content-Security-Policy-Report-Only` matches the page.
+- Report-only outer, enforced inner: `Content-Security-Policy` matches the page, and `Content-Security-Policy-Report-Only` carries the stale nonce, so it reports a violation for every nonced script.
+
+To trial a stricter policy next to an enforced one, give the trial a policy with no nonce, or run it alone in report-only mode on a staging copy.
 
 ## Good to know
 
