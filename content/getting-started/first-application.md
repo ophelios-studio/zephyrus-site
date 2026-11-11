@@ -18,6 +18,23 @@ composer require --dev phpunit/phpunit
 
 Add `"autoload-dev": { "psr-4": { "Tests\\": "tests/" } }` to `composer.json` and run `composer dump-autoload`.
 
+Create `phpunit.xml` at the project root:
+
+```xml
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="vendor/phpunit/phpunit/phpunit.xsd"
+         bootstrap="vendor/autoload.php"
+         colors="true"
+         failOnWarning="true"
+         failOnRisky="true">
+    <testsuites>
+        <testsuite name="app">
+            <directory>tests</directory>
+        </testsuite>
+    </testsuites>
+</phpunit>
+```
+
 ## Configure
 
 Declare what the application promises. Each `security` key is enforced by a middleware you mount in the next step, and `build()` refuses to boot if one is missing.
@@ -289,12 +306,12 @@ use Zephyrus\Http\Request;
 
 final class NotesTest extends TestCase
 {
-    private static Application $app;
+    private Application $app;
 
-    public static function setUpBeforeClass(): void
+    protected function setUp(): void
     {
         $root = dirname(__DIR__);
-        self::$app = Kernel::application($root, Configuration::fromYamlFile($root . '/config.yml'));
+        $this->app = Kernel::application($root, Configuration::fromYamlFile($root . '/config.yml'));
     }
 
     protected function tearDown(): void
@@ -305,11 +322,11 @@ final class NotesTest extends TestCase
 
     public function testAnAddedNoteIsListedAfterTheRedirect(): void
     {
-        $page = self::$app->handle(Request::fromArray('GET', '/'));
+        $page = $this->app->handle(Request::fromArray('GET', '/'));
         preg_match('/name="_csrf_token" value="([0-9a-f]+)"/', $page->body, $found);
 
-        $added = self::$app->handle(Request::fromArray('POST', '/notes', body: ['text' => 'Milk', '_csrf_token' => $found[1]]));
-        $list = self::$app->handle(Request::fromArray('GET', '/'));
+        $added = $this->app->handle(Request::fromArray('POST', '/notes', body: ['text' => 'Milk', '_csrf_token' => $found[1]]));
+        $list = $this->app->handle(Request::fromArray('GET', '/'));
 
         self::assertSame(302, $added->status);
         self::assertSame('/', $added->getHeader('Location'));
@@ -319,7 +336,7 @@ final class NotesTest extends TestCase
 
     public function testAPostWithoutTheTokenIsRefused(): void
     {
-        $response = self::$app->handle(Request::fromArray('POST', '/notes', body: ['text' => 'Milk']));
+        $response = $this->app->handle(Request::fromArray('POST', '/notes', body: ['text' => 'Milk']));
 
         self::assertSame(403, $response->status);
     }
@@ -334,7 +351,7 @@ vendor/bin/phpunit
 OK (2 tests, 5 assertions)
 ```
 
-The test reads the token from the rendered form, as a browser would, then posts it. `$_SESSION = []` in `tearDown()` matters: in process there is no cookie, and the PHP session lives for the whole process, so a note added by one test would show in the next. The [testing](../../digging-deeper/testing/) page goes further.
+The test reads the token from the rendered form, as a browser would, then posts it. The application is built in `setUp()`, so every test starts from a fresh one: `App::reset()` clears the statics between tests and only `build()` installs them again. `$_SESSION = []` in `tearDown()` matters too: in process there is no cookie, and the PHP session lives for the whole process, so a note added by one test would show in the next. The [testing](../../digging-deeper/testing/) page goes further.
 
 ## Where to go next
 
