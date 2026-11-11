@@ -122,7 +122,29 @@ Methods that need an existing file (`read()`, `size()`, `lines()`, `copy()`, `mo
 - or constrain the route parameter strictly, so that nothing but a plain file name can arrive:
 
 ```php
-#[Get('/exports/{name}', constraints: ['name' => '[A-Za-z0-9_-]+\.csv'])]
+namespace App\Controllers;
+
+use Zephyrus\Controller\Controller;
+use Zephyrus\FileSystem\File;
+use Zephyrus\Http\Response;
+use Zephyrus\Routing\Attribute\Get;
+
+final class ExportController extends Controller
+{
+    #[Get('/exports/{name}', constraints: ['name' => '[A-Za-z0-9_-]+\.csv'])]
+    public function download(string $name): Response
+    {
+        $file = new File(dirname(__DIR__, 2) . '/storage/exports/' . $name);
+        if (!$file->exists()) {
+            return $this->text('Not found', 404);
+        }
+
+        return new Response($file->read(), 200, [
+            'Content-Type' => 'text/csv',
+            'X-Content-Type-Options' => 'nosniff',
+        ]);
+    }
+}
 ```
 
 The pattern has no slash and no dot except the extension, so the name cannot name another directory.
