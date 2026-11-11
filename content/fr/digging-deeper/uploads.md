@@ -91,7 +91,7 @@ Chaque argument du constructeur après la racine est facultatif :
 | `allowedExtensions` | `[]` | Extensions permises dans le nom du client, en minuscules, sans le point. Vide accepte tout. |
 | `allowedMimeTypes` | `[]` | Types détectés permis. Vide accepte tout. |
 | `maxSizeBytes` | `null` | Taille maximale en octets. `null` signifie aucune limite. |
-| `fileMover` | téléversements authentiques seulement | La façon dont le fichier est déplacé (voir [Tester un téléversement](#test-an-upload)). |
+| `fileMover` | téléversements authentiques seulement | La façon dont le fichier est déplacé (voir [Tester un téléversement](#tester-un-téléversement)). |
 | `mimeExtensionMap` | `[]` | Paires supplémentaires ou de remplacement entre type détecté et extension. |
 | `overwriteExisting` | `false` | Indique si un fichier existant peut être remplacé. |
 

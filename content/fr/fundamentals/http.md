@@ -112,7 +112,7 @@ $request->cookies()->has('theme');       // true
 $request->cookies()->all();              // ['theme' => 'dark']
 ```
 
-Le témoin de session est géré pour vous par le [middleware de session](../sessions/). `Response` n'a pas d'assistant pour les témoins, et poser un témoin sur une réponse a des effets de bord : voir [Témoins sur une réponse](#cookies-on-a-response).
+Le témoin de session est géré pour vous par le [middleware de session](../sessions/). `Response` n'a pas d'assistant pour les témoins, et poser un témoin sur une réponse a des effets de bord : voir [Témoins sur une réponse](#témoins-sur-une-réponse).
 
 ## Fichiers téléversés
 

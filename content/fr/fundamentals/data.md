@@ -113,7 +113,7 @@ $db->update('UPDATE project SET archived = ? WHERE id = ?', [true, $id]);
 
 Avec PostgreSQL, l'identifiant revient uniquement par `RETURNING`. `insertGetId()` refuse une instruction qui en est dépourvue, et `lastInsertId()` est refusée, car elle peut désigner la séquence d'une autre table.
 
-Les paramètres sont liés selon leur type : `null`, entiers, nombres à virgule flottante, chaînes, booléens, `DateTimeInterface`, `BackedEnum` (sa valeur de support), `Stringable`, `Binary` et flux. Un tableau n'a pas de forme SQL et lève une `InvalidArgumentException` : voyez [Types PostgreSQL](#postgresql-types) pour les listes. Chaque appel exécute une seule instruction : `"INSERT ...; INSERT ..."` échoue et n'insère rien.
+Les paramètres sont liés selon leur type : `null`, entiers, nombres à virgule flottante, chaînes, booléens, `DateTimeInterface`, `BackedEnum` (sa valeur de support), `Stringable`, `Binary` et flux. Un tableau n'a pas de forme SQL et lève une `InvalidArgumentException` : voyez [Types PostgreSQL](#types-postgresql) pour les listes. Chaque appel exécute une seule instruction : `"INSERT ...; INSERT ..."` échoue et n'insère rien.
 
 `query()` retourne le `PDOStatement` brut et `pdo()` la connexion, pour les rares cas que les aides ne couvrent pas. Une instruction exécutée par `pdo()` n'est pas suivie par `transaction()`.
 

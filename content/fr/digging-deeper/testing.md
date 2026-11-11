@@ -110,7 +110,7 @@ abstract class ApplicationTestCase extends TestCase
 - `Kernel::application()` est la méthode d'amorçage de la première application : elle retourne l'`Application` construite et n'envoie rien.
 - `Request::fromArray()` construit une requête sans toucher aux variables globales de PHP. `body:` reçoit le corps déjà décodé.
 - `App::reset()` efface les éléments statiques que conserve l'application (configuration, session, formateur, traducteur, le générateur d'URL derrière `route()`, etc.). Seul `build()` les réinstalle, ce qui explique pourquoi `setUp()` construit une nouvelle application pour chaque test.
-- `$_SESSION = []` est une étape distincte et obligatoire, voir [Isoler les tests](#isolating-tests).
+- `$_SESSION = []` est une étape distincte et obligatoire, voir [Isoler les tests](#isoler-les-tests).
 
 ## Lire une réponse
 

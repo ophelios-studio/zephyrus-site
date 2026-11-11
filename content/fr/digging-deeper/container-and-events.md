@@ -120,7 +120,7 @@ $app = ApplicationBuilder::create()
     ->build();
 ```
 
-Un contrôleur déclare alors ce dont il a besoin dans son constructeur, comme dans [L'application](../../fundamentals/application/#controllers-through-the-container). `withContainer()` est un raccourci de `withControllerFactory()` : le dernier des deux que vous appelez l'emporte. Avec une fabrique, vous décidez comment chaque classe est construite :
+Un contrôleur déclare alors ce dont il a besoin dans son constructeur, comme dans [L'application](../../fundamentals/application/#des-contrôleurs-construits-par-le-conteneur). `withContainer()` est un raccourci de `withControllerFactory()` : le dernier des deux que vous appelez l'emporte. Avec une fabrique, vous décidez comment chaque classe est construite :
 
 ```php
 $builder = $builder->withControllerFactory(
@@ -244,7 +244,7 @@ $app = $builder->withEventDispatcher($events)->build();
 | --- | --- | --- |
 | `RequestEvent` | avant le routage | répondre de lui-même avec `setResponse()` |
 | `ResponseEvent` | après la construction de la réponse | la lire ou la remplacer avec `getResponse()` et `setResponse()` |
-| `ExceptionEvent` | lorsqu'un objet jetable devient une réponse d'erreur | l'observer : voir [Erreurs](../../fundamentals/errors/#listening-to-errors) |
+| `ExceptionEvent` | lorsqu'un objet jetable devient une réponse d'erreur | l'observer : voir [Erreurs](../../fundamentals/errors/#écouter-les-erreurs) |
 
 Les trois étendent `KernelEvent`, dont `getRequest()` retourne la `Request` courante. Un écouteur sur `KernelEvent::class` les entend donc tous.
 

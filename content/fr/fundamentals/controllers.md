@@ -43,7 +43,7 @@ final class ProjectController extends Controller
 }
 ```
 
-Un gestionnaire prend les paramètres dont il a besoin : une `Request`, et les paramètres de route par leur nom (`int $id`). Consultez [Paramètres de route](../routing/#route-parameters) pour les règles de résolution. Un gestionnaire doit retourner une `Response`.
+Un gestionnaire prend les paramètres dont il a besoin : une `Request`, et les paramètres de route par leur nom (`int $id`). Consultez [Paramètres de route](../routing/#paramètres-de-route) pour les règles de résolution. Un gestionnaire doit retourner une `Response`.
 
 Une classe qui n'étend pas `Controller` fonctionne aussi, pourvu que ses méthodes de gestion retournent une `Response`.
 
@@ -182,4 +182,4 @@ Le conteneur construit `Clock` automatiquement lorsqu'il s'agit d'une classe con
 - N'enregistrez pas un contrôleur comme singleton du conteneur s'il garde un état propre à la requête, comme `$this->request` : la même instance servirait toutes les requêtes du processus.
 - Utilisez `localRedirect()` pour toute cible de redirection qui provient de la requête; `redirect()` fait confiance à son argument.
 - `abort()` envoie un corps HTML et `abortJson()` un corps JSON. Choisissez celui qu'attend votre client.
-- Un enregistrement manquant est un 404 : `return $this->abort(404)`, ou lancez `RouteNotFoundException` depuis un code plus profond (voir [Routage](../routing/#404-and-405)).
+- Un enregistrement manquant est un 404 : `return $this->abort(404)`, ou lancez `RouteNotFoundException` depuis un code plus profond (voir [Routage](../routing/#404-et-405)).

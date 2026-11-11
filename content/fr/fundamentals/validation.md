@@ -37,7 +37,7 @@ if ($errors->hasErrors()) {
 }
 ```
 
-Les règles d'un champ s'exécutent dans l'ordre où vous les listez, et chaque règle qui échoue ajoute son message : un champ ne s'arrête jamais à son premier échec. Un `email` manquant avec les règles ci-dessus signale à la fois `This field is required.` et `Must be a valid email address.`. Placez `Rules::required()` en premier et n'affichez que le premier message d'un champ si vous préférez une seule ligne (voir [Afficher les erreurs dans un formulaire](#show-errors-in-a-form)).
+Les règles d'un champ s'exécutent dans l'ordre où vous les listez, et chaque règle qui échoue ajoute son message : un champ ne s'arrête jamais à son premier échec. Un `email` manquant avec les règles ci-dessus signale à la fois `This field is required.` et `Must be a valid email address.`. Placez `Rules::required()` en premier et n'affichez que le premier message d'un champ si vous préférez une seule ligne (voir [Afficher les erreurs dans un formulaire](#afficher-les-erreurs-dans-un-formulaire)).
 
 ### Champs facultatifs
 

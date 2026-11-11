@@ -127,7 +127,7 @@ Un paramètre substituable remplit un segment entier et ne peut pas le partager 
 
 ## Nommer les routes
 
-L'argument `name` donne un nom à une route pour la [génération d'URL](#generating-urls). Les noms doivent être uniques. Deux routes par attribut d'une même classe qui partagent un nom sont refusées (`Duplicate route name "same" discovered while reading attributes on class "Dup\A".`). Entre classes, ou avec des routes enregistrées sur le routeur, rien ne refuse un doublon à l'enregistrement : appelez `$router->assertNoDuplicateRouteNames()` une fois les routes enregistrées, ce qui lance `Duplicate route names detected: same`.
+L'argument `name` donne un nom à une route pour la [génération d'URL](#générer-des-url). Les noms doivent être uniques. Deux routes par attribut d'une même classe qui partagent un nom sont refusées (`Duplicate route name "same" discovered while reading attributes on class "Dup\A".`). Entre classes, ou avec des routes enregistrées sur le routeur, rien ne refuse un doublon à l'enregistrement : appelez `$router->assertNoDuplicateRouteNames()` une fois les routes enregistrées, ce qui lance `Duplicate route names detected: same`.
 
 ## Attacher des middlewares
 
@@ -176,7 +176,7 @@ public function health(): Response
 }
 ```
 
-Seule une route trouvée peut ignorer un middleware : un 404 ou un 405 exécute tout de même chaque middleware global. Les middlewares de route définis avec `#[Middleware]` ne sont jamais ignorés. Les middlewares de sécurité du framework (redirection HTTPS, hôtes autorisés, CSRF, limite de taille du corps, en-têtes sécurisés, CSP) ne peuvent pas être ignorés : la route est refusée à l'enregistrement (voir [les refus](#refusals-at-build-time)).
+Seule une route trouvée peut ignorer un middleware : un 404 ou un 405 exécute tout de même chaque middleware global. Les middlewares de route définis avec `#[Middleware]` ne sont jamais ignorés. Les middlewares de sécurité du framework (redirection HTTPS, hôtes autorisés, CSRF, limite de taille du corps, en-têtes sécurisés, CSP) ne peuvent pas être ignorés : la route est refusée à l'enregistrement (voir [les refus](#refus-à-la-construction)).
 
 ## Une base de code, plusieurs processus
 

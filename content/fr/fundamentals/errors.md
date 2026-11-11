@@ -41,7 +41,7 @@ $app = ApplicationBuilder::create()
 
 Avec cette configuration, une exception non interceptée devient un `500` avec un corps fixe, et la ligne ci-dessus se retrouve dans votre journal d'erreurs. Rien d'autre n'est nécessaire pour une configuration qui ne déclare aucun réglage `security:` (lorsqu'elle en déclare, les middlewares correspondants doivent être montés : voir [Sécurité](../security/)), hormis les réglages PHP ci-dessous. Les gestionnaires d'exceptions plus bas ne changent que ce que voit le client.
 
-Ni la configuration de cette page ni le framework ne désactive le `display_errors` de PHP, dont la valeur par défaut intégrée est activée lorsqu'aucun `php.ini` n'est chargé. Un échec de démarrage hors du noyau, comme une faute de frappe dans la configuration, est alors affiché avec sa trace et le chemin de `vendor`. La production exige `display_errors=Off`, `display_startup_errors=Off` et `log_errors=On` : voir [Réglages PHP pour la production](../../getting-started/installation/#php-settings-for-production).
+Ni la configuration de cette page ni le framework ne désactive le `display_errors` de PHP, dont la valeur par défaut intégrée est activée lorsqu'aucun `php.ini` n'est chargé. Un échec de démarrage hors du noyau, comme une faute de frappe dans la configuration, est alors affiché avec sa trace et le chemin de `vendor`. La production exige `display_errors=Off`, `display_startup_errors=Off` et `log_errors=On` : voir [Réglages PHP pour la production](../../getting-started/installation/#réglages-php-pour-la-production).
 
 Sans répartiteur d'événements, un échec n'atteint personne : le client reçoit la réponse fixe et le message est perdu. Enregistrez l'écouteur.
 
@@ -254,7 +254,7 @@ Configuration section 'security' field 'max_bdy_size' is an unknown key: did you
 Configuration declares security settings that this application does not enforce as declared: ...
 ```
 
-Les deux premiers sont traités dans [Configuration](../configuration/#strict-validation), le troisième dans [Sécurité](../security/). Les messages qui citent une valeur (un nom d'environnement, une classe) échappent les caractères de contrôle, de sorte qu'une ligne de journal ne peut pas être falsifiée par leur entremise.
+Les deux premiers sont traités dans [Configuration](../configuration/#validation-stricte), le troisième dans [Sécurité](../security/). Les messages qui citent une valeur (un nom d'environnement, une classe) échappent les caractères de contrôle, de sorte qu'une ligne de journal ne peut pas être falsifiée par leur entremise.
 
 ### Bon à savoir
 

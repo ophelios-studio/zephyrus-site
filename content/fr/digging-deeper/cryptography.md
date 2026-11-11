@@ -64,7 +64,7 @@ if (Cryptography::verifyPassword($password, $account->password_hash)) {
 }
 ```
 
-La [page d'authentification](../../fundamentals/authentication/#signing-in) montre cela dans une connexion complète.
+La [page d'authentification](../../fundamentals/authentication/#se-connecter) montre cela dans une connexion complète.
 
 ### À savoir
 

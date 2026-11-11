@@ -138,7 +138,7 @@ Toute modification de l'extrait, même une seule espace, change l'empreinte et l
 
 ### Avec SecureHeadersMiddleware
 
-`security.headers.csp` envoie une politique statique par `SecureHeadersMiddleware` (voir [en-têtes de sécurité](../../fundamentals/security/#security-headers)). Quand vous utilisez ce middleware, laissez cette clé vide. Si les deux sont définis et que ce middleware est monté en premier, `build()` refuse, puisque sa politique ne serait jamais envoyée :
+`security.headers.csp` envoie une politique statique par `SecureHeadersMiddleware` (voir [en-têtes de sécurité](../../fundamentals/security/#en-têtes-de-sécurité)). Quand vous utilisez ce middleware, laissez cette clé vide. Si les deux sont définis et que ce middleware est monté en premier, `build()` refuse, puisque sa politique ne serait jamais envoyée :
 
 ```text
 ContentSecurityPolicyMiddleware is registered before SecureHeadersMiddleware, whose csp is set, so the policy registered first is never sent. Register ContentSecurityPolicyMiddleware after SecureHeadersMiddleware, or leave SecureHeadersConfig::csp empty.

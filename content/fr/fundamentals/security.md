@@ -94,7 +94,7 @@ Le premier middleware ajouté s'exécute le plus à l'extérieur. `SecureHeaders
 
 Pour le développement local en HTTP simple, omettez ensemble `force_https` et `ForceHttpsMiddleware` (le middleware redirige toute requête simple vers `https://`, quelle que soit la configuration), ou envoyez `X-Forwarded-Proto: https` depuis un proxy de confiance. Inscrivez aussi l'hôte local dans `allowed_hosts`, par exemple `127.0.0.1`.
 
-`Request::fromGlobals()` ne lit jamais `config.yml` : passez-lui vous-même les réglages de proxy, comme ci-dessus (voir [proxies de confiance](#trusted-proxies-and-the-client-ip)).
+`Request::fromGlobals()` ne lit jamais `config.yml` : passez-lui vous-même les réglages de proxy, comme ci-dessus (voir [proxies de confiance](#proxies-de-confiance-et-adresse-ip-du-client)).
 
 ## La vérification du câblage au démarrage
 
@@ -274,7 +274,7 @@ security.csrf.exceptions[0] must start with "^" so it cannot match in the middle
 security.csrf.exceptions[0] must end with "/" (the route and everything under it) or "$" (that exact path), otherwise it also exempts every sibling route sharing the prefix: #^/webhooks# (expected a shape such as #^/webhooks/#).
 ```
 
-Une route exemptée a perdu sa protection CSRF : elle doit donc authentifier son appelant autrement, typiquement en vérifiant une signature. La [page d'authentification](../authentication/#verifying-a-webhook-signature) en montre un exemple.
+Une route exemptée a perdu sa protection CSRF : elle doit donc authentifier son appelant autrement, typiquement en vérifiant une signature. La [page d'authentification](../authentication/#vérifier-la-signature-dun-webhook) en montre un exemple.
 
 ### CsrfConfig
 
@@ -284,7 +284,7 @@ Pour utiliser un autre magasin de jetons, implémentez `CsrfTokenManagerInterfac
 
 ### À savoir
 
-- Renouvelez le jeton quand un utilisateur se connecte, en même temps que l'identifiant de session : la [page d'authentification](../authentication/#signing-in) montre les deux appels.
+- Renouvelez le jeton quand un utilisateur se connecte, en même temps que l'identifiant de session : la [page d'authentification](../authentication/#se-connecter) montre les deux appels.
 - `security.csrf.auto_html` et `new CsrfConfig(injectToken: true)` sont refusés : injecter le jeton dans le HTML à la sortie ne peut pas suivre l'analyse du navigateur et pourrait l'envoyer à un autre site.
 - `csrf: { enabled: false }` désactive la vérification sans rien monter. Ne le faites que pour une application sans session par témoin.
 - Le middleware ne vérifie pas l'en-tête `Origin` et n'utilise pas les témoins `SameSite` à sa place. Le `same_site: Lax` du témoin de session (voir [sessions](../sessions/)) est une deuxième couche, pas un remplacement.
@@ -388,13 +388,13 @@ security:
   trusted_headers: [x-forwarded-for]
 ```
 
-Sans `x-forwarded-proto`, une requête qu'un proxy a terminée en TLS n'est plus vue comme HTTPS : appliquez donc HTTPS au proxy et reconnaissez `forceHttps` (voir [forcer HTTPS](#forcing-https)). `allowed_hosts` est le filet de sécurité pour tous les en-têtes d'hôte, transmis ou non : inscrivez vos hôtes en production. Avec `app.example.test` inscrit, la requête ci-dessus reçoit un 400. Il ne vérifie pas les ports : un `X-Forwarded-Port` que le proxy n’écrase pas doit sortir de l’ensemble approuvé, sans quoi un client peut mettre son propre port dans les URL générées.
+Sans `x-forwarded-proto`, une requête qu'un proxy a terminée en TLS n'est plus vue comme HTTPS : appliquez donc HTTPS au proxy et reconnaissez `forceHttps` (voir [forcer HTTPS](#forcer-https)). `allowed_hosts` est le filet de sécurité pour tous les en-têtes d'hôte, transmis ou non : inscrivez vos hôtes en production. Avec `app.example.test` inscrit, la requête ci-dessus reçoit un 400. Il ne vérifie pas les ports : un `X-Forwarded-Port` que le proxy n’écrase pas doit sortir de l’ensemble approuvé, sans quoi un client peut mettre son propre port dans les URL générées.
 
 `['*']` approuve tous les pairs. Il existe pour le développement local derrière un proxy de conteneur ; en production, il permet à n'importe quel client de choisir sa propre adresse.
 
 ### IpRange
 
-`Zephyrus\Http\IpRange` est le comparateur derrière `trusted_proxies` et la [garde par liste d'adresses IP autorisées](../authentication/#the-built-in-guards) :
+`Zephyrus\Http\IpRange` est le comparateur derrière `trusted_proxies` et la [garde par liste d'adresses IP autorisées](../authentication/#les-gardes-intégrées) :
 
 ```php
 use Zephyrus\Http\IpRange;

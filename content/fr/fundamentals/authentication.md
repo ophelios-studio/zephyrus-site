@@ -11,7 +11,7 @@ Vos utilisateurs, vos règles.
 Zephyrus n'a ni modèle d'utilisateur, ni table de comptes, ni écran de connexion : qui sont vos utilisateurs et comment ils le prouvent relève de votre application. Le framework vous fournit plutôt les pièces faciles à mal faire :
 
 - Les **gardes** décident si une requête peut continuer, et `AuthGuardMiddleware` transforme une garde en middleware que vous attachez à des routes.
-- Les **sessions** avec renouvellement de l'identifiant, et les **jetons CSRF** que vous renouvelez à la connexion (voir [sessions](../sessions/) et [sécurité](../security/#csrf-protection)).
+- Les **sessions** avec renouvellement de l'identifiant, et les **jetons CSRF** que vous renouvelez à la connexion (voir [sessions](../sessions/) et [sécurité](../security/#protection-csrf)).
 - Le **hachage des mots de passe** avec Argon2id, dans [Cryptographie](../../digging-deeper/cryptography/).
 
 Cette page présente d'abord les gardes, puis une connexion par session complète construite avec ces pièces.
@@ -41,7 +41,7 @@ new AuthGuardMiddleware($guard);                                                
 new AuthGuardMiddleware(new RequestAttributeGuard('role', ['admin']), 403, 'Forbidden'); // 403 {"error":"Forbidden"}
 ```
 
-La réponse est toujours en JSON, ce qui convient à une API. Pour les pages qu'une personne visite, écrivez votre propre middleware qui redirige vers le formulaire de connexion, comme dans [identifier l'utilisateur](#identifying-the-user) plus bas.
+La réponse est toujours en JSON, ce qui convient à une API. Pour les pages qu'une personne visite, écrivez votre propre middleware qui redirige vers le formulaire de connexion, comme dans [identifier l'utilisateur](#identifier-lutilisateur) plus bas.
 
 ### Les gardes intégrées
 
@@ -60,7 +60,7 @@ Un en-tête absent ou vide est refusé, et toute requête l'est aussi quand le j
 new IpAllowlistGuard(['192.0.2.0/24', '2001:db8::/32']);
 ```
 
-Chaque entrée est validée à la construction de la garde : `new IpAllowlistGuard(['10.0.0.1/8'])` lance `Allowed IP "10.0.0.1/8": 10.0.0.1/8 covers 10.0.0.0/8; write 10.0.0.1/32 or 10.0.0.0/8.` Derrière un proxy inverse, l'adresse IP du client n'est correcte que si le proxy est approuvé : voir [proxies de confiance](../security/#trusted-proxies-and-the-client-ip).
+Chaque entrée est validée à la construction de la garde : `new IpAllowlistGuard(['10.0.0.1/8'])` lance `Allowed IP "10.0.0.1/8": 10.0.0.1/8 covers 10.0.0.0/8; write 10.0.0.1/32 or 10.0.0.0/8.` Derrière un proxy inverse, l'adresse IP du client n'est correcte que si le proxy est approuvé : voir [proxies de confiance](../security/#proxies-de-confiance-et-adresse-ip-du-client).
 
 **`RequestAttributeGuard`** laisse passer quand un attribut de requête, défini par l'un de vos propres middlewares, contient l'une des valeurs permises :
 
@@ -162,11 +162,11 @@ $config = Configuration::fromYamlFile($root . '/config.yml', ['api' => ApiConfig
 $api = $config->section('api');
 ```
 
-Générez un tel jeton avec `Cryptography::randomHex(64)` (voir [jetons aléatoires](../../digging-deeper/cryptography/#random-tokens)).
+Générez un tel jeton avec `Cryptography::randomHex(64)` (voir [jetons aléatoires](../../digging-deeper/cryptography/#jetons-aléatoires)).
 
 ## Vérifier la signature d'un webhook
 
-Un fournisseur de paiement qui appelle votre webhook n'a ni session ni jeton CSRF : sa route est inscrite sous `security.csrf.exceptions` (voir [exempter un chemin](../security/#exempting-a-path)), et doit authentifier l'appelant autrement. La plupart des fournisseurs signent le corps brut avec un secret partagé, ce qu'une `PredicateAuthGuard` peut vérifier :
+Un fournisseur de paiement qui appelle votre webhook n'a ni session ni jeton CSRF : sa route est inscrite sous `security.csrf.exceptions` (voir [exempter un chemin](../security/#exempter-un-chemin)), et doit authentifier l'appelant autrement. La plupart des fournisseurs signent le corps brut avec un secret partagé, ce qu'une `PredicateAuthGuard` peut vérifier :
 
 ```php
 $webhookSecret = $api->webhookSecret;
@@ -368,11 +368,11 @@ La déconnexion change l'état : c'est donc un formulaire avec le jeton, pas un
 </html>
 ```
 
-Une page destinée à un utilisateur connecté commence par `{layout 'layout.latte'}` et remplit `{block content}`, comme dans la [première application](../../getting-started/first-application/#the-views).
+Une page destinée à un utilisateur connecté commence par `{layout 'layout.latte'}` et remplit `{block content}`, comme dans la [première application](../../getting-started/first-application/#les-vues).
 
 ### Le câblage
 
-Ajoutez la base de données et le conteneur, pour que le contrôleur reçoive son broker, et enregistrez le middleware nommé. Voici le bootstrap complet d'une application typique servie en HTTPS, avec la section `security:` de la [page de sécurité](../security/#a-secure-bootstrap), la section `api:` ci-dessus et une section `database:`. Les middlewares de sécurité sont ceux de cette page, dans le même ordre :
+Ajoutez la base de données et le conteneur, pour que le contrôleur reçoive son broker, et enregistrez le middleware nommé. Voici le bootstrap complet d'une application typique servie en HTTPS, avec la section `security:` de la [page de sécurité](../security/#un-bootstrap-sécurisé), la section `api:` ci-dessus et une section `database:`. Les middlewares de sécurité sont ceux de cette page, dans le même ordre :
 
 ```yaml
 application:
@@ -500,7 +500,7 @@ require dirname(__DIR__) . '/vendor/autoload.php';
 App\Kernel::run(dirname(__DIR__));
 ```
 
-Pour l'exécuter sur votre machine, omettez ensemble `force_https` et la ligne `ForceHttpsMiddleware`, et inscrivez `127.0.0.1` dans `allowed_hosts` (voir la [page de sécurité](../security/#a-secure-bootstrap)). Protégez ensuite un contrôleur :
+Pour l'exécuter sur votre machine, omettez ensemble `force_https` et la ligne `ForceHttpsMiddleware`, et inscrivez `127.0.0.1` dans `allowed_hosts` (voir la [page de sécurité](../security/#un-bootstrap-sécurisé)). Protégez ensuite un contrôleur :
 
 ```php
 namespace App\Controllers;

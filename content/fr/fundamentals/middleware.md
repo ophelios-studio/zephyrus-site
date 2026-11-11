@@ -54,7 +54,7 @@ final class RequireUserMiddleware implements MiddlewareInterface
 }
 ```
 
-Sans jeton valide, le contrôleur ne s'exécute jamais. Avec un jeton valide, le contrôleur reçoit `userId` comme attribut de requête : un paramètre de gestionnaire nommé `$userId` est rempli à partir de celui-ci (voir [Paramètres de route](../routing/#route-parameters)). Le jeton écrit en dur ne sert que pour cet exemple : une vraie vérification cherche l'identifiant dans une source (voir [Authentification](../authentication/)).
+Sans jeton valide, le contrôleur ne s'exécute jamais. Avec un jeton valide, le contrôleur reçoit `userId` comme attribut de requête : un paramètre de gestionnaire nommé `$userId` est rempli à partir de celui-ci (voir [Paramètres de route](../routing/#paramètres-de-route)). Le jeton écrit en dur ne sert que pour cet exemple : une vraie vérification cherche l'identifiant dans une source (voir [Authentification](../authentication/)).
 
 ## Un middleware qui décore la réponse
 
@@ -110,7 +110,7 @@ final class ProjectController extends Controller
 }
 ```
 
-`#[Middleware('name')]` fonctionne sur une classe ou une méthode, et une route peut aussi lister des noms dans son argument `middlewares:`. `#[MiddlewareGroup('admin')]` applique un groupe défini avec `$router->middlewareGroup('admin', ['auth', 'audit'])`. Les détails du routage, y compris `#[WithoutMiddleware]` pour ignorer un middleware global sur une route, se trouvent dans [Routage](../routing/#attaching-middleware).
+`#[Middleware('name')]` fonctionne sur une classe ou une méthode, et une route peut aussi lister des noms dans son argument `middlewares:`. `#[MiddlewareGroup('admin')]` applique un groupe défini avec `$router->middlewareGroup('admin', ['auth', 'audit'])`. Les détails du routage, y compris `#[WithoutMiddleware]` pour ignorer un middleware global sur une route, se trouvent dans [Routage](../routing/#attacher-des-middlewares).
 
 Une route qui désigne un middleware que personne n'a enregistré est refusée à la construction de l'application, avec un message qui liste les noms inconnus, les routes qui les désignent et les noms enregistrés.
 

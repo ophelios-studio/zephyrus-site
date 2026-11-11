@@ -120,9 +120,9 @@ Un gabarit Latte peut appeler n'importe quelle fonction PHP, et le framework fou
 
 | Appel | Résultat |
 |---|---|
-| `{asset('/css/app.css')}` | Une URL avec invalidation du cache (voir [Ressources](#assets)). |
+| `{asset('/css/app.css')}` | Une URL avec invalidation du cache (voir [Ressources](#ressources)). |
 | `{route('home')}` | L'URL d'une route nommée (voir [Routage](../routing/)). |
-| `{=embed('/img/logo.svg')}` | Le contenu d'un fichier sous `public/` (voir [Ressources](#assets)). |
+| `{=embed('/img/logo.svg')}` | Le contenu d'un fichier sous `public/` (voir [Ressources](#ressources)). |
 | `{i18n('key')}` ou `{localize('key', ['name' => 'Ada'])}` | Une traduction (voir [Localisation](../localization/)). |
 | `{nonce()}` | Le nonce Content-Security-Policy de la requête (voir [Content Security Policy](../../digging-deeper/content-security-policy/)). |
 
