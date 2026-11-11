@@ -17,7 +17,7 @@ use Zephyrus\Core\Config\Configuration;
 
 $config = Configuration::fromYamlFile(__DIR__ . '/config.yml');
 
-$config->application->environment; // Environment::Development
+$config->application->environment; // Environment::Production
 $config->session->name;            // 'APP_SESSION'
 $config->security->maxBodySize;    // 2097152
 $config->database?->host;          // 'localhost', or null when there is no database section
@@ -27,7 +27,7 @@ Cinq sections sont intégrées. Toutes sont toujours présentes avec des valeurs
 
 ```yaml
 application:
-  environment: !env APP_ENV, dev
+  environment: !env APP_ENV, production
   debug: !env APP_DEBUG, false
 
 session:
