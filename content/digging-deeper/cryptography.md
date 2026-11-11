@@ -38,7 +38,7 @@ $token = Cryptography::randomHex(64);    // goes in the emailed link, never stor
 $tokenHash = Cryptography::hash($token); // stored with the account and an expiry
 ```
 
-When the link comes back, hash the token it carries and look the hash up with a parameterised query. A fast hash is enough here because the token is random: there is nothing to guess.
+When the link comes back, hash the token it carries and look the hash up with a parameterised query. A fast hash is enough here because the token is random: there is nothing to guess. Delete the stored hash once the token has been used, and when it expires, so a link works only once.
 
 ## Passwords
 
@@ -158,7 +158,7 @@ Cryptography::hashFile($root . '/storage/invoice-2041.pdf'); // the same digest 
 
 The algorithm is BLAKE2b and the result is hex. `$length` is the digest size in bytes, from 16 to 64 (32 by default). A key, when given, must be 16 to 64 bytes; `null` is the unkeyed hash, and an empty string is refused rather than silently treated as no key. `hashFile()` reads the file in 8 KB chunks, so it works on large files; a missing file throws `Hashing failed: File not found or not readable: <path>`, a message that holds a server path and belongs in your log.
 
-A keyed hash is a message authentication code: use it to fingerprint a value that only your application should be able to reproduce, such as the search index above.
+A keyed hash is a message authentication code: use it to fingerprint a value that only your application should be able to reproduce, such as the search index above. When you use one as a MAC to authenticate data, compare a received value with `hash_equals()`, never `===`.
 
 ## Signing keys
 
