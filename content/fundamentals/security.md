@@ -80,8 +80,8 @@ final class Kernel
             ->withRouter($router)
             ->withRenderEngine($views)
             ->withMiddleware(new SecureHeadersMiddleware($config->security->headers))
-            ->withMiddleware(new ForceHttpsMiddleware())
             ->withMiddleware(new AllowedHostsMiddleware($config->security->allowedHosts))
+            ->withMiddleware(new ForceHttpsMiddleware())
             ->withMiddleware(new MaxBodySizeMiddleware($config->security->maxBodySize))
             ->withMiddleware(new SessionMiddleware($config->session, $session))
             ->withMiddleware(new CsrfMiddleware($tokens, CsrfConfig::fromSecurityConfig($config->security)))
@@ -90,7 +90,9 @@ final class Kernel
 }
 ```
 
-The first middleware added runs outermost. `SecureHeadersMiddleware` comes first so that every response carries the headers, including the redirect, the 400 and the 413 that the middleware after it answer on their own. `SessionMiddleware` must run before `CsrfMiddleware`, which keeps its token in the session.
+The first middleware added runs outermost. `SecureHeadersMiddleware` comes first so that every response carries the headers, including the redirect, the 400 and the 413 that the middleware after it answer on their own. `AllowedHostsMiddleware` comes before `ForceHttpsMiddleware`: the other way round, a plain HTTP request for any `Host` gets a cacheable 308 to that host before the host is checked. `SessionMiddleware` must run before `CsrfMiddleware`, which keeps its token in the session.
+
+For local development over plain HTTP, leave `force_https` and `ForceHttpsMiddleware` out together (the middleware redirects every plain request to `https://`, whatever the configuration says), or send `X-Forwarded-Proto: https` from a trusted proxy. List the local host in `allowed_hosts` too, such as `127.0.0.1`.
 
 `Request::fromGlobals()` never reads `config.yml`: pass the proxy settings to it yourself, as above (see [trusted proxies](#trusted-proxies-and-the-client-ip)).
 
@@ -158,19 +160,19 @@ Every key, with its default when you leave it out. Keys are accepted in snake_ca
 
 Read the values through typed properties: `$config->security->allowedHosts`, `$config->security->maxBodySize`, `$config->security->headers` (a `SecureHeadersConfig`). `$config->security->isDeclared('maxBodySize')` tells whether the file named a key at all, which is what the wiring check relies on.
 
-The section is strict, so a value that would silently do something else stops the boot instead:
+The section is strict, so a value that would silently do something else stops the boot instead. Each refusal is a `ConfigurationException`, shown with the setting that causes it:
 
 ```text
 max_body_size: 2M
-  must be a number of bytes, for example 2097152 (no unit suffix).
+  Configuration section 'security' field 'max_body_size' has invalid value "2M": must be a number of bytes, for example 2097152 (no unit suffix).
 allowed_hosts: [localhost:8080]
-  ports are not matched: list "localhost" only.
+  Configuration section 'security' field 'allowedHosts[0]' has invalid value "localhost:8080": ports are not matched: list "localhost" only.
 allowed_hosts: ['https://example.com']
-  drop the scheme, list the host only, such as example.com.
+  Configuration section 'security' field 'allowedHosts[0]' has invalid value "https://example.com": drop the scheme, list the host only, such as example.com.
 csrf: true
-  must be a mapping, such as csrf: { enabled: false }.
+  Configuration section 'security' field 'csrf' must be a mapping, such as csrf: { enabled: false }.
 trusted_proxies: ['10.0.0.1/8']
-  10.0.0.1/8 covers 10.0.0.0/8; write 10.0.0.1/32 or 10.0.0.0/8.
+  Configuration section 'security' field 'trustedProxies[0]' has invalid value "10.0.0.1/8": 10.0.0.1/8 covers 10.0.0.0/8; write 10.0.0.1/32 or 10.0.0.0/8.
 ```
 
 A list key may also come from one environment variable holding a comma-separated value: with `HOSTS=app.example.test, www.example.test`, `allowed_hosts: !env HOSTS` reads as two entries. Secrets, such as the encryption key, always come from the environment (`!env`), never written into the file.
@@ -261,9 +263,16 @@ security:
 
 Each entry is a PCRE pattern matched against the request path, and the rules keep it from exempting more than you meant:
 
-- Quote it. In YAML an unquoted `#` starts a comment, and the entry reads as null: `each entry must be a non-empty string; quote a pattern that starts with "#" in YAML.`
+- Quote it. In YAML an unquoted `#` starts a comment, and the entry reads as null. Loading the file refuses it: `Configuration section 'security' field 'csrfExceptions[0]' has invalid value null: each entry must be a non-empty string; quote a pattern that starts with "#" in YAML.`
 - Anchor it with `^`, or it could match in the middle of a path.
-- End it with `/` (the route and everything under it) or `$` (that exact path). `#^/webhooks#` is refused because it would also exempt `/webhooksettings`.
+- End it with `/` (the route and everything under it) or `$` (that exact path), or it would also exempt `/webhooksettings`.
+
+The file loads with either of the last two mistakes. They are refused when `CsrfConfig::fromSecurityConfig()` builds the middleware configuration (in `application()`, so at boot, before the first request), with an `InvalidArgumentException`:
+
+```text
+security.csrf.exceptions[0] must start with "^" so it cannot match in the middle of a path: #/x/# (expected a shape such as #^/webhooks/#).
+security.csrf.exceptions[0] must end with "/" (the route and everything under it) or "$" (that exact path), otherwise it also exempts every sibling route sharing the prefix: #^/webhooks# (expected a shape such as #^/webhooks/#).
+```
 
 An exempt route has lost its CSRF protection, so it must authenticate its caller another way, typically by verifying a signature: the [authentication page](../authentication/#verifying-a-webhook-signature) shows one.
 
@@ -346,25 +355,39 @@ Behind a reverse proxy, `REMOTE_ADDR` is the proxy's address, and the real clien
 
 ```yaml
 security:
-  trusted_proxies: [10.0.0.0/8]
+  trusted_proxies: [10.0.0.5/32]
 ```
 
-For a request from the proxy `10.0.0.5` carrying `X-Forwarded-For: 203.0.113.9` and `X-Forwarded-Proto: https`:
+List the narrowest range that covers your proxies. A wide one such as `10.0.0.0/8` on a shared network lets any internal host forge `X-Forwarded-For` and the other headers below. For a request from the proxy `10.0.0.5` carrying `X-Forwarded-For: 203.0.113.9` and `X-Forwarded-Proto: https`:
 
 | `trustedProxies` passed to `fromGlobals()` | `clientIp()` | scheme |
 | --- | --- | --- |
 | none | `10.0.0.5` | `http` |
-| `['10.0.0.0/8']` | `203.0.113.9` | `https` |
+| `['10.0.0.5/32']` | `203.0.113.9` | `https` |
 
 The forwarded chain is read from the right, skipping trusted proxies, and the first untrusted address is the client. A client that sends its own `X-Forwarded-For: 1.2.3.4` only adds an entry on the left, which is never reached: the answer stays `203.0.113.9`. A client connecting directly (not through a trusted proxy) keeps its own address, whatever headers it sends.
 
-`trusted_headers` lists which forwarding headers a trusted proxy may set: by default `x-forwarded-for`, `x-forwarded-host`, `x-forwarded-proto` and `x-forwarded-port`. `forwarded`, `x-real-ip`, `cf-connecting-ip` and `x-client-ip` are also understood, but only read when you list them, because they are only trustworthy when your nearest proxy overwrites them. Listing `trusted_headers` replaces the default set, so name every header you need:
+`trusted_headers` lists which forwarding headers a trusted proxy may set: by default `x-forwarded-for`, `x-forwarded-host`, `x-forwarded-proto` and `x-forwarded-port`. `forwarded`, `x-real-ip`, `cf-connecting-ip` and `x-client-ip` are also understood, but only read when you list them, because they are only trustworthy when your nearest proxy overwrites them. Listing `trusted_headers` replaces the default set, so name every header you need.
+
+The default set is not safe behind every proxy. `x-forwarded-for` is read from the right, so a value the client prepends is never reached. `x-forwarded-host`, `x-forwarded-proto` and `x-forwarded-port` are read from the left: the first value of the list wins. A proxy that appends to a header the client sent leaves the client's value first, and the client then picks the host and scheme your application sees. With a trusted peer forwarding `X-Forwarded-Host: evil.example, app.example.test` and `X-Forwarded-Proto: https, http`, `Request::uri()` answers `https://evil.example`, and with an empty `allowed_hosts` a password reset link built from it points at `evil.example`.
+
+So host, proto and port are trustworthy only when the nearest proxy overwrites them. In nginx:
+
+```nginx
+proxy_set_header X-Forwarded-Host $host;
+proxy_set_header X-Forwarded-Proto $scheme;
+proxy_set_header X-Forwarded-Port $server_port;
+```
+
+Apache `mod_proxy` appends to `X-Forwarded-Host` by default, which is the unsafe case. When the proxy does not overwrite a header, take it out of the trusted set. With only the client address trusted, the same request resolves to `http://app.example.test`:
 
 ```yaml
 security:
-  trusted_proxies: [10.0.0.0/8]
-  trusted_headers: [x-real-ip, x-forwarded-proto]
+  trusted_proxies: [10.0.0.5/32]
+  trusted_headers: [x-forwarded-for]
 ```
+
+Without `x-forwarded-proto`, a request that a proxy terminated over TLS is no longer seen as HTTPS, so enforce HTTPS at the proxy and acknowledge `forceHttps` (see [forcing HTTPS](#forcing-https)). `allowed_hosts` is the backstop for every host header, forwarded or not: list your hosts in production. With `app.example.test` listed, the request above is answered with a 400.
 
 `['*']` trusts every peer. It exists for local development behind a container proxy; in production it lets any client choose its own address.
 
