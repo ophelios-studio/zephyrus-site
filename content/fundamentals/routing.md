@@ -33,6 +33,8 @@ final class StatusController extends Controller
 }
 ```
 
+`$root` is the application's base directory, passed in by the bootstrap shown in the [application](../application/) page. The snippets below build `$router` from it.
+
 Tell the router where your controllers live:
 
 ```php
