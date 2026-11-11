@@ -143,14 +143,14 @@ Ce qui rend ceci sûr :
 
 Pour un fichier qu'un visiteur devrait télécharger plutôt qu'afficher, ajoutez `Content-Disposition: attachment`. Faites-le pour chaque type qui n'est pas une image que vous avez choisie : un SVG ouvert dans le navigateur exécute son script dans l'origine de votre site.
 
-Une requête vers `/avatars/<the generated name>` a obtenu une réponse 200 avec `Content-Type: image/png`; `/avatars/shell.png` et un chemin `..` encodé ont obtenu 404.
+Une requête vers `/avatars/<the generated name>` reçoit une réponse 200 avec `Content-Type: image/png`; `/avatars/shell.png` et un chemin `..` encodé reçoivent une réponse 404.
 
 ## Limites de taille
 
 Trois limites s'empilent, et un fichier doit toutes les respecter :
 
-1. **Les limites propres à PHP**, `upload_max_filesize` (2M par défaut) et `post_max_size` (8M par défaut). Un fichier plus gros n'atteint jamais votre code en tant que fichier : `FileUpload::isValid()` est faux, et `store()` lève `Upload failed: File exceeds the server maximum upload size (upload_max_filesize).` Un fichier de 3 Mo envoyé avec les réglages PHP par défaut a été refusé de cette façon, quoi que dise `maxSizeBytes`. Augmentez les deux réglages au-dessus du plus gros fichier que vous acceptez.
-2. **Le middleware de taille du corps.** `MaxBodySizeMiddleware` répond 413 pour un corps plus grand que `security.max_body_size`. Pour un corps multipart, il ne peut voir que le `Content-Length` déclaré, ce qui explique pourquoi il ne remplace pas les réglages de PHP. Lors de l'essai, un téléversement de 7 Mo face à une limite de 6 Mo a répondu `413 Content Too Large`. Voir [Sécurité](../../fundamentals/security/).
+1. **Les limites propres à PHP**, `upload_max_filesize` (2M par défaut) et `post_max_size` (8M par défaut). Un fichier plus gros n'atteint jamais votre code en tant que fichier : `FileUpload::isValid()` est faux, et `store()` lève `Upload failed: File exceeds the server maximum upload size (upload_max_filesize).` Un fichier de 3 Mo envoyé avec les réglages PHP par défaut est refusé de cette façon, quoi que dise `maxSizeBytes`. Augmentez les deux réglages au-dessus du plus gros fichier que vous acceptez.
+2. **Le middleware de taille du corps.** `MaxBodySizeMiddleware` répond 413 pour un corps plus grand que `security.max_body_size`. Pour un corps multipart, il ne peut voir que le `Content-Length` déclaré, ce qui explique pourquoi il ne remplace pas les réglages de PHP. Un téléversement de 7 Mo face à une limite de 6 Mo reçoit la réponse `413 Content Too Large`. Voir [Sécurité](../../fundamentals/security/).
 3. **`maxSizeBytes`** sur l'uploader, vérifié contre la taille réelle du fichier.
 
 Définissez `max_body_size` un peu au-dessus de `maxSizeBytes` multiplié par le nombre de fichiers qu'un formulaire peut contenir, puisque le corps comprend aussi les autres champs et l'encadrement multipart.

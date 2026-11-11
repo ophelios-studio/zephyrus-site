@@ -143,14 +143,14 @@ What makes this safe:
 
 For a file a visitor should download rather than display, add `Content-Disposition: attachment`. Do that for every type that is not an image you chose: an SVG opened in the browser runs its script in your site's origin.
 
-A request for `/avatars/<the generated name>` answered 200 with `Content-Type: image/png`; `/avatars/shell.png` and an encoded `..` path answered 404.
+A request for `/avatars/<the generated name>` is answered with 200 and `Content-Type: image/png`; `/avatars/shell.png` and an encoded `..` path are answered with 404.
 
 ## Size limits
 
 Three limits stack, and a file must pass all of them:
 
-1. **PHP's own limits**, `upload_max_filesize` (2M by default) and `post_max_size` (8M by default). A larger file never reaches your code as a file: `FileUpload::isValid()` is false, and `store()` throws `Upload failed: File exceeds the server maximum upload size (upload_max_filesize).` A 3 MB file sent to the default PHP settings was refused that way, whatever `maxSizeBytes` said. Raise both settings above the largest file you accept.
-2. **The body size middleware.** `MaxBodySizeMiddleware` answers 413 for a body larger than `security.max_body_size`. For a multipart body it can only see the declared `Content-Length`, which is why it does not replace the PHP settings. In the run, a 7 MB upload against a 6 MB limit answered `413 Content Too Large`. See [Security](../../fundamentals/security/).
+1. **PHP's own limits**, `upload_max_filesize` (2M by default) and `post_max_size` (8M by default). A larger file never reaches your code as a file: `FileUpload::isValid()` is false, and `store()` throws `Upload failed: File exceeds the server maximum upload size (upload_max_filesize).` A 3 MB file sent to the default PHP settings is refused that way, whatever `maxSizeBytes` says. Raise both settings above the largest file you accept.
+2. **The body size middleware.** `MaxBodySizeMiddleware` answers 413 for a body larger than `security.max_body_size`. For a multipart body it can only see the declared `Content-Length`, which is why it does not replace the PHP settings. A 7 MB upload against a 6 MB limit is answered with `413 Content Too Large`. See [Security](../../fundamentals/security/).
 3. **`maxSizeBytes`** on the uploader, checked against the real size of the file.
 
 Set `max_body_size` a little above `maxSizeBytes` times the number of files a form can carry, since the body also holds the other fields and the multipart framing.
