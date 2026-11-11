@@ -114,7 +114,7 @@ App\Kernel::run(dirname(__DIR__));
 
 Localization has its own entry points: `withLocalizationConfig()`, `withJsonLocales($path)`, `withJsonLocaleLayers($paths)`, `withFallbackLoaders($loaders)`, `withLocaleLoader($loader)` and `withSupportedLocales($locales)`. See [Localization](../localization/).
 
-You can also start from a configuration instead of adding it afterwards: `ApplicationBuilder::fromConfiguration($config)`, `fromConfigurationFile($path)`, `fromConfigurationArray($array)`, and the `buildFrom...()` variants that return the `Application` directly. `withConfigurationFile()`, `withConfigurationFiles()`, `withOptionalConfigurationFiles()` and `withConfigurationArray()` do the same on an existing builder.
+You can also start from a configuration instead of adding it afterwards: `ApplicationBuilder::fromConfiguration($config)`, `fromConfigurationFile($path)`, `fromConfigurationArray($array)`, `fromConfigurationFiles($paths)`, `fromOptionalConfigurationFiles($paths)` (missing files are skipped), and the `buildFrom...()` variants that return the `Application` directly. `withConfigurationFile()`, `withConfigurationFiles()`, `withOptionalConfigurationFiles()` and `withConfigurationArray()` do the same on an existing builder.
 
 ### Discover controllers
 
@@ -125,6 +125,9 @@ You can also start from a configuration instead of adding it afterwards: `Applic
 `withContainer()` resolves each controller through a [container](../../digging-deeper/container-and-events/), so constructor dependencies are injected:
 
 ```php
+use Zephyrus\Controller\Controller;
+use Zephyrus\Routing\Attribute\Get;
+
 final class HelloController extends Controller
 {
     public function __construct(private readonly Greeter $greeter)
