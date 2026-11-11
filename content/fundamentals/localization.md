@@ -136,10 +136,11 @@ return $this->json([
     'total' => localize('cart.total', ['amount' => 1234.5]),
 ]);
 // Accept-Language: fr-CA,fr;q=0.9
+// as displayed (json_encode escapes the non-breaking spaces as \u00a0 and \u202f):
 // {"greeting":"Bonjour, Ada Lovelace !","total":"Total : 1 234,50 $CA"}
 ```
 
-(In the real output the spaces inside the amount are non-breaking.)
+(The spaces inside the amount are non-breaking.)
 
 `LocaleResolver::resolve()` prefers the explicit value (a URL segment, a cookie, a form field), then the `Accept-Language` candidates by quality, then the default. A candidate is accepted when it, or its base language, is in `supportedLocales`: `fr-CA,fr;q=0.9` against `['en', 'fr']` gives `fr`, and `de` gives the default. The explicit value is checked against the same allowlist, so with `supportedLocales` set a visitor cannot choose a locale of their own invention. `AcceptLanguageResolver::resolve($header, $supported, $default, $requested)` is the same logic without the null handling.
 
@@ -211,7 +212,7 @@ $fr = new Formatter('fr_CA', 'CAD');
 | `list(['a', 'b', 'c'])` | `a, b, and c` | `a, b et c` |
 | `truncate('Hello world', 8)` | `Hello...` | `Hello...` |
 
-(`$d` is `2026-03-09 14:05` in the default timezone. The spaces in the French cells are non-breaking.)
+(`$d` is `2026-03-09 14:05` in the default timezone. The spaces in the French cells are non-breaking, and so is the one before `p.m.` in the `en_CA` `time` and `datetime` cells (U+202F).)
 
 - `date`, `time` and `datetime` take a `DateTimeInterface`, a Unix timestamp or a date string, and an optional preset or ICU pattern. An unparseable value throws a `FormatterException`.
 - `timeago`, `duration`, `filesize` and `list` are written in French for a French locale and in English for any other language.
