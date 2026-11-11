@@ -8,7 +8,7 @@ description: Testez une application en processus avec PHPUnit en envoyant des re
 
 Sans serveur, sans navigateur, de vraies requêtes.
 
-`Application::handle()` transforme une `Request` en une `Response` sans serveur web : un test exerce donc ensemble le routage, les middlewares, le contrôleur et la vue de votre application. Les exemples s'exécutent sur PHPUnit 13, que `composer require --dev phpunit/phpunit` installe aujourd'hui, et utilisent l'application de la page [première application](../../getting-started/first-application/) ainsi qu'un petit point d'accès JSON.
+`Application::handle()` transforme une `Request` en une `Response` sans serveur web : un test exerce donc ensemble le routage, les middlewares, le contrôleur et la vue de votre application. Les exemples ont été vérifiés sur PHPUnit 13 et utilisent l'application de la page [première application](../../getting-started/first-application/) ainsi qu'un petit point d'accès JSON.
 
 Installez PHPUnit et associez l'espace de noms des tests :
 
