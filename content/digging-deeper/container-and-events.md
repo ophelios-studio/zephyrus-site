@@ -15,6 +15,19 @@ Two small building blocks sit under the application: a dependency injection cont
 `Zephyrus\Container\Container` creates objects. Most of the time you do not register anything: it reads the typed constructor of a class and builds the dependencies it names.
 
 ```php
+interface Clock
+{
+    public function now(): \DateTimeImmutable;
+}
+
+final class SystemClock implements Clock
+{
+    public function now(): \DateTimeImmutable
+    {
+        return new \DateTimeImmutable();
+    }
+}
+
 final class Greeter
 {
     public function __construct(private readonly string $greeting = 'Hello')
