@@ -41,7 +41,7 @@ Run the suite with `vendor/bin/phpunit`. Treating warnings and risky tests as fa
 
 ## A base class
 
-Build the application once per test class, and give every test a clean state. This base class does both and adds three helpers:
+Build the application in `setUp()`, so that every test starts from a clean state. This base class does it and adds three helpers:
 
 ```php
 <?php
@@ -60,12 +60,12 @@ use Zephyrus\Http\Response;
 
 abstract class ApplicationTestCase extends TestCase
 {
-    private static Application $app;
+    private Application $app;
 
-    public static function setUpBeforeClass(): void
+    protected function setUp(): void
     {
         $root = dirname(__DIR__);
-        self::$app = Kernel::application($root, Configuration::fromYamlFile($root . '/config.yml'));
+        $this->app = Kernel::application($root, Configuration::fromYamlFile($root . '/config.yml'));
     }
 
     protected function tearDown(): void
@@ -76,7 +76,7 @@ abstract class ApplicationTestCase extends TestCase
 
     protected function handle(Request $request): Response
     {
-        return self::$app->handle($request);
+        return $this->app->handle($request);
     }
 
     /**
@@ -109,7 +109,7 @@ abstract class ApplicationTestCase extends TestCase
 
 - `Kernel::application()` is the bootstrap method from the first application: it returns the built `Application` and sends nothing.
 - `Request::fromArray()` builds a request without touching the PHP globals. `body:` takes the already decoded body.
-- `App::reset()` clears the statics the application holds between requests (configuration, session, formatter, translator and so on). The next request registers them again.
+- `App::reset()` clears the statics the application holds (configuration, session, formatter, translator, the URL generator behind `route()` and so on). Only `build()` installs them again, which is why `setUp()` builds a new application for every test.
 - `$_SESSION = []` is a separate and required step, see [Isolating tests](#isolating-tests).
 
 ## Reading a response
@@ -291,7 +291,13 @@ final class ApiController extends Controller
 
 ## A middleware
 
-Test a middleware on its own by calling `process()` with a request and a `$next` closure, then once through a route to check it is mounted. This is the middleware under test, registered in the bootstrap with `->registerMiddleware('require-json', new RequireJson())` and referenced by `#[Middleware('require-json')]` on the controller:
+Test a middleware on its own by calling `process()` with a request and a `$next` closure, then once through a route to check it is mounted. This is the middleware under test, registered in the bootstrap with `#[Middleware('require-json')]` on the controller. The `Kernel` of the first application registers it on the builder, before `build()`:
+
+```php
+->registerMiddleware('require-json', new RequireJson())
+```
+
+The class:
 
 ```php
 <?php
