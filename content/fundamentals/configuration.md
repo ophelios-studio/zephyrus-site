@@ -40,7 +40,7 @@ session:
 
 security:
   force_https: false
-  allowed_hosts: []                # host names only: no port, no scheme
+  allowed_hosts: [example.com]     # host names only: no port, no scheme; an empty list accepts every Host header
   max_body_size: 2097152           # bytes, no unit suffix
   trusted_proxies: []              # addresses or CIDR network addresses
   csrf:
@@ -93,11 +93,13 @@ $config = Configuration::fromYamlFile(__DIR__ . '/config.yml');
 
 Only `$_ENV` and the process environment are read, never `$_SERVER`. `$_SERVER` carries values a client can influence, so a variable set per request with Apache `SetEnv` or a `fastcgi_param` is not seen. Set it in the real process environment: the container environment, or `env[NAME]` in a php-fpm pool.
 
-For the same reason, a variable name that a request or the web server can supply is refused with an `InvalidArgumentException`, whatever its case: names starting with `HTTP_`, `REDIRECT_`, `ORIG_`, `SSL_` or `H2_`, CGI and server names such as `REMOTE_ADDR`, `QUERY_STRING`, `HTTPS` or `SERVER_NAME`, and any name holding `=` or a NUL byte.
+For the same reason, a variable name that a request or the web server can supply is refused, whatever its case. Calling `env('HTTP_HOST')` directly throws an `InvalidArgumentException`; the same name in a YAML file (`debug: !env HTTP_HOST`) throws a `ConfigurationException` whose message is prefixed with the tag and the key. The refused names are those starting with `HTTP_`, `REDIRECT_`, `ORIG_`, `SSL_` or `H2_`, CGI and server names such as `REMOTE_ADDR`, `QUERY_STRING`, `HTTPS` or `SERVER_NAME`, and any name holding `=` or a NUL byte.
 
 ```text
-"HTTP_HOST": names starting with HTTP_ can be set per request by the client request headers, so they are never read as configuration; rename the variable.
+!env tag at "application.debug": "HTTP_HOST": names starting with HTTP_ can be set per request by the client request headers, so they are never read as configuration; rename the variable.
 ```
+
+`env('HTTP_HOST')` raises the same message without the `!env tag at "application.debug": ` prefix.
 
 ### The env() helper
 
