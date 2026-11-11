@@ -70,6 +70,8 @@ final class StreamController extends Controller
 curl -N -i http://127.0.0.1:8431/events
 ```
 
+The output below is abridged: it lists only the headers the endpoint sets and stops after two events.
+
 ```text
 HTTP/1.1 200 OK
 Connection: close
@@ -156,7 +158,7 @@ PHP notices that a client has gone away when it writes. A loop that sleeps for m
 
 PHP's default file session handler locks the session for the whole request. A stream that holds the session keeps every other request from the same browser waiting until the stream ends. Skip the session middleware on the streaming route, as the example does with `#[WithoutMiddleware(SessionMiddleware::class)]`.
 
-With the global `SessionMiddleware` mounted, a plain request sent while the stream was open waited 2.5 seconds, the rest of the stream. The same request with the attribute above answered in 2 milliseconds. If the stream needs the identity of the user, read what you need from the session before you start streaming, or authenticate with a token in a middleware (see [Authentication](../../fundamentals/authentication/)).
+With the global `SessionMiddleware` mounted, a plain request sent while the stream was open waited 2.5 seconds, the rest of the stream. The same request with the attribute above answered in 2 milliseconds. These figures are measured with `debug: false`: in development, debug defaults to on and the Tracy integration starts a session (a `tracy-session` cookie), so the lock remains even with the attribute. If the stream needs the identity of the user, read what you need from the session before you start streaming, or authenticate with a token in a middleware (see [Authentication](../../fundamentals/authentication/)).
 
 ### Buffering
 
