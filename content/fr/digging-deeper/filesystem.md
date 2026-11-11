@@ -128,7 +128,9 @@ use Zephyrus\Controller\Controller;
 use Zephyrus\FileSystem\File;
 use Zephyrus\Http\Response;
 use Zephyrus\Routing\Attribute\Get;
+use Zephyrus\Routing\Attribute\Middleware;
 
+#[Middleware('auth')]
 final class ExportController extends Controller
 {
     #[Get('/exports/{name}', constraints: ['name' => '[A-Za-z0-9_-]+\.csv'])]
@@ -148,6 +150,8 @@ final class ExportController extends Controller
 ```
 
 Le motif ne contient ni barre oblique ni point, sauf pour l’extension : le nom ne peut donc pas désigner un autre répertoire.
+
+La contrainte vérifie le nom, pas qui a le droit de lire le fichier : le middleware `auth` (voir [Authentification](../../fundamentals/authentication/)) réserve les exportations aux utilisateurs connectés, et une exportation qui appartient à un compte doit aussi être vérifiée contre l’utilisateur courant.
 
 ## Bon à savoir
 

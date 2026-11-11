@@ -128,7 +128,9 @@ use Zephyrus\Controller\Controller;
 use Zephyrus\FileSystem\File;
 use Zephyrus\Http\Response;
 use Zephyrus\Routing\Attribute\Get;
+use Zephyrus\Routing\Attribute\Middleware;
 
+#[Middleware('auth')]
 final class ExportController extends Controller
 {
     #[Get('/exports/{name}', constraints: ['name' => '[A-Za-z0-9_-]+\.csv'])]
@@ -148,6 +150,8 @@ final class ExportController extends Controller
 ```
 
 The pattern has no slash and no dot except the extension, so the name cannot name another directory.
+
+The constraint checks the name, not who may read the file: the `auth` middleware (see [Authentication](../../fundamentals/authentication/)) keeps the exports for signed-in users, and an export that belongs to one account must also be checked against the current user.
 
 ## Good to know
 
