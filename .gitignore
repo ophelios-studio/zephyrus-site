@@ -4,3 +4,4 @@ node_modules/
 cache/
 .leaf/
 artifacts/
+/dist/
