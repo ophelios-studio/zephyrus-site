@@ -33,7 +33,7 @@ final class StatusController extends Controller
 }
 ```
 
-`$root` est le répertoire de base de l'application, transmis par le code d'amorçage présenté dans la page [application](../application/). Les extraits ci-dessous construisent `$router` à partir de celui-ci.
+`$root` est le répertoire de base de l’application, transmis par le code d’amorçage présenté dans la page [application](../application/). Les extraits ci-dessous construisent `$router` à partir de celui-ci.
 
 Indiquez au routeur où se trouvent vos contrôleurs :
 
@@ -43,7 +43,7 @@ use Zephyrus\Routing\Router;
 $router = (new Router())->discoverControllers('App\\Controllers', $root . '/app/Controllers');
 ```
 
-`discoverControllers()` parcourt le répertoire, charge chaque classe concrète dont le nom correspond à l'espace de noms et enregistre les routes qu'elle déclare. Le routeur est ensuite remis au constructeur de l'application avec `withRouter($router)` (voir [Application](../application/)).
+`discoverControllers()` parcourt le répertoire, charge chaque classe concrète dont le nom correspond à l’espace de noms et enregistre les routes qu’elle déclare. Le routeur est ensuite remis au constructeur de l’application avec `withRouter($router)` (voir [Application](../application/)).
 
 ## Attributs de méthode
 
@@ -69,11 +69,11 @@ public function multi(): Response
 }
 ```
 
-Seules les méthodes publiques déclarées par la classe du contrôleur elle-même sont lues. Un attribut de route placé sur une méthode d'une classe parente n'enregistre rien pour la sous-classe.
+Seules les méthodes publiques déclarées par la classe du contrôleur elle-même sont lues. Un attribut de route placé sur une méthode d’une classe parente n’enregistre rien pour la sous-classe.
 
 ## Préfixes avec Root
 
-`#[Root]` préfixe toutes les routes d'une classe. Le préfixe de la classe parente vient en premier, puis celui de la classe elle-même.
+`#[Root]` préfixe toutes les routes d’une classe. Le préfixe de la classe parente vient en premier, puis celui de la classe elle-même.
 
 ```php
 #[Root('/api/projects')]
@@ -103,21 +103,21 @@ public function show(int $id, int $userId): Response
 }
 ```
 
-Une contrainte est un fragment d'expression régulière. Sans contrainte, un paramètre correspond à `[^/]+`. Contraignez chaque paramètre que vous pouvez : une requête qui ne satisfait pas la contrainte, ou dont la valeur ne peut pas être convertie vers le type déclaré, reçoit un 404.
+Une contrainte est un fragment d’expression régulière. Sans contrainte, un paramètre correspond à `[^/]+`. Contraignez chaque paramètre que vous pouvez : une requête qui ne satisfait pas la contrainte, ou dont la valeur ne peut pas être convertie vers le type déclaré, reçoit un 404.
 
 Les paramètres du gestionnaire sont résolus dans cet ordre :
 
 1. un paramètre typé `Request` reçoit la requête;
-2. un paramètre nommé comme un paramètre substituable de la route trouvée prend la valeur de l'URL;
+2. un paramètre nommé comme un paramètre substituable de la route trouvée prend la valeur de l’URL;
 3. un paramètre nommé comme un attribut de la requête prend cet attribut, converti vers son type (ici `$userId`, défini par un middleware);
 4. tout autre paramètre prend le prochain paramètre substituable non encore réclamé, selon sa position;
-5. sinon, sa valeur par défaut est utilisée, et sans valeur par défaut l'appel échoue.
+5. sinon, sa valeur par défaut est utilisée, et sans valeur par défaut l’appel échoue.
 
 Nommez vos paramètres comme les paramètres substituables : le repli positionnel existe, mais il se lit facilement de travers. La chaîne de requête ne se lie jamais : `?n=3` laisse `int $n = 5` à 5. Lisez-la avec `$request->query()` (voir [HTTP](../http/)).
 
-Une route statique l'emporte sur une route paramétrée, peu importe l'ordre d'enregistrement : `/users/me` gagne sur `/users/{id}`. Parmi les routes paramétrées, l'ordre d'enregistrement tranche.
+Une route statique l’emporte sur une route paramétrée, peu importe l’ordre d’enregistrement : `/users/me` gagne sur `/users/{id}`. Parmi les routes paramétrées, l’ordre d’enregistrement tranche.
 
-### Contraindre la forme d'un segment
+### Contraindre la forme d’un segment
 
 Un paramètre substituable remplit un segment entier et ne peut pas le partager avec du texte. Pour faire correspondre `report.json`, capturez le segment et contraignez-le :
 
@@ -127,11 +127,11 @@ Un paramètre substituable remplit un segment entier et ne peut pas le partager 
 
 ## Nommer les routes
 
-L'argument `name` donne un nom à une route pour la [génération d'URL](#générer-des-url). Les noms doivent être uniques. Deux routes par attribut d'une même classe qui partagent un nom sont refusées (`Duplicate route name "same" discovered while reading attributes on class "Dup\A".`). Entre classes, ou avec des routes enregistrées sur le routeur, rien ne refuse un doublon à l'enregistrement : appelez `$router->assertNoDuplicateRouteNames()` une fois les routes enregistrées, ce qui lance `Duplicate route names detected: same`.
+L’argument `name` donne un nom à une route pour la [génération d’URL](#générer-des-url). Les noms doivent être uniques. Deux routes par attribut d’une même classe qui partagent un nom sont refusées (`Duplicate route name "same" discovered while reading attributes on class "Dup\A".`). Entre classes, ou avec des routes enregistrées sur le routeur, rien ne refuse un doublon à l’enregistrement : appelez `$router->assertNoDuplicateRouteNames()` une fois les routes enregistrées, ce qui lance `Duplicate route names detected: same`.
 
 ## Attacher des middlewares
 
-`#[Middleware('auth')]` désigne un middleware enregistré sur le constructeur, sur une classe ou sur une méthode. Les routes l'exécutent alors après le middleware global, dans l'ordre décrit dans [Middleware](../middleware/).
+`#[Middleware('auth')]` désigne un middleware enregistré sur le constructeur, sur une classe ou sur une méthode. Les routes l’exécutent alors après le middleware global, dans l’ordre décrit dans [Middleware](../middleware/).
 
 ```php
 #[Root('/api/projects')]
@@ -142,9 +142,9 @@ final class ProjectController extends Controller
 }
 ```
 
-Sur une classe, l'attribut est hérité par les sous-classes et s'exécute en commençant par le parent. Sur une méthode, chaque `#[Middleware]` s'exécute avant chaque `#[MiddlewareGroup]`. Une route peut aussi lister des noms directement : `#[Get('/', middlewares: ['auth'])]`.
+Sur une classe, l’attribut est hérité par les sous-classes et s’exécute en commençant par le parent. Sur une méthode, chaque `#[Middleware]` s’exécute avant chaque `#[MiddlewareGroup]`. Une route peut aussi lister des noms directement : `#[Get('/', middlewares: ['auth'])]`.
 
-Un groupe est un nom pour une liste de noms de middlewares. Définissez-le sur le routeur avant les routes qui l'utilisent :
+Un groupe est un nom pour une liste de noms de middlewares. Définissez-le sur le routeur avant les routes qui l’utilisent :
 
 ```php
 $router = (new Router())
@@ -163,7 +163,7 @@ public function admin(): Response
 
 ### Ignorer un middleware global
 
-`#[WithoutMiddleware]` sur une classe ou une méthode ignore un middleware global pour les routes visées : un webhook sans état qui n'a pas besoin de session, une sonde de santé.
+`#[WithoutMiddleware]` sur une classe ou une méthode ignore un middleware global pour les routes visées : un webhook sans état qui n’a pas besoin de session, une sonde de santé.
 
 ```php
 use Zephyrus\Session\SessionMiddleware;
@@ -176,11 +176,11 @@ public function health(): Response
 }
 ```
 
-Seule une route trouvée peut ignorer un middleware : un 404 ou un 405 exécute tout de même chaque middleware global. Les middlewares de route définis avec `#[Middleware]` ne sont jamais ignorés. Les middlewares de sécurité du framework (redirection HTTPS, hôtes autorisés, CSRF, limite de taille du corps, en-têtes sécurisés, CSP) ne peuvent pas être ignorés : la route est refusée à l'enregistrement (voir [les refus](#refus-à-la-construction)).
+Seule une route trouvée peut ignorer un middleware : un 404 ou un 405 exécute tout de même chaque middleware global. Les middlewares de route définis avec `#[Middleware]` ne sont jamais ignorés. Les middlewares de sécurité du framework (redirection HTTPS, hôtes autorisés, CSRF, limite de taille du corps, en-têtes sécurisés, CSP) ne peuvent pas être ignorés : la route est refusée à l’enregistrement (voir [les refus](#refus-à-la-construction)).
 
 ## Une base de code, plusieurs processus
 
-`#[RequiresEnv]` n'enregistre une classe ou une méthode que lorsqu'une variable d'environnement a exactement cette valeur (sensible à la casse) :
+`#[RequiresEnv]` n’enregistre une classe ou une méthode que lorsqu’une variable d’environnement a exactement cette valeur (sensible à la casse) :
 
 ```php
 #[Root('/v1')]
@@ -195,7 +195,7 @@ final class StatusController extends Controller
 }
 ```
 
-Si `MODE` n'est pas défini, `GET /v1/status` n'est pas enregistrée et répond 404. Un contrôleur sans `#[RequiresEnv]` s'enregistre dans tous les processus. L'attribut est hérité par les sous-classes, vous pouvez donc le placer sur une classe de base abstraite.
+Si `MODE` n’est pas défini, `GET /v1/status` n’est pas enregistrée et répond 404. Un contrôleur sans `#[RequiresEnv]` s’enregistre dans tous les processus. L’attribut est hérité par les sous-classes, vous pouvez donc le placer sur une classe de base abstraite.
 
 ## Enregistrer sans attributs
 
@@ -214,16 +214,16 @@ $router = (new Router())
 ```
 
 - `get()`, `post()`, `put()`, `patch()`, `delete()`, `head()` et `options()` acceptent un chemin, un gestionnaire, des contraintes et des noms de middlewares; `add()` prend la méthode en premier.
-- `name()` nomme la route qui vient d'être ajoutée. `withoutMiddleware()` fait de même pour un middleware global ignoré.
+- `name()` nomme la route qui vient d’être ajoutée. `withoutMiddleware()` fait de même pour un middleware global ignoré.
 - `group()` ajoute un préfixe, des middlewares partagés, un préfixe de nom et `excludedMiddlewares` à chaque route de la fonction de rappel.
 - `resource()` enregistre les six routes conventionnelles (`index`, `show`, `store`, `update`, `patch`, `delete`), avec `{id}` limité aux chiffres.
-- `controller(ProjectController::class)` enregistre les attributs d'une seule classe; `discoverControllers()` accepte un troisième argument facultatif, `parentClass:`, pour n'enregistrer que les sous-classes d'une classe de base.
+- `controller(ProjectController::class)` enregistre les attributs d’une seule classe; `discoverControllers()` accepte un troisième argument facultatif, `parentClass:`, pour n’enregistrer que les sous-classes d’une classe de base.
 
-Une fermeture n'est pas un gestionnaire : c'est la forme en chaîne qui rend la table de routes mettable en cache.
+Une fermeture n’est pas un gestionnaire : c’est la forme en chaîne qui rend la table de routes mettable en cache.
 
 ## Générer des URL
 
-Donnez un nom à une route, puis construisez son URL plutôt que de l'écrire à la main :
+Donnez un nom à une route, puis construisez son URL plutôt que de l’écrire à la main :
 
 ```php
 use Zephyrus\Core\App;
@@ -235,7 +235,7 @@ route('projects.show', ['id' => 12], ['tab' => 'files']);
 // https://app.example.test/api/projects/12?tab=files
 ```
 
-`route()` est disponible en PHP et dans Latte dès qu'un générateur est défini; sans URL de base, elle retourne le chemin seul. Les valeurs des paramètres substituables sont encodées en pourcentage, les clés de la chaîne de requête sont triées, et un cinquième argument facultatif de `generate()` ajoute un fragment. Vous pouvez aussi utiliser directement le générateur :
+`route()` est disponible en PHP et dans Latte dès qu’un générateur est défini; sans URL de base, elle retourne le chemin seul. Les valeurs des paramètres substituables sont encodées en pourcentage, les clés de la chaîne de requête sont triées, et un cinquième argument facultatif de `generate()` ajoute un fragment. Vous pouvez aussi utiliser directement le générateur :
 
 ```php
 $urls = new RouteUrlGenerator($router->routes(), 'https://app.example.test');
@@ -248,7 +248,7 @@ $urls->generate('reports.show', ['id' => 12], ['tab' => 'files', 'a' => 'b c'], 
 
 ### URL signées
 
-Passez un `RouteSignature` construit avec un secret tiré de l'environnement pour signer les URL, afin qu'un lien ne puisse pas être modifié :
+Passez un `RouteSignature` construit avec un secret tiré de l’environnement pour signer les URL, afin qu’un lien ne puisse pas être modifié :
 
 ```php
 use Zephyrus\Routing\RouteSignature;
@@ -260,7 +260,7 @@ $urls->generateSigned('reports.show', ['id' => 12]);
 $urls->generateTemporarySigned('reports.show', 3600, ['id' => 12]); // expires in an hour
 ```
 
-Quand le lien revient, vérifiez-le avec `$signature->verify($url)` (un booléen) ou `$signature->assertValid($url)` (lance `RouteSignatureException` : `Invalid route signature` ou `Route signature has expired`). Un secret vide est refusé. Vérifiez avec l'URL complète telle que le navigateur l'a demandée, et utilisez un secret long et aléatoire.
+Quand le lien revient, vérifiez-le avec `$signature->verify($url)` (un booléen) ou `$signature->assertValid($url)` (lance `RouteSignatureException` : `Invalid route signature` ou `Route signature has expired`). Un secret vide est refusé. Vérifiez avec l’URL complète telle que le navigateur l’a demandée, et utilisez un secret long et aléatoire.
 
 ## 404 et 405
 
@@ -276,11 +276,11 @@ public function show(int $id): Response
 }
 ```
 
-`RouteNotFoundException` lancée depuis le code d'un gestionnaire répond 404 comme une route inconnue, de sorte qu'un enregistrement manquant ne demande aucun traitement particulier. `$this->abort(404)` fait la même chose sans exception. Un chemin qui n'est pas de l'UTF-8 valide ou qui contient un caractère de contrôle est aussi un 404. Le middleware global s'exécute sur les réponses 404 et 405, qui portent donc vos en-têtes de sécurité.
+`RouteNotFoundException` lancée depuis le code d’un gestionnaire répond 404 comme une route inconnue, de sorte qu’un enregistrement manquant ne demande aucun traitement particulier. `$this->abort(404)` fait la même chose sans exception. Un chemin qui n’est pas de l’UTF-8 valide ou qui contient un caractère de contrôle est aussi un 404. Le middleware global s’exécute sur les réponses 404 et 405, qui portent donc vos en-têtes de sécurité.
 
 ## Mettre la table de routes en cache
 
-`RouteCache` enregistre les routes compilées dans un fichier JSON afin qu'une requête puisse éviter de parcourir et de réfléchir les contrôleurs. L'application ne l'utilise jamais d'elle-même : c'est vous qui décidez quand l'écrire et le lire.
+`RouteCache` enregistre les routes compilées dans un fichier JSON afin qu’une requête puisse éviter de parcourir et de réfléchir les contrôleurs. L’application ne l’utilise jamais d’elle-même : c’est vous qui décidez quand l’écrire et le lire.
 
 ```php
 use Zephyrus\Routing\RouteCache;
@@ -297,16 +297,16 @@ if ($cache->has()) {
 
 - `warm($routes)` enregistre et retourne les métadonnées; `warmIfStale($routes, $maxAgeSeconds)` ne réécrit que lorsque le cache est périmé.
 - `isFresh($routes)` compare le fichier aux routes actuelles; `inspect($routes, $maxAgeSeconds)` explique pourquoi un cache est périmé, expiré ou invalide.
-- `clear()` supprime le fichier. Faites-le à chaque déploiement, ou réchauffez le cache à l'étape de déploiement.
+- `clear()` supprime le fichier. Faites-le à chaque déploiement, ou réchauffez le cache à l’étape de déploiement.
 - `load()` lance `RouteCacheException` lorsque le fichier est absent ou échoue à la validation, par exemple `Route cache file /var/cache/routes.json has not been written; rebuild the cache with save() or warm()`.
 
 Le fichier contient des chaînes `Class@method` qui pilotent la répartition. Son empreinte détecte la corruption, pas la falsification : laissez-le accessible en écriture au seul utilisateur de déploiement.
 
 ## Refus à la construction
 
-Le routeur refuse une route qu'il ne peut pas servir correctement, à l'enregistrement, de sorte qu'une erreur échoue au démarrage et non en production.
+Le routeur refuse une route qu’il ne peut pas servir correctement, à l’enregistrement, de sorte qu’une erreur échoue au démarrage et non en production.
 
-Une route qui désigne un middleware ou un groupe jamais enregistré est refusée à la construction de l'application :
+Une route qui désigne un middleware ou un groupe jamais enregistré est refusée à la construction de l’application :
 
 ```text
 Route middlewares are not registered: "admin" on GET /misc/admin, "auth" on 5 routes (GET /api/projects, GET /api/projects/{id}, GET /api/projects/{id}/files/{name}, ...); no middleware is registered. Register each with registerMiddleware() before build(), or, for a group, define it with Router::middlewareGroup() before the routes that name it.
@@ -332,9 +332,9 @@ Circular middleware group reference detected: a -> b -> a
 
 ## Bon à savoir
 
-- Le routeur est immuable. `$router->get(...)` seul sur sa ligne n'enregistre rien; réassignez-le ou chaînez les appels.
-- `discoverControllers()` n'enregistre rien, silencieusement, lorsque le répertoire ou l'espace de noms est erroné : un répertoire absent retourne le routeur inchangé et une classe qui ne correspond pas à l'espace de noms est ignorée. Vérifiez `$router->count()` pendant la mise en place.
-- Les attributs de route sur les méthodes d'une classe parente ne s'appliquent pas aux sous-classes; `#[Root]`, `#[Middleware]` et `#[RequiresEnv]` sur la classe parente, eux, s'appliquent.
-- Déclarez les groupes de middlewares avant `discoverControllers()` : un groupe est développé lors de l'ajout d'une route.
-- Les noms de routes ne sont vérifiés pour les doublons qu'à l'intérieur d'une même classe : appelez `$router->assertNoDuplicateRouteNames()` pour le reste.
+- Le routeur est immuable. `$router->get(...)` seul sur sa ligne n’enregistre rien; réassignez-le ou chaînez les appels.
+- `discoverControllers()` n’enregistre rien, silencieusement, lorsque le répertoire ou l’espace de noms est erroné : un répertoire absent retourne le routeur inchangé et une classe qui ne correspond pas à l’espace de noms est ignorée. Vérifiez `$router->count()` pendant la mise en place.
+- Les attributs de route sur les méthodes d’une classe parente ne s’appliquent pas aux sous-classes; `#[Root]`, `#[Middleware]` et `#[RequiresEnv]` sur la classe parente, eux, s’appliquent.
+- Déclarez les groupes de middlewares avant `discoverControllers()` : un groupe est développé lors de l’ajout d’une route.
+- Les noms de routes ne sont vérifiés pour les doublons qu’à l’intérieur d’une même classe : appelez `$router->assertNoDuplicateRouteNames()` pour le reste.
 - Un `POST` portant un champ `_method` ou un en-tête `X-HTTP-Method-Override` valant `PUT`, `PATCH` ou `DELETE` est routé comme cette méthode lorsque la requête provient de `Request::fromGlobals()`.

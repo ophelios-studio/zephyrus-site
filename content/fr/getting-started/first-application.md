@@ -8,9 +8,9 @@ description: Construire une petite application de notes avec un formulaire, la v
 
 Un formulaire, une liste et un test, de bout en bout.
 
-Vous construisez une page qui liste des notes conservées dans la session, avec un formulaire qui en ajoute une. Elle utilise les éléments dont la plupart des applications ont besoin : un contrôleur, un gabarit Latte, la protection CSRF, la validation, un message éclair et une redirection après l'envoi du formulaire. Il n'y a pas de base de données.
+Vous construisez une page qui liste des notes conservées dans la session, avec un formulaire qui en ajoute une. Elle utilise les éléments dont la plupart des applications ont besoin : un contrôleur, un gabarit Latte, la protection CSRF, la validation, un message éclair et une redirection après l’envoi du formulaire. Il n’y a pas de base de données.
 
-Partez d'un répertoire vide et du `composer.json` de la page d'[installation](../installation/), auquel vous ajoutez PHPUnit :
+Partez d’un répertoire vide et du `composer.json` de la page d’[installation](../installation/), auquel vous ajoutez PHPUnit :
 
 ```bash
 composer require --dev phpunit/phpunit
@@ -37,7 +37,7 @@ Créez `phpunit.xml` à la racine du projet :
 
 ## Configurer
 
-Déclarez ce que l'application promet. Chaque clé `security` est appliquée par un middleware que vous montez à l'étape suivante, et `build()` refuse de démarrer s'il en manque un.
+Déclarez ce que l’application promet. Chaque clé `security` est appliquée par un middleware que vous montez à l’étape suivante, et `build()` refuse de démarrer s’il en manque un.
 
 ```yaml
 application:
@@ -61,11 +61,11 @@ localization:
   timezone: UTC
 ```
 
-L'environnement est `production` par défaut : un `APP_ENV` non défini ne signifie donc jamais le développement, et vous définissez `APP_ENV=dev` sur votre machine. `debug` est désactivé par défaut. Le témoin de session s'appelle `NOTES_SESSION` et est `SameSite=Lax`. Voir [Configuration](../../fundamentals/configuration/).
+L’environnement est `production` par défaut : un `APP_ENV` non défini ne signifie donc jamais le développement, et vous définissez `APP_ENV=dev` sur votre machine. `debug` est désactivé par défaut. Le témoin de session s’appelle `NOTES_SESSION` et est `SameSite=Lax`. Voir [Configuration](../../fundamentals/configuration/).
 
 ## Démarrage
 
-La classe de démarrage construit l'application et monte les middlewares, dans l'ordre. Le premier ajouté est le plus à l'extérieur.
+La classe de démarrage construit l’application et monte les middlewares, dans l’ordre. Le premier ajouté est le plus à l’extérieur.
 
 ```php
 <?php
@@ -141,7 +141,7 @@ App\Kernel::run(dirname(__DIR__));
 - `SecureHeadersMiddleware` ajoute les en-têtes de sécurité déclarés sous `security.headers`.
 - `MaxBodySizeMiddleware` refuse les corps de requête qui dépassent `security.max_body_size`.
 - `SessionMiddleware` démarre la session pour la requête. Il précède le CSRF, qui y stocke son jeton.
-- `CsrfMiddleware` refuse une requête qui modifie l'état et qui ne porte pas le jeton. La vue appelle `csrfToken()` pour l'afficher.
+- `CsrfMiddleware` refuse une requête qui modifie l’état et qui ne porte pas le jeton. La vue appelle `csrfToken()` pour l’afficher.
 
 Les détails se trouvent dans [Application](../../fundamentals/application/), [Middlewares](../../fundamentals/middleware/) et [Sécurité](../../fundamentals/security/).
 
@@ -209,11 +209,11 @@ final class NoteController extends Controller
 ```
 
 - `#[Get('/')]` et `#[Post('/notes')]` enregistrent les routes (voir [Routage](../../fundamentals/routing/)).
-- `FormValidator` et `Rules` vérifient les données saisies (voir [Validation](../../fundamentals/validation/)). `Rules::required()` accepte une chaîne d'espaces : `notBlank()` est donc ajouté.
-- En cas d'erreurs, la page est affichée de nouveau avec le statut `422` et les messages. En cas de succès, la note est stockée avec `session()`, un message éclair est mis en file, et la réponse est une redirection : un navigateur qui recharge la page n'envoie pas le formulaire une seconde fois.
+- `FormValidator` et `Rules` vérifient les données saisies (voir [Validation](../../fundamentals/validation/)). `Rules::required()` accepte une chaîne d’espaces : `notBlank()` est donc ajouté.
+- En cas d’erreurs, la page est affichée de nouveau avec le statut `422` et les messages. En cas de succès, la note est stockée avec `session()`, un message éclair est mis en file, et la réponse est une redirection : un navigateur qui recharge la page n’envoie pas le formulaire une seconde fois.
 - `Flash::readAll()` lit les messages en file et les efface. Voir [Sessions](../../fundamentals/sessions/).
 
-Le texte de la note est nettoyé de ses espaces de bordure avant d'être stocké, et il est échappé à l'affichage.
+Le texte de la note est nettoyé de ses espaces de bordure avant d’être stocké, et il est échappé à l’affichage.
 
 ## Les vues
 
@@ -268,15 +268,15 @@ Le texte de la note est nettoyé de ses espaces de bordure avant d'être stocké
 {/block}
 ```
 
-Latte échappe `{$note}` et toute autre sortie. Il n'y a aucune injection automatique du jeton : le formulaire porte lui-même le champ CSRF. Voir [Vues](../../fundamentals/views/).
+Latte échappe `{$note}` et toute autre sortie. Il n’y a aucune injection automatique du jeton : le formulaire porte lui-même le champ CSRF. Voir [Vues](../../fundamentals/views/).
 
-## L'exécuter
+## L’exécuter
 
 ```bash
 APP_ENV=dev php -S 127.0.0.1:8000 -t public
 ```
 
-Ouvrez `http://127.0.0.1:8000/`, ajoutez une note, et la page redirige vers la liste en affichant « Note added. » une seule fois. L'envoi du formulaire sans le jeton est refusé :
+Ouvrez `http://127.0.0.1:8000/`, ajoutez une note, et la page redirige vers la liste en affichant « Note added. » une seule fois. L’envoi du formulaire sans le jeton est refusé :
 
 ```bash
 curl -i -d "text=Milk" http://127.0.0.1:8000/notes
@@ -288,7 +288,7 @@ HTTP/1.1 403 Forbidden
 
 ## Le tester
 
-`Application::handle()` transforme une `Request` en `Response` dans le processus, de sorte qu'un test n'a besoin d'aucun serveur.
+`Application::handle()` transforme une `Request` en `Response` dans le processus, de sorte qu’un test n’a besoin d’aucun serveur.
 
 ```php
 <?php
@@ -351,7 +351,7 @@ APP_ENV=dev vendor/bin/phpunit
 OK (2 tests, 5 assertions)
 ```
 
-Le test lit le jeton dans le formulaire affiché, comme le ferait un navigateur, puis l'envoie. L'application est construite dans `setUp()`, de sorte que chaque test part d'une application neuve : `App::reset()` vide les propriétés statiques entre les tests et seul `build()` les installe de nouveau. `$_SESSION = []` dans `tearDown()` compte aussi : dans le processus, il n'y a pas de témoin, et la session PHP vit pendant toute la durée du processus, si bien qu'une note ajoutée par un test apparaîtrait dans le suivant. La page sur les [tests](../../digging-deeper/testing/) va plus loin.
+Le test lit le jeton dans le formulaire affiché, comme le ferait un navigateur, puis l’envoie. L’application est construite dans `setUp()`, de sorte que chaque test part d’une application neuve : `App::reset()` vide les propriétés statiques entre les tests et seul `build()` les installe de nouveau. `$_SESSION = []` dans `tearDown()` compte aussi : dans le processus, il n’y a pas de témoin, et la session PHP vit pendant toute la durée du processus, si bien qu’une note ajoutée par un test apparaîtrait dans le suivant. La page sur les [tests](../../digging-deeper/testing/) va plus loin.
 
 ## Pour aller plus loin
 

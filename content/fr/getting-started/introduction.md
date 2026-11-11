@@ -1,22 +1,22 @@
 ---
 title: Introduction
 order: 1
-description: Ce qu'est Zephyrus, les principes qui le guident, un premier contrôleur et une première route, et où poursuivre la lecture.
+description: Ce qu’est Zephyrus, les principes qui le guident, un premier contrôleur et une première route, et où poursuivre la lecture.
 ---
 
 # Introduction
 
-Un framework qui dit ce qu'il fait.
+Un framework qui dit ce qu’il fait.
 
 Zephyrus est un framework PHP 8.4 pour les applications rendues côté serveur et les API JSON. Il vous offre le routage par attributs, des objets de requête et de réponse immuables, une configuration YAML stricte, des middlewares de sécurité, des vues Latte, des sessions, la validation, une couche de données PostgreSQL, le courriel et la localisation, dans un seul paquet, avec une seule façon de faire chaque chose.
 
-C'est une bibliothèque, pas un générateur de squelette : votre application est un répertoire de vos propres classes, accompagné d'un `config.yml` et d'un contrôleur frontal. Il n'y a aucune classe d'application globale à étendre et aucune génération de code.
+C’est une bibliothèque, pas un générateur de squelette : votre application est un répertoire de vos propres classes, accompagné d’un `config.yml` et d’un contrôleur frontal. Il n’y a aucune classe d’application globale à étendre et aucune génération de code.
 
-## Ce qu'il n'est pas
+## Ce qu’il n’est pas
 
-- Ce n'est pas un framework de serveur persistant. Une seule requête est traitée par processus PHP (php-fpm, `mod_php`, le serveur intégré).
-- Ce n'est pas un ORM. La couche de données exécute le SQL que vous écrivez, avec des paramètres, et convertit les lignes en objets.
-- Ce n'est pas de la magie. Rien n'est câblé dans votre dos : les middlewares dont vous dépendez sont montés dans votre propre code de démarrage, où vous pouvez les lire.
+- Ce n’est pas un framework de serveur persistant. Une seule requête est traitée par processus PHP (php-fpm, `mod_php`, le serveur intégré).
+- Ce n’est pas un ORM. La couche de données exécute le SQL que vous écrivez, avec des paramètres, et convertit les lignes en objets.
+- Ce n’est pas de la magie. Rien n’est câblé dans votre dos : les middlewares dont vous dépendez sont montés dans votre propre code de démarrage, où vous pouvez les lire.
 
 ## Principes
 
@@ -35,7 +35,7 @@ Zephyrus\Core\Config\ConfigurationException: Configuration section 'application'
 
 ### La sécurité est câblée, et vérifiée
 
-Les réglages sous `security:` décrivent ce que votre application promet. Ils n'activent rien par eux-mêmes : vous montez le middleware correspondant, et `build()` refuse de démarrer lorsqu'un réglage déclaré n'est pas appliqué.
+Les réglages sous `security:` décrivent ce que votre application promet. Ils n’activent rien par eux-mêmes : vous montez le middleware correspondant, et `build()` refuse de démarrer lorsqu’un réglage déclaré n’est pas appliqué.
 
 ```yaml
 security:
@@ -50,15 +50,15 @@ Zephyrus\Core\Config\ConfigurationException: Configuration declares security set
 Apply the fix given for each setting, or acknowledge the gap explicitly with ApplicationBuilder::withAcknowledgedSecurityKeys([...]) when the protection is provided elsewhere (a reverse proxy, a wrapping middleware, the web server).
 ```
 
-Une promesse dans la configuration que rien ne tient est le genre d'erreur qui passe inaperçue en production : elle échoue donc au démarrage.
+Une promesse dans la configuration que rien ne tient est le genre d’erreur qui passe inaperçue en production : elle échoue donc au démarrage.
 
 ### Les routes vivent à côté de leur contrôleur
 
-Une route est un attribut placé sur la méthode qui la traite. L'URL, la méthode HTTP et la réponse sont visibles au même endroit. Voir [Routage](../../fundamentals/routing/).
+Une route est un attribut placé sur la méthode qui la traite. L’URL, la méthode HTTP et la réponse sont visibles au même endroit. Voir [Routage](../../fundamentals/routing/).
 
 ### Les requêtes et les réponses sont immuables
 
-`Request` et `Response` sont des valeurs. `withHeader()` retourne une nouvelle réponse au lieu de modifier celle que vous détenez, de sorte qu'un middleware ne peut jamais altérer un message qu'une autre partie du code lit encore. Voir [HTTP](../../fundamentals/http/).
+`Request` et `Response` sont des valeurs. `withHeader()` retourne une nouvelle réponse au lieu de modifier celle que vous détenez, de sorte qu’un middleware ne peut jamais altérer un message qu’une autre partie du code lit encore. Voir [HTTP](../../fundamentals/http/).
 
 ### Le reste de la pile
 
@@ -103,7 +103,7 @@ content-type: application/json; charset=utf-8
 {"message":"Hello, world."}
 ```
 
-Tout autre chemin donne un `404`, et `POST /hello` donne un `405` accompagné d'un en-tête `allow`. La page d'[installation](../installation/) construit exactement cette application.
+Tout autre chemin donne un `404`, et `POST /hello` donne un `405` accompagné d’un en-tête `allow`. La page d’[installation](../installation/) construit exactement cette application.
 
 ## Prérequis
 

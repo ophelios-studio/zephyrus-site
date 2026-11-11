@@ -6,9 +6,9 @@ description: Envoyez des courriels texte et HTML par SMTP avec le constructeur M
 
 # Courriel
 
-Un courriel, construit comme n'importe quelle autre valeur.
+Un courriel, construit comme n’importe quelle autre valeur.
 
-`Zephyrus\Mailer\Mailer` est un constructeur fluide au-dessus de PHPMailer. Vous décrivez un message, appelez `send()`, et vous obtenez soit le silence, soit une `MailerException` qui vous indique de quel type d'échec il s'agit.
+`Zephyrus\Mailer\Mailer` est un constructeur fluide au-dessus de PHPMailer. Vous décrivez un message, appelez `send()`, et vous obtenez soit le silence, soit une `MailerException` qui vous indique de quel type d’échec il s’agit.
 
 ## Configuration
 
@@ -39,13 +39,13 @@ mailer:
 |---|---|---|
 | `smtp.host` | `localhost` | Le serveur SMTP. |
 | `smtp.port` | `587` | Habituellement 587 avec `tls`, 465 avec `ssl`. |
-| `smtp.username`, `smtp.password` | vide | L'authentification est activée dès que l'un des deux est défini. Si `MAIL_USER` et `MAIL_PASSWORD` ne sont pas définis, les valeurs sont vides et l'authentification est ignorée. Lisez le mot de passe avec `!env`, ne l'écrivez jamais dans le fichier. |
+| `smtp.username`, `smtp.password` | vide | L’authentification est activée dès que l’un des deux est défini. Si `MAIL_USER` et `MAIL_PASSWORD` ne sont pas définis, les valeurs sont vides et l’authentification est ignorée. Lisez le mot de passe avec `!env`, ne l’écrivez jamais dans le fichier. |
 | `smtp.encryption` | `tls` | `tls` (STARTTLS), `ssl` (TLS implicite) ou `''` pour aucun chiffrement. |
-| `from.address`, `from.name` | vide | L'expéditeur de chaque message. Une valeur qui n'est pas une adresse est refusée à la création du `Mailer`. |
+| `from.address`, `from.name` | vide | L’expéditeur de chaque message. Une valeur qui n’est pas une adresse est refusée à la création du `Mailer`. |
 
-`smtp.encryption` est une liste blanche : toute autre valeur, `none` incluse, interrompt le démarrage avec une erreur qui énumère les trois valeurs acceptées. Une valeur vide désactive complètement le chiffrement et est destinée à un puits local; lorsque des identifiants sont définis, le mailer écrit un avertissement dans le journal d'erreurs une fois par processus. Avec `tls` ou `ssl`, le certificat du serveur est vérifié : un serveur SMTP de développement a donc besoin d'un certificat auquel PHP fait confiance, faute de quoi la connexion échoue avec `certificate verify failed`.
+`smtp.encryption` est une liste blanche : toute autre valeur, `none` incluse, interrompt le démarrage avec une erreur qui énumère les trois valeurs acceptées. Une valeur vide désactive complètement le chiffrement et est destinée à un puits local; lorsque des identifiants sont définis, le mailer écrit un avertissement dans le journal d’erreurs une fois par processus. Avec `tls` ou `ssl`, le certificat du serveur est vérifié : un serveur SMTP de développement a donc besoin d’un certificat auquel PHP fait confiance, faute de quoi la connexion échoue avec `certificate verify failed`.
 
-`MailerConfig::fromArray([...])` construit le même objet à partir d'un simple tableau (clés imbriquées `smtp` et `from`), ce qui est pratique dans les tests. Le mot de passe est masqué lorsque l'objet est affiché.
+`MailerConfig::fromArray([...])` construit le même objet à partir d’un simple tableau (clés imbriquées `smtp` et `from`), ce qui est pratique dans les tests. Le mot de passe est masqué lorsque l’objet est affiché.
 
 ## Envoyer un message
 
@@ -66,15 +66,15 @@ Chaque méthode retourne le mailer. Le constructeur offre :
 | `to($address, $name = '')`, `cc(...)`, `bcc(...)` | ajoutent un destinataire |
 | `replyTo($address, $name = '')` | définit un Reply-To |
 | `subject($subject)` | définit le sujet |
-| `text($body)` | le corps en texte brut, ou l'alternative d'un corps HTML |
+| `text($body)` | le corps en texte brut, ou l’alternative d’un corps HTML |
 | `html($body)` | le corps HTML |
 | `template($page, $args)` | génère une vue comme corps HTML (voir plus bas) |
 | `attach($path, $name = '', $allowedRoot = null)` | joint un fichier |
 | `attachContent($bytes, $name, $mimeType = null)` | joint des octets conservés en mémoire |
 | `send()` | envoie, ou lève une `MailerException` |
-| `getPhpMailer()` | le `PHPMailer` sous-jacent pour tout ce qui n'est pas couvert ici |
+| `getPhpMailer()` | le `PHPMailer` sous-jacent pour tout ce qui n’est pas couvert ici |
 
-Avec `text()` seulement, le message est en texte brut. Avec `html()` seulement, il est en HTML. Avec les deux, il est `multipart/alternative`, et les clients de messagerie choisissent la partie qu'ils préfèrent : envoyez les deux pour tout ce qu'une personne lit.
+Avec `text()` seulement, le message est en texte brut. Avec `html()` seulement, il est en HTML. Avec les deux, il est `multipart/alternative`, et les clients de messagerie choisissent la partie qu’ils préfèrent : envoyez les deux pour tout ce qu’une personne lit.
 
 ```php
 (new Mailer($mailerConfig))
@@ -87,9 +87,9 @@ Avec `text()` seulement, le message est en texte brut. Avec `html()` seulement, 
     ->send();
 ```
 
-Une adresse est validée au moment où vous l'ajoutez. Une adresse qui contient un saut de ligne, ou qui n'en est pas une, lève immédiatement une exception : un champ de formulaire ne peut donc pas introduire en contrebande un en-tête dans le message.
+Une adresse est validée au moment où vous l’ajoutez. Une adresse qui contient un saut de ligne, ou qui n’en est pas une, lève immédiatement une exception : un champ de formulaire ne peut donc pas introduire en contrebande un en-tête dans le message.
 
-Le HTML que vous assemblez à la main doit échapper les valeurs qu'il intègre, comme ci-dessus avec `e()`. Un gabarit le fait pour vous.
+Le HTML que vous assemblez à la main doit échapper les valeurs qu’il intègre, comme ci-dessus avec `e()`. Un gabarit le fait pour vous.
 
 Construisez un `Mailer` par message. `send()` conserve les destinataires : réutiliser une instance envoie donc le message suivant aussi aux adresses précédentes.
 
@@ -115,7 +115,7 @@ $views = new LatteEngine($root . '/app/Views', $root . '/cache/latte');
 <p>Your account is ready.</p>
 ```
 
-`{$name}` est échappé par Latte. `template()` ne définit que la partie HTML : ajoutez donc `text()` pour obtenir l'alternative. Appeler `template()` sans moteur de rendu lève une `MailerException` dont l'échec est `configuration_missing`. Voyez [Vues](../../fundamentals/views/) pour le moteur lui-même.
+`{$name}` est échappé par Latte. `template()` ne définit que la partie HTML : ajoutez donc `text()` pour obtenir l’alternative. Appeler `template()` sans moteur de rendu lève une `MailerException` dont l’échec est `configuration_missing`. Voyez [Vues](../../fundamentals/views/) pour le moteur lui-même.
 
 ## Pièces jointes
 
@@ -129,22 +129,22 @@ $views = new LatteEngine($root . '/app/Views', $root . '/cache/latte');
     ->send();
 ```
 
-- `attach()` refuse un chemin contenant un octet NUL ou un enveloppeur de flux (stream wrapper), ainsi qu'un fichier inexistant. Lorsqu'une partie du chemin provient de l'extérieur de votre code, passez `$allowedRoot` : le fichier doit alors se résoudre à l'intérieur de ce répertoire après le suivi des liens symboliques et des `..`.
-- Le nom affiché doit être un simple nom de fichier : sans séparateur de chemin, caractère de contrôle, `=?` ni point final, et d'au plus 255 octets. Sans nom, le nom propre du fichier est utilisé et soumis aux mêmes règles.
-- `attachContent()` accepte un type de média de la forme `type/subtype`, avec des paramètres facultatifs. `name`, `filename` et `boundary` sont définis par le mailer. Avec `null`, le type suit l'extension du nom.
-- Ne construisez jamais un nom de fichier ou un chemin à partir d'une entrée du client. Choisissez vous-même le nom et gardez les fichiers dans un répertoire que vous contrôlez.
+- `attach()` refuse un chemin contenant un octet NUL ou un enveloppeur de flux (stream wrapper), ainsi qu’un fichier inexistant. Lorsqu’une partie du chemin provient de l’extérieur de votre code, passez `$allowedRoot` : le fichier doit alors se résoudre à l’intérieur de ce répertoire après le suivi des liens symboliques et des `..`.
+- Le nom affiché doit être un simple nom de fichier : sans séparateur de chemin, caractère de contrôle, `=?` ni point final, et d’au plus 255 octets. Sans nom, le nom propre du fichier est utilisé et soumis aux mêmes règles.
+- `attachContent()` accepte un type de média de la forme `type/subtype`, avec des paramètres facultatifs. `name`, `filename` et `boundary` sont définis par le mailer. Avec `null`, le type suit l’extension du nom.
+- Ne construisez jamais un nom de fichier ou un chemin à partir d’une entrée du client. Choisissez vous-même le nom et gardez les fichiers dans un répertoire que vous contrôlez.
 
 ## Échecs
 
-Chaque échec est une `MailerException`. Sa propriété `failure` est un cas de `MailerFailure` : vous aiguillez donc selon une valeur au lieu d'analyser du texte :
+Chaque échec est une `MailerException`. Sa propriété `failure` est un cas de `MailerFailure` : vous aiguillez donc selon une valeur au lieu d’analyser du texte :
 
 | `MailerFailure` | Quand |
 |---|---|
-| `InvalidAddress` | un destinataire, un reply-to ou `from.address` n'est pas une adresse |
-| `SendFailed` | le transport n'a pas accepté le message : refus de connexion, d'authentification ou de relais |
-| `RecipientsRefused` | certains destinataires ont été refusés; les autres ont peut-être reçu le message, de sorte qu'un nouvel envoi peut le dupliquer |
-| `AttachmentNotFound` | un fichier joint n'existe pas |
-| `AttachmentRejected` | le chemin, le nom, le type de média ou le répertoire d'une pièce jointe a été refusé |
+| `InvalidAddress` | un destinataire, un reply-to ou `from.address` n’est pas une adresse |
+| `SendFailed` | le transport n’a pas accepté le message : refus de connexion, d’authentification ou de relais |
+| `RecipientsRefused` | certains destinataires ont été refusés; les autres ont peut-être reçu le message, de sorte qu’un nouvel envoi peut le dupliquer |
+| `AttachmentNotFound` | un fichier joint n’existe pas |
+| `AttachmentRejected` | le chemin, le nom, le type de média ou le répertoire d’une pièce jointe a été refusé |
 | `ConfigurationMissing` | `template()` a été appelée sans moteur de rendu |
 
 ```php
@@ -158,7 +158,7 @@ try {
 }
 ```
 
-Pour `SendFailed` et `RecipientsRefused`, le message de l'exception est un texte fixe qui ne contient ni adresse ni réponse du serveur :
+Pour `SendFailed` et `RecipientsRefused`, le message de l’exception est un texte fixe qui ne contient ni adresse ni réponse du serveur :
 
 ```text
 The mail transport did not accept the message; the reason is withheld, read transportMessage() (it may name recipients).
@@ -166,13 +166,13 @@ The mail transport did not accept the message; the reason is withheld, read tran
 
 La réponse propre du serveur est accessible par `transportMessage()` (par exemple `SMTP Error: Could not connect to SMTP host. Failed to connect to server`). Elle peut nommer des destinataires : gardez-la dans vos journaux et hors des réponses.
 
-Les autres messages s'adressent aux développeurs et peuvent être journalisés sans risque : `Invalid email address given to to().`, `Attachment rejected: display name "../etc/passwd" contains a path separator; pass a bare file name.`, `Mailer configuration missing: A RenderEngine is required for template-based emails.`
+Les autres messages s’adressent aux développeurs et peuvent être journalisés sans risque : `Invalid email address given to to().`, `Attachment rejected: display name "../etc/passwd" contains a path separator; pass a bare file name.`, `Mailer configuration missing: A RenderEngine is required for template-based emails.`
 
-L'envoi est synchrone : la requête attend la conversation SMTP. Un serveur lent ou injoignable ralentit donc la page. Pour tout ce qu'un visiteur ne devrait pas attendre, envoyez depuis une file d'attente ou un travailleur en ligne de commande.
+L’envoi est synchrone : la requête attend la conversation SMTP. Un serveur lent ou injoignable ralentit donc la page. Pour tout ce qu’un visiteur ne devrait pas attendre, envoyez depuis une file d’attente ou un travailleur en ligne de commande.
 
 ## Tester sans envoyer
 
-`Mailer` est une classe `final` : cachez-la donc derrière une interface de votre cru et donnez à vos tests une doublure. L'interface dit ce que votre application envoie, non comment :
+`Mailer` est une classe `final` : cachez-la donc derrière une interface de votre cru et donnez à vos tests une doublure. L’interface dit ce que votre application envoie, non comment :
 
 ```php
 namespace App\Mail;
@@ -206,7 +206,7 @@ final class SmtpWelcomeMail implements WelcomeMail
 }
 ```
 
-Un test du code qui envoie le courriel de bienvenue passe une doublure qui enregistre l'appel. Un test du message lui-même le construit et demande à PHPMailer de l'assembler avec `preSend()`, qui n'ouvre jamais de connexion :
+Un test du code qui envoie le courriel de bienvenue passe une doublure qui enregistre l’appel. Un test du message lui-même le construit et demande à PHPMailer de l’assembler avec `preSend()`, qui n’ouvre jamais de connexion :
 
 ```php
 use Zephyrus\Mailer\Mailer;
@@ -250,12 +250,12 @@ final class MailerTest extends TestCase
 }
 ```
 
-Pour exercer la véritable conversation SMTP, pointez `smtp.host` vers un serveur de capture local (un collecteur de courriels de développement, ou un petit script qui accepte les connexions et stocke chaque message) avec `encryption: ''`, puis lisez ce qu'il a reçu. Ne dirigez jamais une exécution de tests vers un vrai serveur.
+Pour exercer la véritable conversation SMTP, pointez `smtp.host` vers un serveur de capture local (un collecteur de courriels de développement, ou un petit script qui accepte les connexions et stocke chaque message) avec `encryption: ''`, puis lisez ce qu’il a reçu. Ne dirigez jamais une exécution de tests vers un vrai serveur.
 
 ## Bon à savoir
 
-- Un `Mailer` par message : un second `to()` sur une instance déjà utilisée s'ajoute aux anciens destinataires.
+- Un `Mailer` par message : un second `to()` sur une instance déjà utilisée s’ajoute aux anciens destinataires.
 - `smtp.encryption: ''` envoie les identifiants en clair. Réservez-le à un puits local.
-- Échappez chaque valeur que vous placez dans `html()`. Utilisez un gabarit pour tout ce qui contient des données d'utilisateur.
-- Un destinataire refusé ne signifie pas que rien n'a été envoyé : avec `RecipientsRefused`, les destinataires acceptés ont peut-être déjà reçu le message.
-- N'affichez pas `transportMessage()` aux visiteurs, et ne le journalisez pas tel quel dans un système partagé : il peut contenir des adresses.
+- Échappez chaque valeur que vous placez dans `html()`. Utilisez un gabarit pour tout ce qui contient des données d’utilisateur.
+- Un destinataire refusé ne signifie pas que rien n’a été envoyé : avec `RecipientsRefused`, les destinataires acceptés ont peut-être déjà reçu le message.
+- N’affichez pas `transportMessage()` aux visiteurs, et ne le journalisez pas tel quel dans un système partagé : il peut contenir des adresses.

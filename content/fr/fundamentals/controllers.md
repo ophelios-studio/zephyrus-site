@@ -1,14 +1,14 @@
 ---
 title: Contrôleurs
 order: 4
-description: Écrivez des contrôleurs avec la classe de base Controller, ses assistants de réponse et ses points d'entrée de cycle de vie, et recevez vos dépendances par le conteneur.
+description: Écrivez des contrôleurs avec la classe de base Controller, ses assistants de réponse et ses points d’entrée de cycle de vie, et recevez vos dépendances par le conteneur.
 ---
 
 # Contrôleurs
 
 Des classes ordinaires, des réponses explicites.
 
-Un contrôleur est une classe dont les méthodes publiques traitent les requêtes et retournent une `Response`. Le [routage](../routing/) décide quelle méthode répond à quelle URL. Étendre `Zephyrus\Controller\Controller` est facultatif, mais cela vous donne les assistants de réponse et les points d'entrée de cycle de vie ci-dessous.
+Un contrôleur est une classe dont les méthodes publiques traitent les requêtes et retournent une `Response`. Le [routage](../routing/) décide quelle méthode répond à quelle URL. Étendre `Zephyrus\Controller\Controller` est facultatif, mais cela vous donne les assistants de réponse et les points d’entrée de cycle de vie ci-dessous.
 
 ## Un premier contrôleur
 
@@ -45,7 +45,7 @@ final class ProjectController extends Controller
 
 Un gestionnaire prend les paramètres dont il a besoin : une `Request`, et les paramètres de route par leur nom (`int $id`). Consultez [Paramètres de route](../routing/#paramètres-de-route) pour les règles de résolution. Un gestionnaire doit retourner une `Response`.
 
-Une classe qui n'étend pas `Controller` fonctionne aussi, pourvu que ses méthodes de gestion retournent une `Response`.
+Une classe qui n’étend pas `Controller` fonctionne aussi, pourvu que ses méthodes de gestion retournent une `Response`.
 
 ## Assistants de réponse
 
@@ -63,7 +63,7 @@ Chaque assistant est une méthode protégée qui retourne une `Response` (voir [
 | `abort(int $status, string $body = '')` | Réponse HTML avec ce statut |
 | `abortJson(int $status, array $payload)` | Réponse JSON avec ce statut |
 
-`redirect()` est destiné aux cibles que vous écrivez. Pour tout ce qui provient de la requête (un paramètre de requête `next`, un champ de formulaire), utilisez `localRedirect()` : il ne suit qu'un chemin local et renvoie le visiteur vers la valeur de repli dans le cas contraire.
+`redirect()` est destiné aux cibles que vous écrivez. Pour tout ce qui provient de la requête (un paramètre de requête `next`, un champ de formulaire), utilisez `localRedirect()` : il ne suit qu’un chemin local et renvoie le visiteur vers la valeur de repli dans le cas contraire.
 
 ```php
 #[Get('/back')]
@@ -77,7 +77,7 @@ public function back(Request $request): Response
 
 ## Valider les entrées
 
-`validate()` exécute un `FormValidator` sur un tableau et retourne son sac d'erreurs. Lorsqu'un champ échoue, il lance une `ValidationException`, à laquelle l'application répond par un 422 à moins que vous ne la traitiez (voir [Validation](../validation/) et [Erreurs](../errors/)).
+`validate()` exécute un `FormValidator` sur un tableau et retourne son sac d’erreurs. Lorsqu’un champ échoue, il lance une `ValidationException`, à laquelle l’application répond par un 422 à moins que vous ne la traitiez (voir [Validation](../validation/) et [Erreurs](../errors/)).
 
 ```php
 use Zephyrus\Validation\FormValidator;
@@ -93,11 +93,11 @@ public function changeEmail(Request $request): Response
 }
 ```
 
-## Points d'entrée de cycle de vie
+## Points d’entrée de cycle de vie
 
-`Controller` implémente `ControllerLifecycleInterface` : `before(Request $request): ?Response` s'exécute avant le gestionnaire et `after(Request $request, Response $response): Response` s'exécute après. L'interface est le contrat; tout contrôleur peut l'implémenter sans étendre `Controller`.
+`Controller` implémente `ControllerLifecycleInterface` : `before(Request $request): ?Response` s’exécute avant le gestionnaire et `after(Request $request, Response $response): Response` s’exécute après. L’interface est le contrat; tout contrôleur peut l’implémenter sans étendre `Controller`.
 
-L'ordre est `before()`, le gestionnaire, `after()`. Une `Response` retournée par `before()` est envoyée telle quelle : le gestionnaire et `after()` sont ignorés. Une exception lancée par le gestionnaire ignore aussi `after()`.
+L’ordre est `before()`, le gestionnaire, `after()`. Une `Response` retournée par `before()` est envoyée telle quelle : le gestionnaire et `after()` sont ignorés. Une exception lancée par le gestionnaire ignore aussi `after()`.
 
 ```php
 final class AccountController extends Controller
@@ -126,9 +126,9 @@ final class AccountController extends Controller
 }
 ```
 
-Le `before()` par défaut range la requête dans `$this->request`. Une redéfinition doit d'abord appeler `parent::before($request)`, sinon `$this->request` reste non initialisé. Les points d'entrée s'appliquent à un seul contrôleur; la logique partagée par plusieurs routes relève des [middlewares](../middleware/), qui voient aussi les réponses 404 et 405.
+Le `before()` par défaut range la requête dans `$this->request`. Une redéfinition doit d’abord appeler `parent::before($request)`, sinon `$this->request` reste non initialisé. Les points d’entrée s’appliquent à un seul contrôleur; la logique partagée par plusieurs routes relève des [middlewares](../middleware/), qui voient aussi les réponses 404 et 405.
 
-Le 401 ci-dessus ignore `after()`, il ne porte donc aucun en-tête `Cache-Control`. Décorez les réponses d'erreur là où vous les construisez, ou faites-le dans un middleware.
+Le 401 ci-dessus ignore `after()`, il ne porte donc aucun en-tête `Cache-Control`. Décorez les réponses d’erreur là où vous les construisez, ou faites-le dans un middleware.
 
 ## Rendre des vues
 
@@ -153,7 +153,7 @@ final class PageController extends Controller
 
 ## Injection par le constructeur
 
-Par défaut, un contrôleur est construit sans argument de constructeur. Passez un conteneur au constructeur de l'application et les dépendances de son constructeur sont résolues pour vous :
+Par défaut, un contrôleur est construit sans argument de constructeur. Passez un conteneur au constructeur de l’application et les dépendances de son constructeur sont résolues pour vous :
 
 ```php
 use Zephyrus\Container\Container;
@@ -173,13 +173,13 @@ final class AccountController extends Controller
 }
 ```
 
-Le conteneur construit `Clock` automatiquement lorsqu'il s'agit d'une classe concrète dont les arguments sont résolvables. Enregistrez les interfaces et les services partagés avec `bind()`, `singleton()` et `instance()` : voir [Conteneur et événements](../../digging-deeper/container-and-events/). `withControllerFactory(fn (string $class): object => ...)` permet de brancher toute autre manière de construire les contrôleurs.
+Le conteneur construit `Clock` automatiquement lorsqu’il s’agit d’une classe concrète dont les arguments sont résolvables. Enregistrez les interfaces et les services partagés avec `bind()`, `singleton()` et `instance()` : voir [Conteneur et événements](../../digging-deeper/container-and-events/). `withControllerFactory(fn (string $class): object => ...)` permet de brancher toute autre manière de construire les contrôleurs.
 
 ## Bon à savoir
 
-- Une redéfinition de `before()` doit appeler `parent::before($request)`, sinon `$this->request` n'est pas initialisé lorsque le gestionnaire le lit.
-- Une `Response` provenant de `before()` ignore `after()`; une exception du gestionnaire l'ignore aussi.
-- N'enregistrez pas un contrôleur comme singleton du conteneur s'il garde un état propre à la requête, comme `$this->request` : la même instance servirait toutes les requêtes du processus.
+- Une redéfinition de `before()` doit appeler `parent::before($request)`, sinon `$this->request` n’est pas initialisé lorsque le gestionnaire le lit.
+- Une `Response` provenant de `before()` ignore `after()`; une exception du gestionnaire l’ignore aussi.
+- N’enregistrez pas un contrôleur comme singleton du conteneur s’il garde un état propre à la requête, comme `$this->request` : la même instance servirait toutes les requêtes du processus.
 - Utilisez `localRedirect()` pour toute cible de redirection qui provient de la requête; `redirect()` fait confiance à son argument.
-- `abort()` envoie un corps HTML et `abortJson()` un corps JSON. Choisissez celui qu'attend votre client.
+- `abort()` envoie un corps HTML et `abortJson()` un corps JSON. Choisissez celui qu’attend votre client.
 - Un enregistrement manquant est un 404 : `return $this->abort(404)`, ou lancez `RouteNotFoundException` depuis un code plus profond (voir [Routage](../routing/#404-et-405)).

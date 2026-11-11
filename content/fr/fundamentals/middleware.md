@@ -8,9 +8,9 @@ description: Enveloppez le pipeline de requête avec des middlewares, enregistre
 
 Du code qui enveloppe chaque requête.
 
-Un middleware se place entre l'application et votre contrôleur. Il peut lire ou modifier la requête à l'aller, répondre de lui-même sans appeler le contrôleur, ou modifier la réponse au retour. Les sessions, la protection CSRF et les en-têtes de sécurité sont tous des middlewares.
+Un middleware se place entre l’application et votre contrôleur. Il peut lire ou modifier la requête à l’aller, répondre de lui-même sans appeler le contrôleur, ou modifier la réponse au retour. Les sessions, la protection CSRF et les en-têtes de sécurité sont tous des middlewares.
 
-## L'interface
+## L’interface
 
 ```php
 namespace Zephyrus\Http;
@@ -21,7 +21,7 @@ interface MiddlewareInterface
 }
 ```
 
-`$next` exécute le reste du pipeline et retourne sa réponse. Un middleware fait l'une de ces trois choses :
+`$next` exécute le reste du pipeline et retourne sa réponse. Un middleware fait l’une de ces trois choses :
 
 - appelle `$next($request)` et retourne sa réponse, éventuellement décorée;
 - appelle `$next()` avec une requête modifiée (les requêtes sont immuables : utilisez `withAttribute()`);
@@ -54,7 +54,7 @@ final class RequireUserMiddleware implements MiddlewareInterface
 }
 ```
 
-Sans jeton valide, le contrôleur ne s'exécute jamais. Avec un jeton valide, le contrôleur reçoit `userId` comme attribut de requête : un paramètre de gestionnaire nommé `$userId` est rempli à partir de celui-ci (voir [Paramètres de route](../routing/#paramètres-de-route)). Le jeton écrit en dur ne sert que pour cet exemple : une vraie vérification cherche l'identifiant dans une source (voir [Authentification](../authentication/)).
+Sans jeton valide, le contrôleur ne s’exécute jamais. Avec un jeton valide, le contrôleur reçoit `userId` comme attribut de requête : un paramètre de gestionnaire nommé `$userId` est rempli à partir de celui-ci (voir [Paramètres de route](../routing/#paramètres-de-route)). Le jeton écrit en dur ne sert que pour cet exemple : une vraie vérification cherche l’identifiant dans une source (voir [Authentification](../authentication/)).
 
 ## Un middleware qui décore la réponse
 
@@ -78,7 +78,7 @@ Un objet middleware sert toutes les requêtes du processus. Gardez les données 
 
 ## Enregistrer des middlewares
 
-Il en existe deux sortes, toutes deux enregistrées sur le constructeur de l'application.
+Il en existe deux sortes, toutes deux enregistrées sur le constructeur de l’application.
 
 ```php
 use App\Middleware\RequireUserMiddleware;
@@ -91,8 +91,8 @@ $app = ApplicationBuilder::create()
     ->build();
 ```
 
-- **Global**, avec `withMiddleware($middleware)` : s'exécute sur chaque requête, y compris les réponses 404 et 405.
-- **Nommé**, avec `registerMiddleware('auth', $middleware)` : ne fait que donner un nom au middleware. Il s'exécute sur les routes qui référencent ce nom.
+- **Global**, avec `withMiddleware($middleware)` : s’exécute sur chaque requête, y compris les réponses 404 et 405.
+- **Nommé**, avec `registerMiddleware('auth', $middleware)` : ne fait que donner un nom au middleware. Il s’exécute sur les routes qui référencent ce nom.
 
 Le constructeur est immuable. Chaque `with*()` et `registerMiddleware()` retourne un nouveau constructeur, alors chaînez les appels ou réassignez : un appel dont le résultat est perdu ne monte rien.
 
@@ -112,11 +112,11 @@ final class ProjectController extends Controller
 
 `#[Middleware('name')]` fonctionne sur une classe ou une méthode, et une route peut aussi lister des noms dans son argument `middlewares:`. `#[MiddlewareGroup('admin')]` applique un groupe défini avec `$router->middlewareGroup('admin', ['auth', 'audit'])`. Les détails du routage, y compris `#[WithoutMiddleware]` pour ignorer un middleware global sur une route, se trouvent dans [Routage](../routing/#attacher-des-middlewares).
 
-Une route qui désigne un middleware que personne n'a enregistré est refusée à la construction de l'application, avec un message qui liste les noms inconnus, les routes qui les désignent et les noms enregistrés.
+Une route qui désigne un middleware que personne n’a enregistré est refusée à la construction de l’application, avec un message qui liste les noms inconnus, les routes qui les désignent et les noms enregistrés.
 
-## L'ordre
+## L’ordre
 
-Le premier middleware global ajouté s'exécute à l'extérieur : il voit la requête en premier et la réponse en dernier. Après les middlewares globaux, le middleware propre à la route s'exécute, puis le gestionnaire. Le middleware de route s'exécute d'abord au niveau de la classe (les classes parentes avant les sous-classes), puis les attributs `#[Middleware]` de la méthode, puis ses attributs `#[MiddlewareGroup]`, chaque groupe étant développé dans l'ordre de sa liste.
+Le premier middleware global ajouté s’exécute à l’extérieur : il voit la requête en premier et la réponse en dernier. Après les middlewares globaux, le middleware propre à la route s’exécute, puis le gestionnaire. Le middleware de route s’exécute d’abord au niveau de la classe (les classes parentes avant les sous-classes), puis les attributs `#[Middleware]` de la méthode, puis ses attributs `#[MiddlewareGroup]`, chaque groupe étant développé dans l’ordre de sa liste.
 
 Avec ces enregistrements :
 
@@ -139,13 +139,13 @@ Une requête qui ne correspond à aucune route traverse tout de même les middle
 global1:in global2:in global2:out global1:out
 ```
 
-Comme le pipeline enveloppe tout, placez en premier les middlewares qui doivent voir chaque réponse (en-têtes de sécurité, redirection HTTPS). Un middleware qui décore les réponses décore donc aussi les réponses 404, 405 et d'erreur.
+Comme le pipeline enveloppe tout, placez en premier les middlewares qui doivent voir chaque réponse (en-têtes de sécurité, redirection HTTPS). Un middleware qui décore les réponses décore donc aussi les réponses 404, 405 et d’erreur.
 
-Lorsqu'aucune route ne correspond, la requête porte l'attribut `Request::ATTRIBUTE_UNMATCHED_ROUTE` à `true`. Un middleware qui valide une ressource (CSRF, par exemple) peut l'utiliser pour refuser de répondre à propos d'un chemin qui n'existe pas; un middleware décorateur doit l'ignorer et continuer de s'exécuter.
+Lorsqu’aucune route ne correspond, la requête porte l’attribut `Request::ATTRIBUTE_UNMATCHED_ROUTE` à `true`. Un middleware qui valide une ressource (CSRF, par exemple) peut l’utiliser pour refuser de répondre à propos d’un chemin qui n’existe pas; un middleware décorateur doit l’ignorer et continuer de s’exécuter.
 
 ## Le pipeline lui-même
 
-`Zephyrus\Http\MiddlewarePipeline` est la chaîne immuable que construit l'application. Vous y touchez rarement, mais elle est publique : `pipe($middleware)` et `pipeMany($list)` retournent une copie plus longue, `without([Class::class])` retourne une copie sans les instances des classes ou interfaces données, et `handle($request, $destination)` exécute la chaîne autour d'une fonction de destination. C'est utile pour tester un middleware isolément :
+`Zephyrus\Http\MiddlewarePipeline` est la chaîne immuable que construit l’application. Vous y touchez rarement, mais elle est publique : `pipe($middleware)` et `pipeMany($list)` retournent une copie plus longue, `without([Class::class])` retourne une copie sans les instances des classes ou interfaces données, et `handle($request, $destination)` exécute la chaîne autour d’une fonction de destination. C’est utile pour tester un middleware isolément :
 
 ```php
 $pipeline = (new MiddlewarePipeline())->pipe(new ServerTimingMiddleware());
@@ -158,20 +158,20 @@ $response = $pipeline->handle(
 
 ## Middlewares intégrés
 
-| Middleware | Ce qu'il fait | Documenté dans |
+| Middleware | Ce qu’il fait | Documenté dans |
 |---|---|---|
-| `Session\SessionMiddleware` | Démarre la session et l'expose sur la requête | [Sessions](../sessions/) |
-| `Security\CsrfMiddleware` | Refuse les requêtes qui modifient l'état sans jeton CSRF valide | [Sécurité](../security/) |
+| `Session\SessionMiddleware` | Démarre la session et l’expose sur la requête | [Sessions](../sessions/) |
+| `Security\CsrfMiddleware` | Refuse les requêtes qui modifient l’état sans jeton CSRF valide | [Sécurité](../security/) |
 | `Security\SecureHeadersMiddleware` | Ajoute les en-têtes de sécurité configurés à chaque réponse | [Sécurité](../security/) |
 | `Security\ForceHttpsMiddleware` | Redirige les requêtes HTTP simples vers HTTPS avec un 308 | [Sécurité](../security/) |
-| `Security\AllowedHostsMiddleware` | Refuse les requêtes dont le `Host` n'est pas dans la liste autorisée | [Sécurité](../security/) |
+| `Security\AllowedHostsMiddleware` | Refuse les requêtes dont le `Host` n’est pas dans la liste autorisée | [Sécurité](../security/) |
 | `Security\MaxBodySizeMiddleware` | Refuse les corps de requête qui dépassent la limite de taille | [Sécurité](../security/) |
-| `Security\AuthGuardMiddleware` | Répond 401 à moins qu'une garde n'accepte la requête | [Authentification](../authentication/) |
+| `Security\AuthGuardMiddleware` | Répond 401 à moins qu’une garde n’accepte la requête | [Authentification](../authentication/) |
 | `Security\ContentSecurityPolicyMiddleware` | Envoie un en-tête `Content-Security-Policy`, au besoin avec un nonce propre à la requête | [Content Security Policy](../../digging-deeper/content-security-policy/) |
 
-Les middlewares de sécurité nommés dans votre configuration doivent être montés par l'application : le framework refuse de démarrer lorsqu'un réglage déclaré n'est appliqué par rien. [Sécurité](../security/) présente le câblage complet. Les middlewares de sécurité ne peuvent pas être ignorés avec `#[WithoutMiddleware]`.
+Les middlewares de sécurité nommés dans votre configuration doivent être montés par l’application : le framework refuse de démarrer lorsqu’un réglage déclaré n’est appliqué par rien. [Sécurité](../security/) présente le câblage complet. Les middlewares de sécurité ne peuvent pas être ignorés avec `#[WithoutMiddleware]`.
 
-Une garde s'enregistre en une ligne :
+Une garde s’enregistre en une ligne :
 
 ```php
 use Zephyrus\Security\AuthGuardMiddleware;
@@ -189,9 +189,9 @@ Une route avec `#[Middleware('internal')]` répond alors `401` avec `{"error":"U
 ## Bon à savoir
 
 - Réassignez le constructeur : `$builder->withMiddleware(...)` seul sur sa ligne ne monte rien.
-- Le premier middleware global est le plus externe. L'ordre compte pour les en-têtes, les redirections et tout ce qui doit voir chaque réponse.
-- Le middleware global s'exécute sur les réponses 404 et 405. Le middleware de route ne s'exécute que pour une route trouvée.
-- Un middleware nommé qu'aucune route ne référence ne s'exécute jamais.
+- Le premier middleware global est le plus externe. L’ordre compte pour les en-têtes, les redirections et tout ce qui doit voir chaque réponse.
+- Le middleware global s’exécute sur les réponses 404 et 405. Le middleware de route ne s’exécute que pour une route trouvée.
+- Un middleware nommé qu’aucune route ne référence ne s’exécute jamais.
 - Enregistrez un nom avant `build()` : une route qui désigne un middleware ou un groupe inconnu arrête le démarrage.
 - Les middlewares sont partagés entre les requêtes : aucun état propre à une requête dans les propriétés.
 - `#[WithoutMiddleware]` ignore un middleware global sur une route trouvée, jamais sur un 404 ou un 405, et jamais un middleware de sécurité du framework.

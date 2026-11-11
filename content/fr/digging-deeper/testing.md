@@ -1,16 +1,16 @@
 ---
 title: Tests
 order: 8
-description: Testez une application en processus avec PHPUnit en envoyant des requêtes par Application::handle(), avec CSRF, sessions, points d'accès JSON et middlewares.
+description: Testez une application en processus avec PHPUnit en envoyant des requêtes par Application::handle(), avec CSRF, sessions, points d’accès JSON et middlewares.
 ---
 
 # Tests
 
 Sans serveur, sans navigateur, de vraies requêtes.
 
-`Application::handle()` transforme une `Request` en une `Response` sans serveur web : un test exerce donc ensemble le routage, les middlewares, le contrôleur et la vue de votre application. Les exemples ont été vérifiés sur PHPUnit 13 et utilisent l'application de la page [première application](../../getting-started/first-application/) ainsi qu'un petit point d'accès JSON.
+`Application::handle()` transforme une `Request` en une `Response` sans serveur web : un test exerce donc ensemble le routage, les middlewares, le contrôleur et la vue de votre application. Les exemples ont été vérifiés sur PHPUnit 13 et utilisent l’application de la page [première application](../../getting-started/first-application/) ainsi qu’un petit point d’accès JSON.
 
-Installez PHPUnit et associez l'espace de noms des tests :
+Installez PHPUnit et associez l’espace de noms des tests :
 
 ```bash
 composer require --dev phpunit/phpunit
@@ -41,7 +41,7 @@ Exécutez la suite avec `vendor/bin/phpunit`. Traiter les avertissements et les 
 
 ## Une classe de base
 
-Construisez l'application dans `setUp()`, afin que chaque test parte d'un état propre. Cette classe de base le fait et ajoute trois aides :
+Construisez l’application dans `setUp()`, afin que chaque test parte d’un état propre. Cette classe de base le fait et ajoute trois aides :
 
 ```php
 <?php
@@ -107,14 +107,14 @@ abstract class ApplicationTestCase extends TestCase
 }
 ```
 
-- `Kernel::application()` est la méthode d'amorçage de la première application : elle retourne l'`Application` construite et n'envoie rien.
+- `Kernel::application()` est la méthode d’amorçage de la première application : elle retourne l’`Application` construite et n’envoie rien.
 - `Request::fromArray()` construit une requête sans toucher aux variables globales de PHP. `body:` reçoit le corps déjà décodé.
-- `App::reset()` efface les éléments statiques que conserve l'application (configuration, session, formateur, traducteur, le générateur d'URL derrière `route()`, etc.). Seul `build()` les réinstalle, ce qui explique pourquoi `setUp()` construit une nouvelle application pour chaque test.
+- `App::reset()` efface les éléments statiques que conserve l’application (configuration, session, formateur, traducteur, le générateur d’URL derrière `route()`, etc.). Seul `build()` les réinstalle, ce qui explique pourquoi `setUp()` construit une nouvelle application pour chaque test.
 - `$_SESSION = []` est une étape distincte et obligatoire, voir [Isoler les tests](#isoler-les-tests).
 
 ## Lire une réponse
 
-Une `Response` a un `status`, un `body` et des en-têtes. Lisez les en-têtes avec `getHeader()`, qui ignore la casse : les noms d'en-têtes sont stockés en minuscules, de sorte que `$response->headers['Content-Type']` n'existe pas.
+Une `Response` a un `status`, un `body` et des en-têtes. Lisez les en-têtes avec `getHeader()`, qui ignore la casse : les noms d’en-têtes sont stockés en minuscules, de sorte que `$response->headers['Content-Type']` n’existe pas.
 
 ```php
 <?php
@@ -172,17 +172,17 @@ final class NotesPageTest extends ApplicationTestCase
 
 ## Envoyer un formulaire
 
-Une requête qui modifie l'état doit passer le middleware CSRF comme le ferait un navigateur. L'aide charge la page, lit le jeton dans le formulaire généré et le renvoie dans `_csrf_token`. C'est la session unique, partagée par tout le processus, qui explique pourquoi le jeton lu par un `GET` est valide pour le `POST` suivant.
+Une requête qui modifie l’état doit passer le middleware CSRF comme le ferait un navigateur. L’aide charge la page, lit le jeton dans le formulaire généré et le renvoie dans `_csrf_token`. C’est la session unique, partagée par tout le processus, qui explique pourquoi le jeton lu par un `GET` est valide pour le `POST` suivant.
 
-Une requête sans le jeton est refusée avec `403` : vérifiez-le aussi, afin qu'on remarque le retrait du middleware.
+Une requête sans le jeton est refusée avec `403` : vérifiez-le aussi, afin qu’on remarque le retrait du middleware.
 
 ## Conserver une session entre deux requêtes
 
-En processus, il n'y a aucun témoin à transporter : la session est la même pour toutes les requêtes jusqu'à ce que vous l'effaciez. `testAnAddedNoteIsListedAfterTheRedirect()` ci-dessus publie une note, puis demande la liste et y trouve la note, sans rien d'autre à préparer. Le message éclair n'est affiché que lors de cette seconde requête.
+En processus, il n’y a aucun témoin à transporter : la session est la même pour toutes les requêtes jusqu’à ce que vous l’effaciez. `testAnAddedNoteIsListedAfterTheRedirect()` ci-dessus publie une note, puis demande la liste et y trouve la note, sans rien d’autre à préparer. Le message éclair n’est affiché que lors de cette seconde requête.
 
-## Un point d'accès JSON
+## Un point d’accès JSON
 
-Le point d'accès de cette classe de test se trouve dans `app/Controllers/ApiController.php`, derrière un middleware `require-json` (présenté plus bas). Un client JSON envoie le jeton dans l'en-tête `X-CSRF-Token` ainsi qu'un en-tête `Accept`.
+Le point d’accès de cette classe de test se trouve dans `app/Controllers/ApiController.php`, derrière un middleware `require-json` (présenté plus bas). Un client JSON envoie le jeton dans l’en-tête `X-CSRF-Token` ainsi qu’un en-tête `Accept`.
 
 ```php
 <?php
@@ -287,11 +287,11 @@ final class ApiController extends Controller
 }
 ```
 
-`Request::fromArray()` reçoit le corps décodé dans `body:` et ne décode pas un `rawBody:` JSON. Passez le tableau qu'un client aurait envoyé.
+`Request::fromArray()` reçoit le corps décodé dans `body:` et ne décode pas un `rawBody:` JSON. Passez le tableau qu’un client aurait envoyé.
 
 ## Un middleware
 
-Testez un middleware isolément en appelant `process()` avec une requête et une fermeture `$next`, puis une fois par une route pour vérifier qu'il est monté. Voici le middleware testé, enregistré dans l'amorçage avec `#[Middleware('require-json')]` sur le contrôleur. Le `Kernel` de la première application l'enregistre sur le constructeur, avant `build()` :
+Testez un middleware isolément en appelant `process()` avec une requête et une fermeture `$next`, puis une fois par une route pour vérifier qu’il est monté. Voici le middleware testé, enregistré dans l’amorçage avec `#[Middleware('require-json')]` sur le contrôleur. Le `Kernel` de la première application l’enregistre sur le constructeur, avant `build()` :
 
 ```php
 ->registerMiddleware('require-json', new RequireJson())
@@ -363,11 +363,11 @@ final class RequireJsonTest extends TestCase
 }
 ```
 
-Le second test passe un `$next` qui fait échouer le test s'il s'exécute : il prouve que la requête est arrêtée avant le contrôleur. Les tests au niveau des routes dans `ApiTest` prouvent l'enregistrement.
+Le second test passe un `$next` qui fait échouer le test s’il s’exécute : il prouve que la requête est arrêtée avant le contrôleur. Les tests au niveau des routes dans `ApiTest` prouvent l’enregistrement.
 
 ## Isoler les tests
 
-Comme la session PHP vit pendant tout le processus et que `handle()` ne retourne aucun `Set-Cookie`, une note ajoutée par un test est toujours là pour le suivant. Sans `$_SESSION = []` dans `tearDown()`, un test réussit ou échoue selon l'ordre dans lequel les autres ont été exécutés. Exécutez la suite en ordre aléatoire pour le détecter :
+Comme la session PHP vit pendant tout le processus et que `handle()` ne retourne aucun `Set-Cookie`, une note ajoutée par un test est toujours là pour le suivant. Sans `$_SESSION = []` dans `tearDown()`, un test réussit ou échoue selon l’ordre dans lequel les autres ont été exécutés. Exécutez la suite en ordre aléatoire pour le détecter :
 
 ```bash
 vendor/bin/phpunit --order-by=random
@@ -377,8 +377,8 @@ Avec la ligne retirée de la classe de base ci-dessus, cette suite a échoué à
 
 ## Bon à savoir
 
-- Vérifiez le statut et le corps qu'un client verrait (`403`, `404`, `405`, `422`), jamais une trace ni un message d'exception.
-- Un test qui a besoin de PostgreSQL exige une vraie base de données : voyez [Données](../../fundamentals/data/). La suite ci-dessus n'en exige aucune.
-- `Request::fromArray()` construit une vraie requête sans état global : il n'y a donc rien à simuler.
+- Vérifiez le statut et le corps qu’un client verrait (`403`, `404`, `405`, `422`), jamais une trace ni un message d’exception.
+- Un test qui a besoin de PostgreSQL exige une vraie base de données : voyez [Données](../../fundamentals/data/). La suite ci-dessus n’en exige aucune.
+- `Request::fromArray()` construit une vraie requête sans état global : il n’y a donc rien à simuler.
 
 Voyez aussi [Middleware](../../fundamentals/middleware/), [Sessions](../../fundamentals/sessions/) et [HTTP](../../fundamentals/http/).
