@@ -365,18 +365,19 @@ List the narrowest range that covers your proxies. A wide one such as `10.0.0.0/
 | none | `10.0.0.5` | `http` |
 | `['10.0.0.5/32']` | `203.0.113.9` | `https` |
 
-The forwarded chain is read from the right, skipping trusted proxies, and the first untrusted address is the client. A client that sends its own `X-Forwarded-For: 1.2.3.4` only adds an entry on the left, which is never reached: the answer stays `203.0.113.9`. A client connecting directly (not through a trusted proxy) keeps its own address, whatever headers it sends.
+The forwarded chain is read from the right, skipping trusted proxies, and the first untrusted address is the client. When the nearest proxy appends to `X-Forwarded-For`, a client that sends its own `X-Forwarded-For: 1.2.3.4` only adds an entry on the left, which is never reached: the answer stays `203.0.113.9`. A proxy that forwards the client's header untouched leaves the client's value as the only entry, and the client then picks `clientIp()`. A client connecting directly (not through a trusted proxy) keeps its own address, whatever headers it sends.
 
 `trusted_headers` lists which forwarding headers a trusted proxy may set: by default `x-forwarded-for`, `x-forwarded-host`, `x-forwarded-proto` and `x-forwarded-port`. `forwarded`, `x-real-ip`, `cf-connecting-ip` and `x-client-ip` are also understood, but only read when you list them, because they are only trustworthy when your nearest proxy overwrites them. Listing `trusted_headers` replaces the default set, so name every header you need.
 
-The default set is not safe behind every proxy. `x-forwarded-for` is read from the right, so a value the client prepends is never reached. `x-forwarded-host`, `x-forwarded-proto` and `x-forwarded-port` are read from the left: the first value of the list wins. A proxy that appends to a header the client sent leaves the client's value first, and the client then picks the host and scheme your application sees. With a trusted peer forwarding `X-Forwarded-Host: evil.example, app.example.test` and `X-Forwarded-Proto: https, http`, `Request::uri()` answers `https://evil.example`, and with an empty `allowed_hosts` a password reset link built from it points at `evil.example`.
+The default set is not safe behind every proxy. `x-forwarded-for` is read from the right, so a value the client prepends is never reached, provided the nearest proxy appends to the header or overwrites it. `x-forwarded-host`, `x-forwarded-proto` and `x-forwarded-port` are read from the left: the first value of the list wins. A proxy that appends to a header the client sent leaves the client's value first, and the client then picks the host and scheme your application sees. With a trusted peer forwarding `X-Forwarded-Host: evil.example, app.example.test` and `X-Forwarded-Proto: https, http`, `Request::uri()` answers `https://evil.example`, and with an empty `allowed_hosts` a password reset link built from it points at `evil.example`.
 
-So host, proto and port are trustworthy only when the nearest proxy overwrites them. In nginx:
+So the forwarding headers are trustworthy only when the nearest proxy overwrites them or, for `X-Forwarded-For`, appends to it. A proxy that passes the client's `X-Forwarded-For` through lets the client choose `clientIp()` and get past `IpAllowlistGuard`. In nginx:
 
 ```nginx
 proxy_set_header X-Forwarded-Host $host;
 proxy_set_header X-Forwarded-Proto $scheme;
 proxy_set_header X-Forwarded-Port $server_port;
+proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
 ```
 
 Apache `mod_proxy` appends to `X-Forwarded-Host` by default, which is the unsafe case. When the proxy does not overwrite a header, take it out of the trusted set. With only the client address trusted, the same request resolves to `http://app.example.test`:
@@ -387,7 +388,7 @@ security:
   trusted_headers: [x-forwarded-for]
 ```
 
-Without `x-forwarded-proto`, a request that a proxy terminated over TLS is no longer seen as HTTPS, so enforce HTTPS at the proxy and acknowledge `forceHttps` (see [forcing HTTPS](#forcing-https)). `allowed_hosts` is the backstop for every host header, forwarded or not: list your hosts in production. With `app.example.test` listed, the request above is answered with a 400.
+Without `x-forwarded-proto`, a request that a proxy terminated over TLS is no longer seen as HTTPS, so enforce HTTPS at the proxy and acknowledge `forceHttps` (see [forcing HTTPS](#forcing-https)). `allowed_hosts` is the backstop for every host header, forwarded or not: list your hosts in production. With `app.example.test` listed, the request above is answered with a 400. It does not check ports: an `X-Forwarded-Port` that the proxy does not overwrite must leave the trusted set, or a client can put its own port into generated URLs.
 
 `['*']` trusts every peer. It exists for local development behind a container proxy; in production it lets any client choose its own address.
 

@@ -365,18 +365,19 @@ Inscrivez la plage la plus étroite qui couvre vos proxies. Une plage large comm
 | aucun | `10.0.0.5` | `http` |
 | `['10.0.0.5/32']` | `203.0.113.9` | `https` |
 
-La chaîne de transfert est lue depuis la droite, en sautant les proxies de confiance, et la première adresse non approuvée est le client. Un client qui envoie son propre `X-Forwarded-For: 1.2.3.4` n'ajoute qu'une entrée à gauche, qui n'est jamais atteinte : la réponse reste `203.0.113.9`. Un client qui se connecte directement (sans passer par un proxy de confiance) garde sa propre adresse, quels que soient les en-têtes qu'il envoie.
+La chaîne de transfert est lue depuis la droite, en sautant les proxies de confiance, et la première adresse non approuvée est le client. Quand le proxy le plus proche ajoute à la suite de `X-Forwarded-For`, un client qui envoie son propre `X-Forwarded-For: 1.2.3.4` n’ajoute qu’une entrée à gauche, qui n’est jamais atteinte : la réponse reste `203.0.113.9`. Un proxy qui transmet tel quel l’en-tête du client laisse la valeur du client comme seule entrée, et le client choisit alors `clientIp()`. Un client qui se connecte directement (sans passer par un proxy de confiance) garde sa propre adresse, quels que soient les en-têtes qu'il envoie.
 
 `trusted_headers` énumère les en-têtes de transfert qu'un proxy de confiance peut définir : par défaut `x-forwarded-for`, `x-forwarded-host`, `x-forwarded-proto` et `x-forwarded-port`. `forwarded`, `x-real-ip`, `cf-connecting-ip` et `x-client-ip` sont aussi compris, mais lus seulement si vous les inscrivez, parce qu'ils ne sont dignes de confiance que lorsque votre proxy le plus proche les écrase. Indiquer `trusted_headers` remplace l'ensemble par défaut : nommez donc chaque en-tête dont vous avez besoin.
 
-L'ensemble par défaut n'est pas sûr derrière tous les proxies. `x-forwarded-for` est lu depuis la droite : une valeur ajoutée en tête par le client n'est donc jamais atteinte. `x-forwarded-host`, `x-forwarded-proto` et `x-forwarded-port` sont lus depuis la gauche : la première valeur de la liste l'emporte. Un proxy qui ajoute à la suite d'un en-tête envoyé par le client laisse la valeur du client en premier, et le client choisit alors l'hôte et le schéma que voit votre application. Avec un pair de confiance qui transmet `X-Forwarded-Host: evil.example, app.example.test` et `X-Forwarded-Proto: https, http`, `Request::uri()` répond `https://evil.example`, et avec un `allowed_hosts` vide, un lien de réinitialisation de mot de passe construit à partir de celui-ci pointe vers `evil.example`.
+L'ensemble par défaut n'est pas sûr derrière tous les proxies. `x-forwarded-for` est lu depuis la droite : une valeur ajoutée en tête par le client n’est donc jamais atteinte, pourvu que le proxy le plus proche ajoute à la suite de l’en-tête ou l’écrase. `x-forwarded-host`, `x-forwarded-proto` et `x-forwarded-port` sont lus depuis la gauche : la première valeur de la liste l'emporte. Un proxy qui ajoute à la suite d'un en-tête envoyé par le client laisse la valeur du client en premier, et le client choisit alors l'hôte et le schéma que voit votre application. Avec un pair de confiance qui transmet `X-Forwarded-Host: evil.example, app.example.test` et `X-Forwarded-Proto: https, http`, `Request::uri()` répond `https://evil.example`, et avec un `allowed_hosts` vide, un lien de réinitialisation de mot de passe construit à partir de celui-ci pointe vers `evil.example`.
 
-L'hôte, le protocole et le port ne sont donc dignes de confiance que lorsque le proxy le plus proche les écrase. Dans nginx :
+Les en-têtes de transfert ne sont donc dignes de confiance que lorsque le proxy le plus proche les écrase ou, pour `X-Forwarded-For`, ajoute à la suite. Un proxy qui laisse passer le `X-Forwarded-For` du client permet au client de choisir `clientIp()` et de contourner `IpAllowlistGuard`. Dans nginx :
 
 ```nginx
 proxy_set_header X-Forwarded-Host $host;
 proxy_set_header X-Forwarded-Proto $scheme;
 proxy_set_header X-Forwarded-Port $server_port;
+proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
 ```
 
 Apache `mod_proxy` ajoute à la suite de `X-Forwarded-Host` par défaut, ce qui est le cas non sécuritaire. Quand le proxy n'écrase pas un en-tête, retirez-le de l'ensemble approuvé. Avec seulement l'adresse du client approuvée, la même requête se résout en `http://app.example.test` :
@@ -387,7 +388,7 @@ security:
   trusted_headers: [x-forwarded-for]
 ```
 
-Sans `x-forwarded-proto`, une requête qu'un proxy a terminée en TLS n'est plus vue comme HTTPS : appliquez donc HTTPS au proxy et reconnaissez `forceHttps` (voir [forcer HTTPS](#forcing-https)). `allowed_hosts` est le filet de sécurité pour tous les en-têtes d'hôte, transmis ou non : inscrivez vos hôtes en production. Avec `app.example.test` inscrit, la requête ci-dessus reçoit un 400.
+Sans `x-forwarded-proto`, une requête qu'un proxy a terminée en TLS n'est plus vue comme HTTPS : appliquez donc HTTPS au proxy et reconnaissez `forceHttps` (voir [forcer HTTPS](#forcing-https)). `allowed_hosts` est le filet de sécurité pour tous les en-têtes d'hôte, transmis ou non : inscrivez vos hôtes en production. Avec `app.example.test` inscrit, la requête ci-dessus reçoit un 400. Il ne vérifie pas les ports : un `X-Forwarded-Port` que le proxy n’écrase pas doit sortir de l’ensemble approuvé, sans quoi un client peut mettre son propre port dans les URL générées.
 
 `['*']` approuve tous les pairs. Il existe pour le développement local derrière un proxy de conteneur ; en production, il permet à n'importe quel client de choisir sa propre adresse.
 
