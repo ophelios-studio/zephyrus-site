@@ -39,11 +39,11 @@ mailer:
 |---|---|---|
 | `smtp.host` | `localhost` | The SMTP server. |
 | `smtp.port` | `587` | Usually 587 with `tls`, 465 with `ssl`. |
-| `smtp.username`, `smtp.password` | empty | Authentication is turned on when either is set. Read the password with `!env`, never write it in the file. |
+| `smtp.username`, `smtp.password` | empty | Authentication is turned on when either is set. An unset `MAIL_USER` and `MAIL_PASSWORD` give empty values and authentication is skipped. Read the password with `!env`, never write it in the file. |
 | `smtp.encryption` | `tls` | `tls` (STARTTLS), `ssl` (implicit TLS) or `''` for no encryption at all. |
 | `from.address`, `from.name` | empty | The sender of every message. A value that is not an address is refused when the `Mailer` is created. |
 
-`smtp.encryption` is an allowlist: any other value, `none` included, stops the boot with an error that lists the three accepted values. An empty value disables encryption entirely and is meant for a local sink; with credentials set, the mailer writes a warning to the error log once per process.
+`smtp.encryption` is an allowlist: any other value, `none` included, stops the boot with an error that lists the three accepted values. An empty value disables encryption entirely and is meant for a local sink; with credentials set, the mailer writes a warning to the error log once per process. With `tls` or `ssl` the server certificate is verified, so a development SMTP server needs a certificate PHP trusts, otherwise the connection fails with `certificate verify failed`.
 
 `MailerConfig::fromArray([...])` builds the same object from a plain array (nested keys `smtp` and `from`), which is handy in tests. The password is masked when the object is dumped.
 
@@ -177,6 +177,10 @@ Sending is synchronous: the request waits for the SMTP conversation. A slow or u
 ```php
 namespace App\Mail;
 
+use Zephyrus\Mailer\Mailer;
+use Zephyrus\Mailer\MailerConfig;
+use Zephyrus\Rendering\RenderEngine;
+
 interface WelcomeMail
 {
     public function send(string $address, string $name): void;
@@ -221,13 +225,27 @@ $mime = $php->getSentMIMEMessage();     // headers and body, as they would be se
 ```
 
 ```php
-public function testAnInvalidRecipientIsRefusedWithItsFailureFamily(): void
+use PHPUnit\Framework\TestCase;
+use Zephyrus\Mailer\Mailer;
+use Zephyrus\Mailer\MailerConfig;
+use Zephyrus\Mailer\MailerException;
+use Zephyrus\Mailer\MailerFailure;
+
+final class MailerTest extends TestCase
 {
-    try {
-        $mailer->to('not-an-address');
-        self::fail('expected a refusal');
-    } catch (MailerException $e) {
-        self::assertSame(MailerFailure::InvalidAddress, $e->failure);
+    public function testAnInvalidRecipientIsRefusedWithItsFailureFamily(): void
+    {
+        $mailer = new Mailer(MailerConfig::fromArray([
+            'smtp' => ['host' => 'localhost', 'port' => 25, 'encryption' => ''],
+            'from' => ['address' => 'no-reply@example.com'],
+        ]));
+
+        try {
+            $mailer->to('not-an-address');
+            self::fail('expected a refusal');
+        } catch (MailerException $e) {
+            self::assertSame(MailerFailure::InvalidAddress, $e->failure);
+        }
     }
 }
 ```
