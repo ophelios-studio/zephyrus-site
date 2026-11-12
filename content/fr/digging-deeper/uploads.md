@@ -139,7 +139,7 @@ Ce qui rend ceci sûr :
 - **La contrainte de route est le filtre.** Seuls les noms de la forme exacte que génère l’uploader atteignent la méthode : `..` et les autres noms répondent donc 404 avant que le moindre code ne s’exécute. La syntaxe des contraintes est décrite sur [Routage](../../fundamentals/routing/).
 - **Le type de contenu provient de votre propre table**, indexée par l’extension du nom généré, jamais de la requête ni du téléversement d’origine.
 - **`X-Content-Type-Options: nosniff`** empêche un navigateur de deviner un autre type.
-- **Ajoutez votre vérification d’accès** (ce visiteur a-t-il le droit de voir ce fichier ?) avant le `file_get_contents()`. Voir [Authentification](../../fundamentals/authentication/).
+- **Ajoutez votre vérification d’accès** (ce visiteur a-t-il le droit de voir ce fichier ?) avant le `file_get_contents()`. Voir [Authentification](../../fundamentals/authentication/).
 
 Pour un fichier qu’un visiteur devrait télécharger plutôt qu’afficher, ajoutez `Content-Disposition: attachment`. Faites-le pour chaque type qui n’est pas une image que vous avez choisie : un SVG ouvert dans le navigateur exécute son script dans l’origine de votre site.
 
