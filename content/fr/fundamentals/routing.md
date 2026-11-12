@@ -43,7 +43,7 @@ use Zephyrus\Routing\Router;
 $router = (new Router())->discoverControllers('App\\Controllers', $root . '/app/Controllers');
 ```
 
-`discoverControllers()` parcourt le répertoire, charge chaque classe concrète dont le nom correspond à l’espace de noms et enregistre les routes qu’elle déclare. Le routeur est ensuite remis au constructeur de l’application avec `withRouter($router)` (voir [Application](../application/)).
+`discoverControllers()` parcourt le répertoire, charge chaque classe concrète dont le nom correspond à l’espace de noms et enregistre les routes qu’elle déclare. Le routeur est ensuite remis au builder de l’application avec `withRouter($router)` (voir [Application](../application/)).
 
 ## Attributs de méthode
 
@@ -131,7 +131,7 @@ L’argument `name` donne un nom à une route pour la [génération d’URL](#g�
 
 ## Attacher des middlewares
 
-`#[Middleware('auth')]` désigne un middleware enregistré sur le constructeur, sur une classe ou sur une méthode. Les routes l’exécutent alors après le middleware global, dans l’ordre décrit dans [Middleware](../middleware/).
+`#[Middleware('auth')]` désigne un middleware enregistré sur le builder, sur une classe ou sur une méthode. Les routes l’exécutent alors après le middleware global, dans l’ordre décrit dans [Middleware](../middleware/).
 
 ```php
 #[Root('/api/projects')]
@@ -304,7 +304,7 @@ Le fichier contient des chaînes `Class@method` qui pilotent la répartition. So
 
 ## Refus à la construction
 
-Le routeur refuse une route qu’il ne peut pas servir correctement, à l’enregistrement, de sorte qu’une erreur échoue au démarrage et non en production.
+Le routeur refuse une route qu’il ne peut pas servir correctement, à l’enregistrement, de sorte qu’une erreur échoue au démarrage et non dans le trafic de production.
 
 Une route qui désigne un middleware ou un groupe jamais enregistré est refusée à la construction de l’application :
 

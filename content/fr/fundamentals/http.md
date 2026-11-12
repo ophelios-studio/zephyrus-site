@@ -52,7 +52,7 @@ $request->uri()->baseUrl();      // 'https://app.example.test:8443'
 $request->uri()->full();         // the whole URL
 ```
 
-Utilisez `path()` pour les décisions comme les gardes et les listes autorisées : c’est le chemin tel qu’envoyé, encore encodé en pourcentage, ce que le routeur fait correspondre. `uri()->path()` sert à l’affichage. Un segment de paramètre reste encodé dans `path()` ; lisez sa valeur décodée avec `routeParameter()`.
+Utilisez `path()` pour les décisions comme les gardes et les listes d’autorisation : c’est le chemin tel qu’envoyé, encore encodé en pourcentage, ce que le routeur fait correspondre. `uri()->path()` sert à l’affichage. Un segment de paramètre reste encodé dans `path()` ; lisez sa valeur décodée avec `routeParameter()`.
 
 Depuis `fromGlobals()`, un `POST` portant un champ `_method` ou un en-tête `X-HTTP-Method-Override` valant `PUT`, `PATCH` ou `DELETE` est routé comme cette méthode. `fromArray()` n’applique pas la substitution.
 
@@ -242,4 +242,4 @@ use Zephyrus\Http\SapiEmitter;
 - Les noms d’en-têtes de réponse sont mis en minuscules au stockage : utilisez `getHeader()` et `hasHeader()` plutôt que le tableau `headers` quand la casse compte.
 - Ne passez jamais une valeur de la requête à `redirect()` ni à un en-tête : utilisez `localRedirect()` et le `withHeader()` qui valide.
 - Un corps JSON mal formé se lit comme vide : vérifiez `isMalformed()`.
-- L’IP du client n’est aussi fiable que votre configuration de mandataires de confiance.
+- L’IP du client n’est pas plus fiable que votre configuration de mandataires de confiance.

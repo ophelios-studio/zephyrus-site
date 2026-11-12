@@ -178,7 +178,7 @@ Une requête sans le jeton est refusée avec `403` : vérifiez-le aussi, afin q
 
 ## Conserver une session entre deux requêtes
 
-En processus, il n’y a aucun témoin à transporter : la session est la même pour toutes les requêtes jusqu’à ce que vous l’effaciez. `testAnAddedNoteIsListedAfterTheRedirect()` ci-dessus publie une note, puis demande la liste et y trouve la note, sans rien d’autre à préparer. Le message éclair n’est affiché que lors de cette seconde requête.
+En processus, il n’y a aucun témoin à transporter : la session est la même pour toutes les requêtes jusqu’à ce que vous l’effaciez. `testAnAddedNoteIsListedAfterTheRedirect()` ci-dessus publie une note, puis demande la liste et y trouve la note, sans rien d’autre à préparer. Le message flash n’est affiché que lors de cette seconde requête.
 
 ## Un point d’accès JSON
 
@@ -291,7 +291,7 @@ final class ApiController extends Controller
 
 ## Un middleware
 
-Testez un middleware isolément en appelant `process()` avec une requête et une fermeture `$next`, puis une fois par une route pour vérifier qu’il est monté. Voici le middleware testé, enregistré dans l’amorçage avec `#[Middleware('require-json')]` sur le contrôleur. Le `Kernel` de la première application l’enregistre sur le constructeur, avant `build()` :
+Testez un middleware isolément en appelant `process()` avec une requête et une fermeture `$next`, puis une fois par une route pour vérifier qu’il est monté. Voici le middleware testé, enregistré dans l’amorçage avec `#[Middleware('require-json')]` sur le contrôleur. Le `Kernel` de la première application l’enregistre sur le builder, avant `build()` :
 
 ```php
 ->registerMiddleware('require-json', new RequireJson())

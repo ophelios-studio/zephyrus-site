@@ -82,7 +82,7 @@ Rien de ce que dit le navigateur ne décide du résultat :
 | `allowedExtensions` | Chaque segment séparé par des points du nom de fichier du client : `avatar.php.png` est refusé à cause de `php`. |
 | Là où il atterrit | La destination doit rester sous la racine, une fois les liens symboliques résolus. Un segment `..` dans le sous-répertoire est refusé. |
 
-Un fichier PHP envoyé sous le nom `shell.png` est refusé selon son type détecté, avec `Upload MIME type "text/x-php" is not allowed. Allowed MIME types: image/jpeg, image/png, image/webp`. Un fichier nommé `x.php` qui contient une véritable image PNG est refusé selon son extension, `Upload extension "php" is not allowed. Allowed extensions: jpg, jpeg, png, webp`, de même qu’un fichier sans extension lorsqu’une liste blanche est définie. Un fichier de 3 Mo avec une limite de 100 octets donne `Upload is too large (3000000 bytes). Maximum allowed size is 100 bytes.`
+Un fichier PHP envoyé sous le nom `shell.png` est refusé selon son type détecté, avec `Upload MIME type "text/x-php" is not allowed. Allowed MIME types: image/jpeg, image/png, image/webp`. Un fichier nommé `x.php` qui contient une véritable image PNG est refusé selon son extension, `Upload extension "php" is not allowed. Allowed extensions: jpg, jpeg, png, webp`, de même qu’un fichier sans extension lorsqu’une liste d’autorisation est définie. Un fichier de 3 Mo avec une limite de 100 octets donne `Upload is too large (3000000 bytes). Maximum allowed size is 100 bytes.`
 
 Chaque argument du constructeur après la racine est facultatif :
 

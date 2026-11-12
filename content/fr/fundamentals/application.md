@@ -92,7 +92,7 @@ require dirname(__DIR__) . '/vendor/autoload.php';
 App\Kernel::run(dirname(__DIR__));
 ```
 
-`Request::fromGlobals()` ne lit pas `config.yml` : transmettez vous-même les réglages de proxy, comme ci-dessus. Le fichier `.env` n’est pas lu non plus, voir [Configuration](../configuration/#variables-denvironnement).
+`Request::fromGlobals()` ne lit pas `config.yml` : transmettez vous-même les réglages de mandataire, comme ci-dessus. Le fichier `.env` n’est pas lu non plus, voir [Configuration](../configuration/#variables-denvironnement).
 
 ## Le builder
 
@@ -194,7 +194,7 @@ App::setFormatter(new Formatter('en_CA'));
 
 Lorsque quelque chose lève une exception à l’étape 2, 3 ou 4, le noyau émet un `ExceptionEvent`, puis convertit l’exception en réponse (voir [Erreurs](../errors/)). La réponse d’erreur traverse tout de même les middlewares globaux : elle porte donc vos en-têtes de sécurité.
 
-Trois réponses contournent les middlewares globaux : un court-circuit par `RequestEvent`, la réponse de secours utilisée lorsqu’un middleware global lève lui-même une exception, et une réponse remplacée par un écouteur de `ResponseEvent`. Un en-tête qui doit atteindre chaque réponse a aussi sa place dans le serveur web ou le proxy.
+Trois réponses contournent les middlewares globaux : un court-circuit par `RequestEvent`, la réponse de secours utilisée lorsqu’un middleware global lève lui-même une exception, et une réponse remplacée par un écouteur de `ResponseEvent`. Un en-tête qui doit atteindre chaque réponse a aussi sa place dans le serveur web ou le mandataire.
 
 Les événements sont décrits dans [Conteneur et événements](../../digging-deeper/container-and-events/#événements-du-noyau).
 

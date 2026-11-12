@@ -35,7 +35,7 @@ $db = Database::fromConfig($config->database);
 
 `fromConfig()` ouvre la connexion avec des requêtes préparées côté serveur : le SQL et les valeurs voyagent toujours séparément, et il est impossible de désactiver ce comportement. Une connexion qui échoue lève une `DatabaseException` qui nomme le DSN (hôte, port, base de données, jamais le mot de passe) et la raison fournie par le pilote : journalisez-la, ne l’affichez pas.
 
-`Database` n’est pas créée pour vous. Construisez-la une seule fois et transmettez-la à vos courtiers, ou enregistrez-la dans le [conteneur](../../digging-deeper/container-and-events/) pour que les contrôleurs et les courtiers la reçoivent par leur constructeur :
+`Database` n’est pas créée pour vous. Construisez-la une seule fois et transmettez-la à vos brokers, ou enregistrez-la dans le [conteneur](../../digging-deeper/container-and-events/) pour que les contrôleurs et les brokers la reçoivent par leur constructeur :
 
 ```php
 use Zephyrus\Container\Container;
@@ -149,7 +149,7 @@ $row = $db->selectOne('SELECT tags FROM project WHERE name = ?', ['Gamma']);
 // $row->tags === ['php', 'sql']
 ```
 
-Construisez le littéral vous-même en mettant chaque élément entre guillemets doubles et en échappant `"` et `\` (une petite aide privée dans le courtier suffit).
+Construisez le littéral vous-même en mettant chaque élément entre guillemets doubles et en échappant `"` et `\` (une petite aide privée dans le broker suffit).
 
 **JSON.** Liez la sortie de `json_encode()` avec une conversion de type, puis relisez-la décodée :
 
@@ -176,11 +176,11 @@ $db->registerTypeConversion('NUMERIC', static fn (string $value): string => $val
 
 Enregistrez-la immédiatement après avoir créé la `Database`. Les convertisseurs sont indexés par le nom du type PostgreSQL et reçoivent la chaîne brute.
 
-## Courtiers, services et entités
+## Brokers, services et entités
 
 Les applications bâties sur Zephyrus répartissent habituellement le code de données en trois parties, typiquement sous `app/Models/<Domain>/{Brokers,Services,Entities}`. Seules `Broker` et `Entity` sont des classes du framework ; la répartition elle-même est une convention.
 
-Un **courtier** (broker) contient le SQL d’un domaine. Il étend `Zephyrus\Data\Broker`, reçoit la `Database` et expose les méthodes de requête sous forme d’aides protégées (`select`, `selectOne`, `selectValue`, `selectInt`, `selectString`, `selectBool`, `selectFloat`, `selectCount`, `exists`, `selectPage`, les autres méthodes de pagination, `execute`, `transaction`). `selectString()`, `selectBool()` et `selectFloat()` lisent la première colonne de la première ligne sous la forme d’un `?string`, d’un `bool` ou d’un `float` (avec une valeur par défaut), et `selectPage($sql, $page, $perPage, $params)` retourne une page de lignes sous forme de liste. `execute()` exécute n’importe quelle instruction et retourne le nombre de lignes touchées. `lastInsertId()` est aussi présente, et refusée avec PostgreSQL comme son équivalent de `Database`. Les écritures se nomment `insertRow`, `insertRowGetId`, `updateRows` et `deleteRows`, afin de ne pas entrer en collision avec les noms de vos propres méthodes :
+Un **broker** contient le SQL d’un domaine. Il étend `Zephyrus\Data\Broker`, reçoit la `Database` et expose les méthodes de requête sous forme d’aides protégées (`select`, `selectOne`, `selectValue`, `selectInt`, `selectString`, `selectBool`, `selectFloat`, `selectCount`, `exists`, `selectPage`, les autres méthodes de pagination, `execute`, `transaction`). `selectString()`, `selectBool()` et `selectFloat()` lisent la première colonne de la première ligne sous la forme d’un `?string`, d’un `bool` ou d’un `float` (avec une valeur par défaut), et `selectPage($sql, $page, $perPage, $params)` retourne une page de lignes sous forme de liste. `execute()` exécute n’importe quelle instruction et retourne le nombre de lignes touchées. `lastInsertId()` est aussi présente, et refusée avec PostgreSQL comme son équivalent de `Database`. Les écritures se nomment `insertRow`, `insertRowGetId`, `updateRows` et `deleteRows`, afin de ne pas entrer en collision avec les noms de vos propres méthodes :
 
 ```php
 namespace App\Models\Project\Brokers;
@@ -235,7 +235,7 @@ final class Project extends Entity
 }
 ```
 
-Un **service** est une classe ordinaire qui appelle le courtier et hydrate les entités. `Project::build($row)` retourne `null` pour une ligne `null` ; `Project::buildArray($rows)` hydrate une liste :
+Un **service** est une classe ordinaire qui appelle le broker et hydrate les entités. `Project::build($row)` retourne `null` pour une ligne `null` ; `Project::buildArray($rows)` hydrate une liste :
 
 ```php
 final class ProjectService
@@ -309,7 +309,7 @@ $result = $db->paginateFilteredSortedResultWith(
 ```
 
 - `PaginationRequest::fromQuery()` lit `page` (ou `offset`) et `per_page` (aussi `perPage`, `page_size`, `pageSize`, `limit`). La taille de page est bornée entre 1 et `maxPerPage`, de sorte que `per_page=500` ne peut pas réclamer 500 lignes, et la page est bornée pour que le décalage ne puisse pas déborder : une page au-delà de la dernière retourne une liste vide, elle n’échoue pas. `fromArrayWithBounds()` est le même appel. `fromArray()` n’applique aucun plafond sans son argument `maxPerPage` : utilisez-la pour des valeurs déjà validées, jamais pour une requête brute.
-- `SortRequest::fromQuery()` exige une liste blanche de colonnes. Une colonne qui n’en fait pas partie, y compris toute tentative d’injection, retombe sur la colonne par défaut. Elle lit `sort` (`name` en ordre croissant, `-name` en ordre décroissant), `sort_by` ou `orderBy`, ainsi que `sort_dir` ou `direction`. `fromArray()` est destinée aux entrées validées et accepte toute colonne ayant la forme d’un identifiant, sauf si vous passez `allowedColumns`.
+- `SortRequest::fromQuery()` exige une liste d’autorisation de colonnes. Une colonne qui n’en fait pas partie, y compris toute tentative d’injection, retombe sur la colonne par défaut. Elle lit `sort` (`name` en ordre croissant, `-name` en ordre décroissant), `sort_by` ou `orderBy`, ainsi que `sort_dir` ou `direction`. `fromArray()` est destinée aux entrées validées et accepte toute colonne ayant la forme d’un identifiant, sauf si vous passez `allowedColumns`.
 - `$sort->toSql()` commence déjà par ` ORDER BY` et met l’identifiant entre guillemets : n’écrivez jamais `ORDER BY` avant.
 - `FilterRequest::fromQuery()` ne conserve que les clés permises et construit des conditions d’égalité exacte : `status=active` devient `"status" = :f_status`, une clé répétée (`status[]=a&status[]=b`) devient une liste `IN`, et un troisième argument énumère les clés lues comme des valeurs séparées par des virgules. Les valeurs sont des paramètres liés. Les clés absentes de la correspondance de colonnes que vous passez à la méthode de requête sont ignorées.
 
@@ -335,7 +335,7 @@ Les pièces plus petites se trouvent à la fois sur `Database` et sur `Broker` 
 
 ## Bon à savoir
 
-- Laissez toujours le framework lier les valeurs. Le texte SQL lui-même ne doit jamais contenir de données issues de la requête : `SortRequest` et `FilterRequest` existent pour que les identifiants proviennent de votre liste blanche.
+- Laissez toujours le framework lier les valeurs. Le texte SQL lui-même ne doit jamais contenir de données issues de la requête : `SortRequest` et `FilterRequest` existent pour que les identifiants proviennent de votre liste d’autorisation.
 - Les requêtes de filtre et de tri s’ajoutent à votre requête, de sorte que la requête de données et la requête de comptage ne doivent pas contenir déjà `WHERE` ou `ORDER BY`. Ajoutez plutôt les conditions fixes dans une sous-requête ou une vue. Utilisez des marqueurs nommés comme `:min` et liez-les par le dernier argument `$params`. Le filtre lui-même lie des paramètres nommés, donc un `?` positionnel serait refusé comme un mélange :
 
   ```php
@@ -348,4 +348,4 @@ Les pièces plus petites se trouvent à la fois sur `Database` et sur `Broker` 
 - Passez une requête de comptage qui correspond à la requête de données. Ce sont deux instructions distinctes, et le total provient du comptage.
 - Les insertions retournent les identifiants par `RETURNING` uniquement (`insertGetId()` dans `Database`, `insertRowGetId()` dans un `Broker`).
 - Gardez une transaction courte et laissez les exceptions s’en échapper.
-- `Database::setSharedColumnMetadataEnabled()`, `flushSharedColumnMetadata()` et la clé `column_cache_version` relèvent du cache des types de colonnes, que APCu partage entre les requêtes lorsqu’il est installé. La plupart des applications n’y touchent jamais.
+- `Database::setSharedColumnMetadataEnabled()`, `flushSharedColumnMetadata()` et la clé `column_cache_version` relèvent du cache des types de colonnes, qu’APCu partage entre les requêtes lorsqu’il est installé. La plupart des applications n’y touchent jamais.

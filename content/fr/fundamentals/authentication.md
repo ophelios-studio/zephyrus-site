@@ -60,7 +60,7 @@ Un en-tête absent ou vide est refusé, et toute requête l’est aussi quand le
 new IpAllowlistGuard(['192.0.2.0/24', '2001:db8::/32']);
 ```
 
-Chaque entrée est validée à la construction de la garde : `new IpAllowlistGuard(['10.0.0.1/8'])` lance `Allowed IP "10.0.0.1/8": 10.0.0.1/8 covers 10.0.0.0/8; write 10.0.0.1/32 or 10.0.0.0/8.` Derrière un proxy inverse, l’adresse IP du client n’est correcte que si le proxy est approuvé : voir [proxies de confiance](../security/#proxies-de-confiance-et-adresse-ip-du-client).
+Chaque entrée est validée à la construction de la garde : `new IpAllowlistGuard(['10.0.0.1/8'])` lance `Allowed IP "10.0.0.1/8": 10.0.0.1/8 covers 10.0.0.0/8; write 10.0.0.1/32 or 10.0.0.0/8.` Derrière un mandataire inverse, l’adresse IP du client n’est correcte que si le mandataire est approuvé : voir [mandataires de confiance](../security/#mandataires-de-confiance-et-adresse-ip-du-client).
 
 **`RequestAttributeGuard`** laisse passer quand un attribut de requête, défini par l’un de vos propres middlewares, contient l’une des valeurs permises :
 
@@ -556,7 +556,7 @@ Chaque étape ci-dessus répond à une attaque connue :
 - **CSRF de connexion.** Un formulaire forgé connecte la victime au compte de l’attaquant, pour recueillir ce qu’elle saisit. Le formulaire de connexion porte le jeton comme n’importe quel autre.
 - **Énumération de comptes.** La réponse pour un courriel inconnu et pour un mauvais mot de passe est la même page, le même statut (422) et à peu près le même temps, parce que le chemin du courriel inconnu vérifie aussi `TIMING_HASH`. Cela ne tient que tant que chaque empreinte stockée a les paramètres de `TIMING_HASH` : une empreinte bcrypt importée, ou une empreinte Argon2id avec les paramètres par défaut de PHP, prend un temps de vérification mesurablement différent (126 ms pour un courriel inconnu, 147 ms pour une empreinte issue de `hashPassword()`, 208 ms pour une empreinte Argon2id aux paramètres par défaut de PHP, presque rien pour bcrypt), de sorte que ces comptes peuvent être distingués tant qu’ils ne sont pas migrés.
 - **Redirection ouverte.** Le champ `next` est le choix de l’appelant. `localRedirect()` ne suit qu’un chemin local, et se rabat sur `/account` pour `https://evil.example/` ou `//evil.example/`.
-- **Devinette de mots de passe.** Zephyrus n’a pas de limiteur de débit. Limitez les tentatives de connexion par compte et par adresse, à votre proxy inverse ou dans votre propre middleware sur la route `POST /sign-in`.
+- **Devinette de mots de passe.** Zephyrus n’a pas de limiteur de débit. Limitez les tentatives de connexion par compte et par adresse, à votre mandataire inverse ou dans votre propre middleware sur la route `POST /sign-in`.
 - **Un témoin de session volé.** Gardez le témoin de session `http_only` et `secure`, avec `same_site: Lax` ou `Strict` (voir [sessions](../sessions/)), et servez chaque page en HTTPS.
 - **Déconnexion forcée.** Se déconnecter est un `POST` avec le jeton : un lien ou une image sur un autre site ne peut pas déconnecter vos utilisateurs.
 

@@ -160,7 +160,7 @@ Le premier affichage du formulaire transmet des valeurs vides : `['old' => [], 
 
 Avec le nom `   ` et le courriel `bad"<x>`, la page a affiché `value="bad&quot;&lt;x&gt;"` et `Must be a valid email address.` sous le champ. Le champ caché `_csrf_token` est obligatoire sur tout formulaire qui envoie des données (voir [Sécurité](../security/)).
 
-Ne renvoyez jamais un mot de passe : laissez-le hors de `old`. Le message éclair de l’exemple est décrit dans [Sessions](../sessions/).
+Ne renvoyez jamais un mot de passe : laissez-le hors de `old`. Le message flash de l’exemple est décrit dans [Sessions](../sessions/).
 
 ## Règles
 

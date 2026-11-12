@@ -172,7 +172,7 @@ log_errors = On
 
 Vérifiez la valeur réellement utilisée par le serveur avec `php -i | grep display_errors` (pour la CLI, qui peut charger un autre `php.ini` que php-fpm), ou avec `ini_get('display_errors')` depuis l’application.
 
-Terminez le HTTPS en amont de l’application. Si un proxy inverse précède PHP, consultez [Sécurité](../../fundamentals/security/) pour les réglages de proxy de confiance, et montez-y aussi `ForceHttpsMiddleware` et `AllowedHostsMiddleware`.
+Terminez le HTTPS en amont de l’application. Si un mandataire inverse précède PHP, consultez [Sécurité](../../fundamentals/security/) pour les réglages de mandataire de confiance, et montez-y aussi `ForceHttpsMiddleware` et `AllowedHostsMiddleware`.
 
 ## Variables d’environnement
 
@@ -191,7 +191,7 @@ Bon à savoir :
 
 - Gardez les secrets (mot de passe de base de données, clé de chiffrement) dans l’environnement et référencez-les avec `!env`. Ne les écrivez jamais en clair dans `config.yml`.
 - Gardez `.env` hors du contrôle de version, et hors de la racine documentaire.
-- La sortie de débogage est forcée à off en production et en préproduction, quelle que soit la valeur de `APP_DEBUG`.
+- La sortie de débogage est désactivée en production et en préproduction, quelle que soit la valeur de `APP_DEBUG`.
 - `!env` ne lit pas `$_SERVER` et refuse les noms qui commencent par `HTTP_`, car un client peut les définir à chaque requête.
 
 Poursuivez avec [Structure du projet](../project-structure/), ou passez directement à la [première application](../first-application/). La configuration est traitée dans [Configuration](../../fundamentals/configuration/).

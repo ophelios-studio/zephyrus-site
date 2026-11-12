@@ -24,7 +24,7 @@ localization:
 | Clé | Signification |
 |---|---|
 | `locale` | La locale par défaut (`en` par défaut). Elle est convertie en minuscules : `en_CA` est stockée sous la forme `en_ca`. |
-| `supported_locales` | La liste blanche utilisée lorsque la locale est choisie à partir d’une requête. Définissez-la toujours : une liste vide accepte n’importe quelle locale envoyée par le client. |
+| `supported_locales` | La liste d’autorisation utilisée lorsque la locale est choisie à partir d’une requête. Définissez-la toujours : une liste vide accepte n’importe quelle locale envoyée par le client. |
 | `locale_path` | Le répertoire qui contient les catalogues. Un chemin relatif se résout à partir du `basePath` passé à `withConfiguration()`. |
 | `timezone` | Appliqué avec `date_default_timezone_set()` lors de `build()` (`UTC` par défaut). |
 | `currency` | Le code de devise que `money` utilise lorsqu’aucun n’est passé, sur trois lettres. |
@@ -142,7 +142,7 @@ return $this->json([
 
 (Les espaces à l’intérieur du montant sont insécables.)
 
-`LocaleResolver::resolve()` privilégie la valeur explicite (un segment d’URL, un témoin, un champ de formulaire), puis les candidats de `Accept-Language` selon leur qualité, puis la valeur par défaut. Un candidat est accepté lorsqu’il, ou sa langue de base, figure dans `supportedLocales` : `fr-CA,fr;q=0.9` face à `['en', 'fr']` donne `fr`, et `de` donne la valeur par défaut. La valeur explicite est vérifiée contre la même liste blanche : avec `supportedLocales` définie, un visiteur ne peut donc pas choisir une locale de son invention. `AcceptLanguageResolver::resolve($header, $supported, $default, $requested)` applique la même logique sans la gestion des valeurs nulles.
+`LocaleResolver::resolve()` privilégie la valeur explicite (un segment d’URL, un témoin, un champ de formulaire), puis les candidats de `Accept-Language` selon leur qualité, puis la valeur par défaut. Un candidat est accepté lorsqu’il, ou sa langue de base, figure dans `supportedLocales` : `fr-CA,fr;q=0.9` face à `['en', 'fr']` donne `fr`, et `de` donne la valeur par défaut. La valeur explicite est vérifiée contre la même liste d’autorisation : avec `supportedLocales` définie, un visiteur ne peut donc pas choisir une locale de son invention. `AcceptLanguageResolver::resolve($header, $supported, $default, $requested)` applique la même logique sans la gestion des valeurs nulles.
 
 Définissez à la fois le traducteur et le formateur. Un filtre `money` ou `date` dans une traduction utilise le `Formatter` de l’application, non la langue de la traduction : si seul le traducteur est changé, une phrase française affiche tout de même `$1,234.50`.
 
@@ -255,6 +255,6 @@ Avec le formateur anglais, ceci produit `Your cart`, `2 items` et `$19.99 Mar 9,
 - Une phrase traduite au milieu d’une requête qui utilise une autre locale exige à la fois `App::setTranslator()` et `App::setFormatter()`. L’un sans l’autre mélange les langues.
 - `registerFormatterFilters()` lie le formateur que vous lui passez. Un formateur installé plus tard par un middleware n’atteint pas les filtres : enregistrez votre propre filtre qui appelle `format()` (`$views->getLatteEngine()->addFilter('money', fn ($v) => format('money', $v))`), ou appelez `localize()` et `format()` comme des fonctions dans le gabarit.
 - Une clé absente de la langue demandée se rabat silencieusement sur la langue par défaut. Gardez le catalogue par défaut complet, et comparez les listes de clés des autres dans un test.
-- Passez toujours `supportedLocales` au résolveur : avec une liste vide, il retourne la valeur explicite telle quelle. `JsonLocaleLoader` refuse tout ce qui n’est pas une étiquette de langue (le catalogue est alors vide), mais c’est la liste blanche qui garantit que le choix vous appartient.
+- Passez toujours `supportedLocales` au résolveur : avec une liste vide, il retourne la valeur explicite telle quelle. `JsonLocaleLoader` refuse tout ce qui n’est pas une étiquette de langue (le catalogue est alors vide), mais c’est la liste d’autorisation qui garantit que le choix vous appartient.
 - `plural` affiche le mot, non le nombre : écrivez `{count} {count|plural:item:items}`.
 - `localization.locale` est stockée en minuscules, et `supported_locales` aussi : `fr-CA` devient `fr-ca`, et les répertoires de catalogue nommés `fr-CA` ou `fr_CA` correspondent toujours.

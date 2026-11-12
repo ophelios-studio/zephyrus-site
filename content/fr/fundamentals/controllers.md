@@ -153,7 +153,7 @@ final class PageController extends Controller
 
 ## Injection par le constructeur
 
-Par défaut, un contrôleur est construit sans argument de constructeur. Passez un conteneur au constructeur de l’application et les dépendances de son constructeur sont résolues pour vous :
+Par défaut, un contrôleur est construit sans argument de constructeur. Passez un conteneur au builder de l’application et les dépendances de son constructeur sont résolues pour vous :
 
 ```php
 use Zephyrus\Container\Container;

@@ -54,7 +54,7 @@ final class RequireUserMiddleware implements MiddlewareInterface
 }
 ```
 
-Sans jeton valide, le contrôleur ne s’exécute jamais. Avec un jeton valide, le contrôleur reçoit `userId` comme attribut de requête : un paramètre de gestionnaire nommé `$userId` est rempli à partir de celui-ci (voir [Paramètres de route](../routing/#paramètres-de-route)). Le jeton écrit en dur ne sert que pour cet exemple : une vraie vérification cherche l’identifiant dans une source (voir [Authentification](../authentication/)).
+Sans jeton valide, le contrôleur ne s’exécute jamais. Avec un jeton valide, le contrôleur reçoit `userId` comme attribut de requête : un paramètre de gestionnaire nommé `$userId` est rempli à partir de celui-ci (voir [Paramètres de route](../routing/#paramètres-de-route)). Le jeton écrit en dur ne sert que pour cet exemple : une vraie vérification cherche le jeton dans une source (voir [Authentification](../authentication/)).
 
 ## Un middleware qui décore la réponse
 
@@ -78,7 +78,7 @@ Un objet middleware sert toutes les requêtes du processus. Gardez les données 
 
 ## Enregistrer des middlewares
 
-Il en existe deux sortes, toutes deux enregistrées sur le constructeur de l’application.
+Il en existe deux sortes, toutes deux enregistrées sur le builder de l’application.
 
 ```php
 use App\Middleware\RequireUserMiddleware;
@@ -94,7 +94,7 @@ $app = ApplicationBuilder::create()
 - **Global**, avec `withMiddleware($middleware)` : s’exécute sur chaque requête, y compris les réponses 404 et 405.
 - **Nommé**, avec `registerMiddleware('auth', $middleware)` : ne fait que donner un nom au middleware. Il s’exécute sur les routes qui référencent ce nom.
 
-Le constructeur est immuable. Chaque `with*()` et `registerMiddleware()` retourne un nouveau constructeur, alors chaînez les appels ou réassignez : un appel dont le résultat est perdu ne monte rien.
+Le builder est immuable. Chaque `with*()` et `registerMiddleware()` retourne un nouveau builder, alors chaînez les appels ou réassignez : un appel dont le résultat est perdu ne monte rien.
 
 ## Attacher des middlewares nommés aux routes
 
@@ -164,7 +164,7 @@ $response = $pipeline->handle(
 | `Security\CsrfMiddleware` | Refuse les requêtes qui modifient l’état sans jeton CSRF valide | [Sécurité](../security/) |
 | `Security\SecureHeadersMiddleware` | Ajoute les en-têtes de sécurité configurés à chaque réponse | [Sécurité](../security/) |
 | `Security\ForceHttpsMiddleware` | Redirige les requêtes HTTP simples vers HTTPS avec un 308 | [Sécurité](../security/) |
-| `Security\AllowedHostsMiddleware` | Refuse les requêtes dont le `Host` n’est pas dans la liste autorisée | [Sécurité](../security/) |
+| `Security\AllowedHostsMiddleware` | Refuse les requêtes dont le `Host` n’est pas dans la liste d’autorisation | [Sécurité](../security/) |
 | `Security\MaxBodySizeMiddleware` | Refuse les corps de requête qui dépassent la limite de taille | [Sécurité](../security/) |
 | `Security\AuthGuardMiddleware` | Répond 401 à moins qu’une garde n’accepte la requête | [Authentification](../authentication/) |
 | `Security\ContentSecurityPolicyMiddleware` | Envoie un en-tête `Content-Security-Policy`, au besoin avec un nonce propre à la requête | [Content Security Policy](../../digging-deeper/content-security-policy/) |
@@ -188,7 +188,7 @@ Une route avec `#[Middleware('internal')]` répond alors `401` avec `{"error":"U
 
 ## Bon à savoir
 
-- Réassignez le constructeur : `$builder->withMiddleware(...)` seul sur sa ligne ne monte rien.
+- Réassignez le builder : `$builder->withMiddleware(...)` seul sur sa ligne ne monte rien.
 - Le premier middleware global est le plus externe. L’ordre compte pour les en-têtes, les redirections et tout ce qui doit voir chaque réponse.
 - Le middleware global s’exécute sur les réponses 404 et 405. Le middleware de route ne s’exécute que pour une route trouvée.
 - Un middleware nommé qu’aucune route ne référence ne s’exécute jamais.

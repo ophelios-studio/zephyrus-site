@@ -1,7 +1,7 @@
 ---
 title: Sécurité
 order: 11
-description: Comment Zephyrus vérifie votre configuration de sécurité au démarrage, et comment appliquer la protection CSRF, les en-têtes de sécurité, HTTPS, les hôtes autorisés, les proxies de confiance et une limite de taille des requêtes.
+description: Comment Zephyrus vérifie votre configuration de sécurité au démarrage, et comment appliquer la protection CSRF, les en-têtes de sécurité, HTTPS, les hôtes autorisés, les mandataires de confiance et une limite de taille des requêtes.
 ---
 
 # Sécurité
@@ -92,9 +92,9 @@ final class Kernel
 
 Le premier middleware ajouté s’exécute le plus à l’extérieur. `SecureHeadersMiddleware` vient en premier pour que chaque réponse porte les en-têtes, y compris la redirection, le 400 et le 413 que les middlewares suivants produisent d’eux-mêmes. `AllowedHostsMiddleware` précède `ForceHttpsMiddleware` : dans l’autre ordre, une requête HTTP simple pour n’importe quel `Host` reçoit une redirection 308 pouvant être mise en cache vers cet hôte avant même que l’hôte soit vérifié. `SessionMiddleware` doit s’exécuter avant `CsrfMiddleware`, qui garde son jeton dans la session.
 
-Pour le développement local en HTTP simple, omettez ensemble `force_https` et `ForceHttpsMiddleware` (le middleware redirige toute requête simple vers `https://`, quelle que soit la configuration), ou envoyez `X-Forwarded-Proto: https` depuis un proxy de confiance. Inscrivez aussi l’hôte local dans `allowed_hosts`, par exemple `127.0.0.1`.
+Pour le développement local en HTTP simple, omettez ensemble `force_https` et `ForceHttpsMiddleware` (le middleware redirige toute requête simple vers `https://`, quelle que soit la configuration), ou envoyez `X-Forwarded-Proto: https` depuis un mandataire de confiance. Inscrivez aussi l’hôte local dans `allowed_hosts`, par exemple `127.0.0.1`.
 
-`Request::fromGlobals()` ne lit jamais `config.yml` : passez-lui vous-même les réglages de proxy, comme ci-dessus (voir [proxies de confiance](#proxies-de-confiance-et-adresse-ip-du-client)).
+`Request::fromGlobals()` ne lit jamais `config.yml` : passez-lui vous-même les réglages de mandataire, comme ci-dessus (voir [mandataires de confiance](#mandataires-de-confiance-et-adresse-ip-du-client)).
 
 ## La vérification du câblage au démarrage
 
@@ -151,8 +151,8 @@ Chaque clé, avec sa valeur par défaut quand vous l’omettez. Les clés sont a
 | `force_https` | `false` | Redirige le HTTP simple vers HTTPS. |
 | `allowed_hosts` | `[]` | Noms d’hôte auxquels l’application répond. Vide, tous les hôtes sont acceptés. |
 | `max_body_size` | `2097152` | Plus grand corps de requête, en octets. `0` signifie illimité. |
-| `trusted_proxies` | `[]` | Adresses ou plages CIDR de vos proxies inverses. Vide, aucun n’est approuvé. |
-| `trusted_headers` | la famille `X-Forwarded-*` | En-têtes de transfert lus depuis un proxy de confiance. |
+| `trusted_proxies` | `[]` | Adresses ou plages CIDR de vos mandataires inverses. Vide, aucun n’est approuvé. |
+| `trusted_headers` | la famille `X-Forwarded-*` | En-têtes de transfert lus depuis un mandataire de confiance. |
 | `csrf.enabled` | `true` | Vérifie un jeton sur les requêtes qui modifient l’état. |
 | `csrf.exceptions` | `[]` | Motifs de chemins exemptés de la vérification. |
 | `encryption.key` | aucune | Clé en base64url pour le [chiffrement](../../digging-deeper/cryptography/). |
@@ -320,7 +320,7 @@ strict-transport-security: max-age=31536000
 
 ### À savoir
 
-- `Strict-Transport-Security` n’est envoyé que sur les requêtes HTTPS. Derrière un proxy qui termine TLS, la requête ne compte comme HTTPS que si le proxy est approuvé (voir plus bas).
+- `Strict-Transport-Security` n’est envoyé que sur les requêtes HTTPS. Derrière un mandataire qui termine TLS, la requête ne compte comme HTTPS que si le mandataire est approuvé (voir plus bas).
 - Un en-tête déjà défini par la route l’emporte, même s’il est plus permissif : une route qui doit être intégrée dans un cadre par un partenaire définit son propre `X-Frame-Options` ou sa propre politique. Le `Content-Security-Policy` d’une route remplace entièrement celui de la configuration ; ils ne sont pas fusionnés. Un en-tête vide défini par une route n’équivaut pas à un retrait.
 - Construisez la configuration avec `SecureHeadersConfig::defaults()` ou `SecureHeadersConfig::fromArray([...])` quand vous montez le middleware sans fichier de configuration ; avec une section `headers:` déclarée, passez `$config->security->headers`.
 
@@ -328,7 +328,7 @@ strict-transport-security: max-age=31536000
 
 `ForceHttpsMiddleware` répond à une requête HTTP simple par une redirection 308 vers les mêmes hôte, chemin et chaîne de requête en HTTPS : `http://app.example.test/notes?page=2` mène à `https://app.example.test/notes?page=2`. Un 308 conserve la méthode et le corps, de sorte qu’un `POST` mal aiguillé n’est pas transformé en `GET` sans avertissement. Le constructeur ne prend aucun argument.
 
-Derrière un équilibreur de charge ou un proxy inverse qui termine TLS, PHP voit du HTTP simple. À moins que le proxy figure dans `trusted_proxies`, chaque requête paraît non sécurisée et le middleware redirige indéfiniment. Soit vous inscrivez le proxy, soit vous laissez le proxy faire la redirection et reconnaissez la clé avec `withAcknowledgedSecurityKeys(['forceHttps'])`.
+Derrière un équilibreur de charge ou un mandataire inverse qui termine TLS, PHP voit du HTTP simple. À moins que le mandataire figure dans `trusted_proxies`, chaque requête paraît non sécurisée et le middleware redirige indéfiniment. Soit vous inscrivez le mandataire, soit vous laissez le mandataire faire la redirection et reconnaissez la clé avec `withAcknowledgedSecurityKeys(['forceHttps'])`.
 
 ## Hôtes autorisés
 
@@ -349,29 +349,29 @@ security:
 
 `$middleware->allows('www.example.com')` applique les mêmes règles en dehors d’une requête, par exemple pour vérifier un hôte lu ailleurs.
 
-## Proxies de confiance et adresse IP du client
+## Mandataires de confiance et adresse IP du client
 
-Derrière un proxy inverse, `REMOTE_ADDR` est l’adresse du proxy, et le vrai client ainsi que le schéma voyagent dans des en-têtes de transfert que n’importe quel client peut aussi envoyer. `Request::fromGlobals()` ne lit ces en-têtes que lorsque le pair direct figure dans `trusted_proxies` :
+Derrière un mandataire inverse, `REMOTE_ADDR` est l’adresse du mandataire, et le vrai client ainsi que le schéma voyagent dans des en-têtes de transfert que n’importe quel client peut aussi envoyer. `Request::fromGlobals()` ne lit ces en-têtes que lorsque le pair direct figure dans `trusted_proxies` :
 
 ```yaml
 security:
   trusted_proxies: [10.0.0.5/32]
 ```
 
-Inscrivez la plage la plus étroite qui couvre vos proxies. Une plage large comme `10.0.0.0/8` sur un réseau partagé permet à n’importe quel hôte interne de forger `X-Forwarded-For` et les autres en-têtes ci-dessous. Pour une requête provenant du proxy `10.0.0.5` portant `X-Forwarded-For: 203.0.113.9` et `X-Forwarded-Proto: https` :
+Inscrivez la plage la plus étroite qui couvre vos mandataires. Une plage large comme `10.0.0.0/8` sur un réseau partagé permet à n’importe quel hôte interne de forger `X-Forwarded-For` et les autres en-têtes ci-dessous. Pour une requête provenant du mandataire `10.0.0.5` portant `X-Forwarded-For: 203.0.113.9` et `X-Forwarded-Proto: https` :
 
 | `trustedProxies` passé à `fromGlobals()` | `clientIp()` | schéma |
 | --- | --- | --- |
 | aucun | `10.0.0.5` | `http` |
 | `['10.0.0.5/32']` | `203.0.113.9` | `https` |
 
-La chaîne de transfert est lue depuis la droite, en sautant les proxies de confiance, et la première adresse non approuvée est le client. Quand le proxy le plus proche ajoute à la suite de `X-Forwarded-For`, un client qui envoie son propre `X-Forwarded-For: 1.2.3.4` n’ajoute qu’une entrée à gauche, qui n’est jamais atteinte : la réponse reste `203.0.113.9`. Un proxy qui transmet tel quel l’en-tête du client laisse la valeur du client comme seule entrée, et le client choisit alors `clientIp()`. Un client qui se connecte directement (sans passer par un proxy de confiance) garde sa propre adresse, quels que soient les en-têtes qu’il envoie.
+La chaîne de transfert est lue depuis la droite, en sautant les mandataires de confiance, et la première adresse non approuvée est le client. Quand le mandataire le plus proche ajoute à la suite de `X-Forwarded-For`, un client qui envoie son propre `X-Forwarded-For: 1.2.3.4` n’ajoute qu’une entrée à gauche, qui n’est jamais atteinte : la réponse reste `203.0.113.9`. Un mandataire qui transmet tel quel l’en-tête du client laisse la valeur du client comme seule entrée, et le client choisit alors `clientIp()`. Un client qui se connecte directement (sans passer par un mandataire de confiance) garde sa propre adresse, quels que soient les en-têtes qu’il envoie.
 
-`trusted_headers` énumère les en-têtes de transfert qu’un proxy de confiance peut définir : par défaut `x-forwarded-for`, `x-forwarded-host`, `x-forwarded-proto` et `x-forwarded-port`. `forwarded`, `x-real-ip`, `cf-connecting-ip` et `x-client-ip` sont aussi compris, mais lus seulement si vous les inscrivez, parce qu’ils ne sont dignes de confiance que lorsque votre proxy le plus proche les écrase. Indiquer `trusted_headers` remplace l’ensemble par défaut : nommez donc chaque en-tête dont vous avez besoin.
+`trusted_headers` énumère les en-têtes de transfert qu’un mandataire de confiance peut définir : par défaut `x-forwarded-for`, `x-forwarded-host`, `x-forwarded-proto` et `x-forwarded-port`. `forwarded`, `x-real-ip`, `cf-connecting-ip` et `x-client-ip` sont aussi compris, mais lus seulement si vous les inscrivez, parce qu’ils ne sont dignes de confiance que lorsque votre mandataire le plus proche les écrase. Indiquer `trusted_headers` remplace l’ensemble par défaut : nommez donc chaque en-tête dont vous avez besoin.
 
-L’ensemble par défaut n’est pas sûr derrière tous les proxies. `x-forwarded-for` est lu depuis la droite : une valeur ajoutée en tête par le client n’est donc jamais atteinte, pourvu que le proxy le plus proche ajoute à la suite de l’en-tête ou l’écrase. `x-forwarded-host`, `x-forwarded-proto` et `x-forwarded-port` sont lus depuis la gauche : la première valeur de la liste l’emporte. Un proxy qui ajoute à la suite d’un en-tête envoyé par le client laisse la valeur du client en premier, et le client choisit alors l’hôte et le schéma que voit votre application. Avec un pair de confiance qui transmet `X-Forwarded-Host: evil.example, app.example.test` et `X-Forwarded-Proto: https, http`, `Request::uri()` répond `https://evil.example`, et avec un `allowed_hosts` vide, un lien de réinitialisation de mot de passe construit à partir de celui-ci pointe vers `evil.example`.
+L’ensemble par défaut n’est pas sûr derrière tous les mandataires. `x-forwarded-for` est lu depuis la droite : une valeur ajoutée en tête par le client n’est donc jamais atteinte, pourvu que le mandataire le plus proche ajoute à la suite de l’en-tête ou l’écrase. `x-forwarded-host`, `x-forwarded-proto` et `x-forwarded-port` sont lus depuis la gauche : la première valeur de la liste l’emporte. Un mandataire qui ajoute à la suite d’un en-tête envoyé par le client laisse la valeur du client en premier, et le client choisit alors l’hôte et le schéma que voit votre application. Avec un pair de confiance qui transmet `X-Forwarded-Host: evil.example, app.example.test` et `X-Forwarded-Proto: https, http`, `Request::uri()` répond `https://evil.example`, et avec un `allowed_hosts` vide, un lien de réinitialisation de mot de passe construit à partir de celui-ci pointe vers `evil.example`.
 
-Les en-têtes de transfert ne sont donc dignes de confiance que lorsque le proxy le plus proche les écrase ou, pour `X-Forwarded-For`, ajoute à la suite. Un proxy qui laisse passer le `X-Forwarded-For` du client permet au client de choisir `clientIp()` et de contourner `IpAllowlistGuard`. Dans nginx :
+Les en-têtes de transfert ne sont donc dignes de confiance que lorsque le mandataire le plus proche les écrase ou, pour `X-Forwarded-For`, ajoute à la suite. Un mandataire qui laisse passer le `X-Forwarded-For` du client permet au client de choisir `clientIp()` et de contourner `IpAllowlistGuard`. Dans nginx :
 
 ```nginx
 proxy_set_header X-Forwarded-Host $host;
@@ -380,7 +380,7 @@ proxy_set_header X-Forwarded-Port $server_port;
 proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
 ```
 
-Apache `mod_proxy` ajoute à la suite de `X-Forwarded-Host` par défaut, ce qui est le cas non sécuritaire. Quand le proxy n’écrase pas un en-tête, retirez-le de l’ensemble approuvé. Avec seulement l’adresse du client approuvée, la même requête se résout en `http://app.example.test` :
+Apache `mod_proxy` ajoute à la suite de `X-Forwarded-Host` par défaut, ce qui est le cas non sécuritaire. Quand le mandataire n’écrase pas un en-tête, retirez-le de l’ensemble approuvé. Avec seulement l’adresse du client approuvée, la même requête se résout en `http://app.example.test` :
 
 ```yaml
 security:
@@ -388,15 +388,15 @@ security:
   trusted_headers: [x-forwarded-for]
 ```
 
-Sans `x-forwarded-proto`, une requête qu’un proxy a terminée en TLS n’est plus vue comme HTTPS : appliquez donc HTTPS au proxy et reconnaissez `forceHttps` (voir [forcer HTTPS](#forcer-https)). `allowed_hosts` est le filet de sécurité pour tous les en-têtes d’hôte, transmis ou non : inscrivez vos hôtes en production. Avec `app.example.test` inscrit, la requête ci-dessus reçoit un 400. Il ne vérifie pas les ports : un `X-Forwarded-Port` que le proxy n’écrase pas doit sortir de l’ensemble approuvé, sans quoi un client peut mettre son propre port dans les URL générées.
+Sans `x-forwarded-proto`, une requête qu’un mandataire a terminée en TLS n’est plus vue comme HTTPS : appliquez donc HTTPS au mandataire et reconnaissez `forceHttps` (voir [forcer HTTPS](#forcer-https)). `allowed_hosts` est le filet de sécurité pour tous les en-têtes d’hôte, transmis ou non : inscrivez vos hôtes en production. Avec `app.example.test` inscrit, la requête ci-dessus reçoit un 400. Il ne vérifie pas les ports : un `X-Forwarded-Port` que le mandataire n’écrase pas doit sortir de l’ensemble approuvé, sans quoi un client peut mettre son propre port dans les URL générées.
 
 Le port de l’en-tête `Host` lui-même n’est pas vérifié non plus : un client peut donc placer son propre port dans une URL construite à partir de la requête. Construisez les liens envoyés par courriel (réinitialisation de mot de passe, invitations) à partir d’une URL de base configurée, jamais à partir de la requête.
 
-`['*']` approuve tous les pairs. Il existe pour le développement local derrière un proxy de conteneur ; en production, il permet à n’importe quel client de choisir sa propre adresse.
+`['*']` approuve tous les pairs. Il existe pour le développement local derrière un mandataire de conteneur ; en production, il permet à n’importe quel client de choisir sa propre adresse.
 
 ### IpRange
 
-`Zephyrus\Http\IpRange` est le comparateur derrière `trusted_proxies` et la [garde par liste d’adresses IP autorisées](../authentication/#les-gardes-intégrées) :
+`Zephyrus\Http\IpRange` est le comparateur derrière `trusted_proxies` et la [garde par liste d’autorisation d’adresses IP](../authentication/#les-gardes-intégrées) :
 
 ```php
 use Zephyrus\Http\IpRange;
@@ -458,7 +458,7 @@ Avant le premier déploiement, et de nouveau chaque fois que la configuration ch
 - `force_https: true`, ou HTTPS appliqué à l’équilibreur de charge et reconnu avec `withAcknowledgedSecurityKeys(['forceHttps'])`.
 - `hsts_max_age` défini une fois que chaque page est servie en HTTPS.
 - `allowed_hosts` énumère vos noms d’hôte.
-- `trusted_proxies` énumère vos proxies, jamais `'*'`, et est passé à `Request::fromGlobals()`.
+- `trusted_proxies` énumère vos mandataires, jamais `'*'`, et est passé à `Request::fromGlobals()`.
 - `max_body_size` correspond à ce dont vos formulaires ont besoin, et les limites du serveur web et de `post_max_size` sont aussi définies.
 - Chaque formulaire qui modifie l’état affiche le champ `_csrf_token`, et chaque entrée de `csrf.exceptions` authentifie son appelant autrement.
 - Le témoin de session est `secure` et `http_only` (voir [sessions](../sessions/)), et l’identifiant de session ainsi que le jeton CSRF sont renouvelés à la connexion.

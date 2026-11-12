@@ -244,7 +244,7 @@ $app = $builder->withEventDispatcher($events)->build();
 | --- | --- | --- |
 | `RequestEvent` | avant le routage | répondre de lui-même avec `setResponse()` |
 | `ResponseEvent` | après la construction de la réponse | la lire ou la remplacer avec `getResponse()` et `setResponse()` |
-| `ExceptionEvent` | lorsqu’un objet jetable devient une réponse d’erreur | l’observer : voir [Erreurs](../../fundamentals/errors/#écouter-les-erreurs) |
+| `ExceptionEvent` | lorsqu’un `Throwable` devient une réponse d’erreur | l’observer : voir [Erreurs](../../fundamentals/errors/#écouter-les-erreurs) |
 
 Les trois étendent `KernelEvent`, dont `getRequest()` retourne la `Request` courante. Un écouteur sur `KernelEvent::class` les entend donc tous.
 

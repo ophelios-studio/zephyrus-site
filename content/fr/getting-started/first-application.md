@@ -1,14 +1,14 @@
 ---
 title: Première application
 order: 4
-description: Construire une petite application de notes avec un formulaire, la validation, la protection CSRF, un message éclair et un test, sans base de données.
+description: Construire une petite application de notes avec un formulaire, la validation, la protection CSRF, un message flash et un test, sans base de données.
 ---
 
 # Première application
 
 Un formulaire, une liste et un test, de bout en bout.
 
-Vous construisez une page qui liste des notes conservées dans la session, avec un formulaire qui en ajoute une. Elle utilise les éléments dont la plupart des applications ont besoin : un contrôleur, un gabarit Latte, la protection CSRF, la validation, un message éclair et une redirection après l’envoi du formulaire. Il n’y a pas de base de données.
+Vous construisez une page qui liste des notes conservées dans la session, avec un formulaire qui en ajoute une. Elle utilise les éléments dont la plupart des applications ont besoin : un contrôleur, un gabarit Latte, la protection CSRF, la validation, un message flash et une redirection après l’envoi du formulaire. Il n’y a pas de base de données.
 
 Partez d’un répertoire vide et du `composer.json` de la page d’[installation](../installation/), auquel vous ajoutez PHPUnit :
 
@@ -210,7 +210,7 @@ final class NoteController extends Controller
 
 - `#[Get('/')]` et `#[Post('/notes')]` enregistrent les routes (voir [Routage](../../fundamentals/routing/)).
 - `FormValidator` et `Rules` vérifient les données saisies (voir [Validation](../../fundamentals/validation/)). `Rules::required()` accepte une chaîne d’espaces : `notBlank()` est donc ajouté.
-- En cas d’erreurs, la page est affichée de nouveau avec le statut `422` et les messages. En cas de succès, la note est stockée avec `session()`, un message éclair est mis en file, et la réponse est une redirection : un navigateur qui recharge la page n’envoie pas le formulaire une seconde fois.
+- En cas d’erreurs, la page est affichée de nouveau avec le statut `422` et les messages. En cas de succès, la note est stockée avec `session()`, un message flash est mis en file, et la réponse est une redirection : un navigateur qui recharge la page n’envoie pas le formulaire une seconde fois.
 - `Flash::readAll()` lit les messages en file et les efface. Voir [Sessions](../../fundamentals/sessions/).
 
 Le texte de la note est nettoyé de ses espaces de bordure avant d’être stocké, et il est échappé à l’affichage.

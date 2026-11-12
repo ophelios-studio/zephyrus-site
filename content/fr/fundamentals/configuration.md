@@ -122,7 +122,7 @@ Environment::fromString('banana');              // Environment::Production
 Environment::Staging->isProductionLike();       // true
 ```
 
-`application.debug` vaut `true` par défaut en développement et en test, et `false` en production et en préproduction. Dans un environnement de type production, l’application force le débogage à off quoi que dise le fichier : voir [Erreurs](../errors/).
+`application.debug` vaut `true` par défaut en développement et en test, et `false` en production et en préproduction. Dans un environnement de type production, l’application désactive le débogage quoi que dise le fichier : voir [Erreurs](../errors/).
 
 ## Validation stricte
 
@@ -247,8 +247,8 @@ Pour les déploiements qui choisissent leur configuration depuis l’environneme
 | --- | --- | --- |
 | `APP_CONFIG_DIR` | répertoire contenant les fichiers | `./config` |
 | `APP_CONFIG_BASE` | nom de fichier de base | `app` |
-| `APP_ENV` | suffixe d’environnement | aucune |
-| `APP_CONFIG_EXTRA` | suffixes supplémentaires séparés par des virgules | aucune |
+| `APP_ENV` | suffixe d’environnement | aucun |
+| `APP_CONFIG_EXTRA` | suffixes supplémentaires séparés par des virgules | aucun |
 
 Elle exige `<dir>/<base>.php`, puis fusionne `<base>.local.php`, `<base>.<APP_ENV>.php` et chaque `<base>.<extra>.php` lorsqu’ils existent. Avec `APP_ENV=stage`, `config/app.php` est lu, puis `config/app.stage.php` le remplace. Ces fichiers retournent des tableaux et suivent les mêmes règles strictes. Un nom d’environnement ou de base qui contient un séparateur de chemin est refusé.
 

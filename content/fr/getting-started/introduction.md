@@ -63,7 +63,7 @@ Une route est un attribut placé sur la méthode qui la traite. L’URL, la mét
 ### Le reste de la pile
 
 - Des [vues Latte](../../fundamentals/views/) avec échappement automatique.
-- Des [sessions](../../fundamentals/sessions/), la protection CSRF et les messages éclair.
+- Des [sessions](../../fundamentals/sessions/), la protection CSRF et les messages flash.
 - Une [validation](../../fundamentals/validation/) qui retourne des erreurs que vous pouvez réafficher.
 - Une [couche PostgreSQL](../../fundamentals/data/) construite sur du SQL explicite, des brokers et des entités.
 - La [localisation](../../fundamentals/localization/) à partir de catalogues JSON.

@@ -144,7 +144,7 @@ Lorsque le serveur termine la réponse, `EventSource` se reconnecte après le d�
 
 ## Garder la connexion active
 
-Un mandataire ou un répartiteur de charge ferme une connexion qui reste silencieuse trop longtemps. Envoyez un événement de temps à autre, même sans rien à dire. `SseEvent` n’a pas de ligne de commentaire, mais un événement nommé avec des données vides fait l’affaire et ne coûte rien au navigateur : il n’atteint que les écouteurs enregistrés pour ce nom, de sorte que `onmessage` et `tick` ne le voient jamais.
+Un mandataire ou un équilibreur de charge ferme une connexion qui reste silencieuse trop longtemps. Envoyez un événement de temps à autre, même sans rien à dire. `SseEvent` n’a pas de ligne de commentaire, mais un événement nommé avec des données vides fait l’affaire et ne coûte rien au navigateur : il n’atteint que les écouteurs enregistrés pour ce nom, de sorte que `onmessage` et `tick` ne le voient jamais.
 
 ```php
 yield new SseEvent(data: '', event: 'heartbeat');

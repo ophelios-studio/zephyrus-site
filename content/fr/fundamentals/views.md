@@ -12,7 +12,7 @@ Un contrôleur qui utilise le trait `RenderResponses` appelle `render()` avec un
 
 ## Rendre un gabarit
 
-Montez un moteur sur le constructeur de l’application, puis rendez depuis un contrôleur :
+Montez un moteur sur le builder de l’application, puis rendez depuis un contrôleur :
 
 ```php
 use Zephyrus\Controller\Controller;
@@ -42,11 +42,11 @@ return $this->render('contact', ['errors' => $errors->toArray()], 422);
 
 | Méthode | Ce qu’elle fait |
 |---|---|
-| `render($page, $args = [], $status = 200)` | Rend avec le moteur monté sur le constructeur. |
+| `render($page, $args = [], $status = 200)` | Rend avec le moteur monté sur le builder. |
 | `renderWith($engine, $page, $args = [], $status = 200)` | Rend avec un moteur que vous passez, en ignorant celui qui est monté. |
 | `html($content, $status = 200)` | Retourne une réponse HTML à partir d’une chaîne que vous avez déjà. |
 
-Sans moteur monté, `render()` lance une `RenderException`, et l’application répond 500. Montez-en un avec `withRenderEngine()` sur le constructeur (voir [Application](../application/)) ; il est injecté dans chaque contrôleur qui utilise le trait.
+Sans moteur monté, `render()` lance une `RenderException`, et l’application répond 500. Montez-en un avec `withRenderEngine()` sur le builder (voir [Application](../application/)) ; il est injecté dans chaque contrôleur qui utilise le trait.
 
 ## Latte
 

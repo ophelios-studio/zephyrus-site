@@ -43,7 +43,7 @@ mailer:
 | `smtp.encryption` | `tls` | `tls` (STARTTLS), `ssl` (TLS implicite) ou `''` pour aucun chiffrement. |
 | `from.address`, `from.name` | vide | L’expéditeur de chaque message. Une valeur qui n’est pas une adresse est refusée à la création du `Mailer`. |
 
-`smtp.encryption` est une liste blanche : toute autre valeur, `none` incluse, interrompt le démarrage avec une erreur qui énumère les trois valeurs acceptées. Une valeur vide désactive complètement le chiffrement et est destinée à un puits local ; lorsque des identifiants sont définis, le mailer écrit un avertissement dans le journal d’erreurs une fois par processus. Avec `tls` ou `ssl`, le certificat du serveur est vérifié : un serveur SMTP de développement a donc besoin d’un certificat auquel PHP fait confiance, faute de quoi la connexion échoue avec `certificate verify failed`.
+`smtp.encryption` est une liste d’autorisation : toute autre valeur, `none` incluse, interrompt le démarrage avec une erreur qui énumère les trois valeurs acceptées. Une valeur vide désactive complètement le chiffrement et est destinée à un puits local ; lorsque des identifiants sont définis, le mailer écrit un avertissement dans le journal d’erreurs une fois par processus. Avec `tls` ou `ssl`, le certificat du serveur est vérifié : un serveur SMTP de développement a donc besoin d’un certificat auquel PHP fait confiance, faute de quoi la connexion échoue avec `certificate verify failed`.
 
 `MailerConfig::fromArray([...])` construit le même objet à partir d’un simple tableau (clés imbriquées `smtp` et `from`), ce qui est pratique dans les tests. Le mot de passe est masqué lorsque l’objet est affiché.
 
