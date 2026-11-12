@@ -2286,6 +2286,8 @@ html.motion-ready [data-reveal].is-visible {
   }
   .prose>h1 {
     font-size:42px;
+    hyphens:auto;
+    overflow-wrap:break-word;
   }
   .prose p {
     font-size:13px;
