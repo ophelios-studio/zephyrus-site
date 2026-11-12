@@ -253,8 +253,8 @@ With the English formatter this renders `Your cart`, `2 items` and `$19.99 Mar 9
 ## Good to know
 
 - A translated sentence in the middle of a request that uses another locale needs both `App::setTranslator()` and `App::setFormatter()`. One without the other mixes languages.
-- `registerFormatterFilters()` binds the formatter you pass it. A formatter installed later by a middleware does not reach the filters: register your own filter that calls `format()` (`$views->getLatteEngine()->addFilter('money', fn ($v) => format('money', $v))`), or call `localize()` and `format()` as functions in the template.
+- `registerFormatterFilters()` binds the formatter you pass it. To follow a formatter that a middleware installs later, pass a closure, which is called on every filter use: `$views->registerFormatterFilters(fn () => App::getFormatter())`. The names of your own formatters are read when you register. In 0.14.0 only a `Formatter` was accepted, so a later formatter never reached the filters.
 - A key missing from the requested language falls back to the default language silently. Keep the default catalog complete, and compare the key lists of the others in a test.
-- Always pass `supportedLocales` to the resolver: with an empty list it returns the explicit value as given. `JsonLocaleLoader` refuses anything that is not a language tag (the catalog is then empty), but the allowlist is what keeps the choice yours.
+- Always pass `supportedLocales` to the resolver: with an empty list any well-formed language tag is accepted (a malformed value, such as `../x` or `fr!`, is ignored), so the visitor picks the locale. `JsonLocaleLoader` refuses anything that is not a language tag (the catalog is then empty), but the allowlist is what keeps the choice yours.
 - `plural` prints the word, not the count: write `{count} {count|plural:item:items}`.
 - `localization.locale` is stored lower-cased and `supported_locales` too: `fr-CA` becomes `fr-ca`, and catalog directories named `fr-CA` or `fr_CA` still match.
