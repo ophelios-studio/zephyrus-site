@@ -65,7 +65,7 @@ Deux requêtes avec le même témoin ont affiché `{"visits":1}` puis `{"visits"
 | `id()` | L’identifiant de session, `''` quand aucune session ne tourne. |
 | `isStarted()` | Indique si une session est active. |
 
-Les clés sont des chaînes non vides ; une clé vide lance `SessionException`. Tout ce que PHP sait sérialiser peut être stocké, mais stockez des identifiants et de petites valeurs, pas des entités ni de gros tableaux.
+Les clés sont des chaînes non vides ; une clé vide lance `SessionException`. Tout ce que PHP sait sérialiser peut être stocké, mais stockez des identifiants et de petites valeurs, pas des entités ni de gros tableaux.
 
 Le helper `session()` lit et écrit par l’entremise du gestionnaire enregistré : `session('visits', 0)` lit, `session(['visits' => 3])` écrit. Il est pratique dans un gabarit, et `$request->attribute('session')` est plus clair dans un contrôleur.
 
@@ -93,7 +93,7 @@ public function signIn(Request $request): Response
 }
 ```
 
-`regenerate()` émet un nouvel identifiant et supprime les anciennes données de session (`regenerate(false)` les conserve). À l’exécution, le témoin est passé de `84201137...` à `056c96de...` dans la réponse de connexion, et le jeton de formulaire obtenu avant la connexion a été refusé ensuite par un 403 : c’est la deuxième ligne qui fait son travail. `new SessionCsrfTokenManager($session)` partage son jeton avec celui de votre bootstrap ; si le bootstrap a passé une clé de session personnalisée en second argument, passez la même ici.
+`regenerate()` émet un nouvel identifiant et supprime les anciennes données de session (`regenerate(false)` les conserve). À l’exécution, le témoin est passé de `84201137...` à `056c96de...` dans la réponse de connexion, et le jeton de formulaire obtenu avant la connexion a été refusé ensuite par un 403 : c’est la deuxième ligne qui fait son travail. `new SessionCsrfTokenManager($session)` partage son jeton avec celui de votre bootstrap ; si le bootstrap a passé une clé de session personnalisée en second argument, passez la même ici.
 
 ### Détruire à la déconnexion
 
@@ -135,7 +135,7 @@ return $this->render('contact', ['flash' => Flash::readAll()]);
 {foreach $flash->success as $message}<p role="status">{$message}</p>{/foreach}
 ```
 
-Les messages flash contiennent souvent des données saisies par l’utilisateur. Latte les échappe ; le moteur PHP ne le fait pas, enveloppez-les donc avec `e()` dans ce cas (voir [Vues](../views/)).
+Les messages flash contiennent souvent des données saisies par l’utilisateur. Latte les échappe ; le moteur PHP ne le fait pas, enveloppez-les donc avec `e()` dans ce cas (voir [Vues](../views/)).
 
 ## Configurer le témoin
 
@@ -190,7 +190,7 @@ $session->setHandler(new DatabaseSessionHandler(
 ));
 ```
 
-La fonction anonyme (closure) retarde la connexion jusqu’à la première lecture de la session. Vous pouvez passer une `Database` à la place. Par défaut, le gestionnaire écrit dans `public.session` ; ses deuxième à quatrième arguments définissent un autre nom de table, un autre nom de colonne d’identifiant et un autre motif d’identifiant. `setHandler()` doit s’exécuter avant le démarrage de la session, et lance `SessionException` quand PHP le refuse.
+La fonction anonyme (closure) retarde la connexion jusqu’à la première lecture de la session. Vous pouvez passer une `Database` à la place. Par défaut, le gestionnaire écrit dans `public.session` ; ses deuxième à quatrième arguments définissent un autre nom de table, un autre nom de colonne d’identifiant et un autre motif d’identifiant. `setHandler()` doit s’exécuter avant le démarrage de la session, et lance `SessionException` quand PHP le refuse.
 
 Après une visite qui a stocké `visits`, la table contenait une ligne dont `data` valait `_csrf_token|s:64:"...";visits|i:1;`. Les données suivent la sérialisation de session de PHP, conservée sous forme de texte. Les contenus qui ne sont pas de l’UTF-8 valide sont stockés encodés en base64 : ne cherchez donc pas dans `data` avec `LIKE`.
 

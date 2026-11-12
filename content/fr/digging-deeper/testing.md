@@ -20,7 +20,7 @@ composer require --dev phpunit/phpunit
 "autoload-dev": { "psr-4": { "Tests\\": "tests/" } }
 ```
 
-`phpunit.xml` :
+`phpunit.xml` :
 
 ```xml
 <phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -174,7 +174,7 @@ final class NotesPageTest extends ApplicationTestCase
 
 Une requête qui modifie l’état doit passer le middleware CSRF comme le ferait un navigateur. L’aide charge la page, lit le jeton dans le formulaire généré et le renvoie dans `_csrf_token`. C’est la session unique, partagée par tout le processus, qui explique pourquoi le jeton lu par un `GET` est valide pour le `POST` suivant.
 
-Une requête sans le jeton est refusée avec `403` : vérifiez-le aussi, afin qu’on remarque le retrait du middleware.
+Une requête sans le jeton est refusée avec `403` : vérifiez-le aussi, afin qu’on remarque le retrait du middleware.
 
 ## Conserver une session entre deux requêtes
 
@@ -291,7 +291,7 @@ final class ApiController extends Controller
 
 ## Un middleware
 
-Testez un middleware isolément en appelant `process()` avec une requête et une fermeture `$next`, puis une fois par une route pour vérifier qu’il est monté. Voici le middleware testé, enregistré dans l’amorçage avec `#[Middleware('require-json')]` sur le contrôleur. Le `Kernel` de la première application l’enregistre sur le constructeur, avant `build()` :
+Testez un middleware isolément en appelant `process()` avec une requête et une fermeture `$next`, puis une fois par une route pour vérifier qu’il est monté. Voici le middleware testé, enregistré dans l’amorçage avec `#[Middleware('require-json')]` sur le contrôleur. Le `Kernel` de la première application l’enregistre sur le constructeur, avant `build()` :
 
 ```php
 ->registerMiddleware('require-json', new RequireJson())

@@ -214,7 +214,7 @@ InvalidArgumentException: Subscriber Bad declares the listener "nope" for App\Ev
 
 | Méthode | Usage |
 | --- | --- |
-| `removeListener($eventClass, $listener)` | désenregistre un écouteur ; il ne se passe rien s’il n’est pas trouvé |
+| `removeListener($eventClass, $listener)` | désenregistre un écouteur ; il ne se passe rien s’il n’est pas trouvé |
 | `removeSubscriber($subscriber)` | désenregistre tous les écouteurs d’un abonné |
 | `hasListeners($eventClass)` | `true` lorsqu’un écouteur est enregistré sur cette classe exacte |
 | `getListeners($eventClass)` | les écouteurs de cette classe exacte, par ordre de priorité |

@@ -13,7 +13,7 @@ Des primitives solides, difficiles à mal utiliser.
 | Vous avez besoin de | Utilisez | Pas |
 | --- | --- | --- |
 | Un jeton impossible à deviner : un lien de réinitialisation, une invitation, une clé d’API | `randomHex()`, `randomString()` | `uniqid()`, `mt_rand()`, `md5(time())` |
-| Stocker un mot de passe et le vérifier plus tard | `hashPassword()`, `verifyPassword()` | `encrypt()`, qui peut être inversé ; `hash()`, qui est rapide à deviner |
+| Stocker un mot de passe et le vérifier plus tard | `hashPassword()`, `verifyPassword()` | `encrypt()`, qui peut être inversé ; `hash()`, qui est rapide à deviner |
 | Stocker des données que vous devez relire | `encrypt()`, `decrypt()` | Une empreinte, qui ne peut pas être inversée |
 | Une empreinte de données ou d’un fichier | `hash()`, `hashFile()` | Les mots de passe |
 | Retrouver une valeur secrète sans la stocker en clair | `hash()` avec une clé | Une empreinte sans clé de données devinables |
@@ -29,7 +29,7 @@ Cryptography::randomBytes(32);       // 32 raw bytes
 Cryptography::randomInt(100000, 999999); // an integer in the range, both ends included
 ```
 
-Les quatre utilisent le générateur cryptographiquement sûr du système. Un jeton qui donne accès à quelque chose exige au moins 128 bits : `randomHex(32)` ou `randomString(22)`. `randomHex(64)` (256 bits) est un choix par défaut confortable. Une longueur inférieure à 1 lance `CryptographyException: Length must be at least 1.` ; `randomInt()` avec `$min` supérieur à `$max` lance le `ValueError` de PHP.
+Les quatre utilisent le générateur cryptographiquement sûr du système. Un jeton qui donne accès à quelque chose exige au moins 128 bits : `randomHex(32)` ou `randomString(22)`. `randomHex(64)` (256 bits) est un choix par défaut confortable. Une longueur inférieure à 1 lance `CryptographyException: Length must be at least 1.` ; `randomInt()` avec `$min` supérieur à `$max` lance le `ValueError` de PHP.
 
 Un jeton qui déverrouille quelque chose, comme une réinitialisation de mot de passe, est un mot de passe en tout sauf le nom : mettez-le dans le lien, et ne stockez que son empreinte, afin qu’une fuite de votre base de données ne distribue pas des liens fonctionnels :
 
@@ -141,7 +141,7 @@ Interceptez-la là où vous déchiffrez, et traitez la valeur comme illisible. C
 
 - Gardez la clé hors du dépôt et hors de `config.yml` : seulement `!env`. Utilisez une clé différente par environnement.
 - Perdre la clé, c’est perdre les données. Sauvegardez-la, séparément des sauvegardes de la base de données.
-- `Cryptography` prend une seule clé par appel et ne tient aucun trousseau. Pour effectuer une rotation, déchiffrez chaque valeur avec l’ancienne clé et chiffrez-la avec la nouvelle ; si les deux doivent fonctionner pendant un temps, stockez un identifiant de clé à côté de chaque valeur.
+- `Cryptography` prend une seule clé par appel et ne tient aucun trousseau. Pour effectuer une rotation, déchiffrez chaque valeur avec l’ancienne clé et chiffrez-la avec la nouvelle ; si les deux doivent fonctionner pendant un temps, stockez un identifiant de clé à côté de chaque valeur.
 - Un texte chiffré ne peut pas être recherché : le nonce aléatoire fait paraître différentes des valeurs égales. Pour trouver une ligne par un courriel chiffré, stockez à côté une empreinte à clé, `Cryptography::hash(mb_strtolower($email), $indexKey)`, produite avec une seconde clé, et interrogez cette colonne.
 - Les paramètres de clé et de texte en clair sont marqués `#[\SensitiveParameter]`, de sorte que PHP les omet des traces de pile.
 
@@ -156,13 +156,13 @@ Cryptography::hash('ada@example.com', $indexKey); // keyed: only holders of the 
 Cryptography::hashFile($root . '/storage/invoice-2041.pdf'); // the same digest as hash() of the contents
 ```
 
-L’algorithme est BLAKE2b et le résultat est en hexadécimal. `$length` est la taille du condensé en octets, de 16 à 64 (32 par défaut). Une clé, lorsqu’elle est fournie, doit faire de 16 à 64 octets ; `null` donne l’empreinte sans clé, et une chaîne vide est refusée plutôt que traitée en silence comme l’absence de clé. `hashFile()` lit le fichier par blocs de 8 Ko et fonctionne donc sur de gros fichiers ; un fichier manquant lance `Hashing failed: File not found or not readable: <path>`, un message qui contient un chemin du serveur et qui a sa place dans votre journal.
+L’algorithme est BLAKE2b et le résultat est en hexadécimal. `$length` est la taille du condensé en octets, de 16 à 64 (32 par défaut). Une clé, lorsqu’elle est fournie, doit faire de 16 à 64 octets ; `null` donne l’empreinte sans clé, et une chaîne vide est refusée plutôt que traitée en silence comme l’absence de clé. `hashFile()` lit le fichier par blocs de 8 Ko et fonctionne donc sur de gros fichiers ; un fichier manquant lance `Hashing failed: File not found or not readable: <path>`, un message qui contient un chemin du serveur et qui a sa place dans votre journal.
 
 Une empreinte à clé est un code d’authentification de message : utilisez-la pour établir l’empreinte d’une valeur que seule votre application doit pouvoir reproduire, comme l’index de recherche ci-dessus. Quand vous en utilisez une comme MAC pour authentifier des données, comparez une valeur reçue avec `hash_equals()`, jamais avec `===`.
 
 ## Clés de signature
 
-`generateSigningKeyPair()` retourne une paire de clés Ed25519, encodée en hexadécimal : `['publicKey' => ..., 'secretKey' => ...]` (64 et 128 caractères hexadécimaux). `Cryptography` n’a pas de méthode de signature ni de vérification ; utilisez les fonctions sodium avec les clés décodées :
+`generateSigningKeyPair()` retourne une paire de clés Ed25519, encodée en hexadécimal : `['publicKey' => ..., 'secretKey' => ...]` (64 et 128 caractères hexadécimaux). `Cryptography` n’a pas de méthode de signature ni de vérification ; utilisez les fonctions sodium avec les clés décodées :
 
 ```php
 $pair = Cryptography::generateSigningKeyPair();

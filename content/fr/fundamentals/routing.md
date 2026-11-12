@@ -107,10 +107,10 @@ Une contrainte est un fragment d’expression régulière. Sans contrainte, un p
 
 Les paramètres du gestionnaire sont résolus dans cet ordre :
 
-1. un paramètre typé `Request` reçoit la requête;
-2. un paramètre nommé comme un paramètre substituable de la route trouvée prend la valeur de l’URL;
-3. un paramètre nommé comme un attribut de la requête prend cet attribut, converti vers son type (ici `$userId`, défini par un middleware);
-4. tout autre paramètre prend le prochain paramètre substituable non encore réclamé, selon sa position;
+1. un paramètre typé `Request` reçoit la requête ;
+2. un paramètre nommé comme un paramètre substituable de la route trouvée prend la valeur de l’URL ;
+3. un paramètre nommé comme un attribut de la requête prend cet attribut, converti vers son type (ici `$userId`, défini par un middleware) ;
+4. tout autre paramètre prend le prochain paramètre substituable non encore réclamé, selon sa position ;
 5. sinon, sa valeur par défaut est utilisée, et sans valeur par défaut l’appel échoue.
 
 Nommez vos paramètres comme les paramètres substituables : le repli positionnel existe, mais il se lit facilement de travers. La chaîne de requête ne se lie jamais : `?n=3` laisse `int $n = 5` à 5. Lisez-la avec `$request->query()` (voir [HTTP](../http/)).
@@ -213,11 +213,11 @@ $router = (new Router())
     ->resource('/things', ReportController::class);
 ```
 
-- `get()`, `post()`, `put()`, `patch()`, `delete()`, `head()` et `options()` acceptent un chemin, un gestionnaire, des contraintes et des noms de middlewares; `add()` prend la méthode en premier.
+- `get()`, `post()`, `put()`, `patch()`, `delete()`, `head()` et `options()` acceptent un chemin, un gestionnaire, des contraintes et des noms de middlewares ; `add()` prend la méthode en premier.
 - `name()` nomme la route qui vient d’être ajoutée. `withoutMiddleware()` fait de même pour un middleware global ignoré.
 - `group()` ajoute un préfixe, des middlewares partagés, un préfixe de nom et `excludedMiddlewares` à chaque route de la fonction de rappel.
 - `resource()` enregistre les six routes conventionnelles (`index`, `show`, `store`, `update`, `patch`, `delete`), avec `{id}` limité aux chiffres.
-- `controller(ProjectController::class)` enregistre les attributs d’une seule classe; `discoverControllers()` accepte un troisième argument facultatif, `parentClass:`, pour n’enregistrer que les sous-classes d’une classe de base.
+- `controller(ProjectController::class)` enregistre les attributs d’une seule classe ; `discoverControllers()` accepte un troisième argument facultatif, `parentClass:`, pour n’enregistrer que les sous-classes d’une classe de base.
 
 Une fermeture n’est pas un gestionnaire : c’est la forme en chaîne qui rend la table de routes mettable en cache.
 
@@ -235,7 +235,7 @@ route('projects.show', ['id' => 12], ['tab' => 'files']);
 // https://app.example.test/api/projects/12?tab=files
 ```
 
-`route()` est disponible en PHP et dans Latte dès qu’un générateur est défini; sans URL de base, elle retourne le chemin seul. Les valeurs des paramètres substituables sont encodées en pourcentage, les clés de la chaîne de requête sont triées, et un cinquième argument facultatif de `generate()` ajoute un fragment. Vous pouvez aussi utiliser directement le générateur :
+`route()` est disponible en PHP et dans Latte dès qu’un générateur est défini ; sans URL de base, elle retourne le chemin seul. Les valeurs des paramètres substituables sont encodées en pourcentage, les clés de la chaîne de requête sont triées, et un cinquième argument facultatif de `generate()` ajoute un fragment. Vous pouvez aussi utiliser directement le générateur :
 
 ```php
 $urls = new RouteUrlGenerator($router->routes(), 'https://app.example.test');
@@ -264,7 +264,7 @@ Quand le lien revient, vérifiez-le avec `$signature->verify($url)` (un booléen
 
 ## 404 et 405
 
-Un chemin inconnu répond 404. Un chemin connu avec la mauvaise méthode répond 405 avec un en-tête `Allow` qui liste les méthodes acceptées. Une route `GET` répond aussi à `HEAD`. Une barre oblique finale est tolérée; appelez `$router->strictTrailingSlashes()` pour distinguer `/users` et `/users/`.
+Un chemin inconnu répond 404. Un chemin connu avec la mauvaise méthode répond 405 avec un en-tête `Allow` qui liste les méthodes acceptées. Une route `GET` répond aussi à `HEAD`. Une barre oblique finale est tolérée ; appelez `$router->strictTrailingSlashes()` pour distinguer `/users` et `/users/`.
 
 ```php
 #[Get('/lookup/{id}', constraints: ['id' => '\d+'])]
@@ -295,8 +295,8 @@ if ($cache->has()) {
 }
 ```
 
-- `warm($routes)` enregistre et retourne les métadonnées; `warmIfStale($routes, $maxAgeSeconds)` ne réécrit que lorsque le cache est périmé.
-- `isFresh($routes)` compare le fichier aux routes actuelles; `inspect($routes, $maxAgeSeconds)` explique pourquoi un cache est périmé, expiré ou invalide.
+- `warm($routes)` enregistre et retourne les métadonnées ; `warmIfStale($routes, $maxAgeSeconds)` ne réécrit que lorsque le cache est périmé.
+- `isFresh($routes)` compare le fichier aux routes actuelles ; `inspect($routes, $maxAgeSeconds)` explique pourquoi un cache est périmé, expiré ou invalide.
 - `clear()` supprime le fichier. Faites-le à chaque déploiement, ou réchauffez le cache à l’étape de déploiement.
 - `load()` lance `RouteCacheException` lorsque le fichier est absent ou échoue à la validation, par exemple `Route cache file /var/cache/routes.json has not been written; rebuild the cache with save() or warm()`.
 
@@ -332,9 +332,9 @@ Circular middleware group reference detected: a -> b -> a
 
 ## Bon à savoir
 
-- Le routeur est immuable. `$router->get(...)` seul sur sa ligne n’enregistre rien; réassignez-le ou chaînez les appels.
+- Le routeur est immuable. `$router->get(...)` seul sur sa ligne n’enregistre rien ; réassignez-le ou chaînez les appels.
 - `discoverControllers()` n’enregistre rien, silencieusement, lorsque le répertoire ou l’espace de noms est erroné : un répertoire absent retourne le routeur inchangé et une classe qui ne correspond pas à l’espace de noms est ignorée. Vérifiez `$router->count()` pendant la mise en place.
-- Les attributs de route sur les méthodes d’une classe parente ne s’appliquent pas aux sous-classes; `#[Root]`, `#[Middleware]` et `#[RequiresEnv]` sur la classe parente, eux, s’appliquent.
+- Les attributs de route sur les méthodes d’une classe parente ne s’appliquent pas aux sous-classes ; `#[Root]`, `#[Middleware]` et `#[RequiresEnv]` sur la classe parente, eux, s’appliquent.
 - Déclarez les groupes de middlewares avant `discoverControllers()` : un groupe est développé lors de l’ajout d’une route.
 - Les noms de routes ne sont vérifiés pour les doublons qu’à l’intérieur d’une même classe : appelez `$router->assertNoDuplicateRouteNames()` pour le reste.
 - Un `POST` portant un champ `_method` ou un en-tête `X-HTTP-Method-Override` valant `PUT`, `PATCH` ou `DELETE` est routé comme cette méthode lorsque la requête provient de `Request::fromGlobals()`.

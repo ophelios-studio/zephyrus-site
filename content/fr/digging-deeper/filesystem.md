@@ -39,7 +39,7 @@ $file->write("replaced\n");
 | `move($destination)` | Renomme ou déplace le fichier et retourne le `File` au nouvel emplacement. |
 | `delete()` | Supprime le fichier. Il ne se passe rien s’il a déjà disparu. |
 
-`copy()` et `move()` retournent le fichier à la destination. L’objet source d’avant `move()` indique `exists()` à `false` :
+`copy()` et `move()` retournent le fichier à la destination. L’objet source d’avant `move()` indique `exists()` à `false` :
 
 ```php
 $copy = $file->copy($root . '/storage/archive/2026-copy.txt');
@@ -82,7 +82,7 @@ Avec un répertoire `archive` contenant `2027.txt`, `a.csv` et `deep/b.csv`, ces
 
 ## Ce que sait un nœud
 
-`File` et `Directory` partagent la classe de base `FileSystemNode` :
+`File` et `Directory` partagent la classe de base `FileSystemNode` :
 
 | Méthode | Ce qu’elle retourne |
 |---|---|
@@ -118,7 +118,7 @@ Les méthodes qui exigent un fichier existant (`read()`, `size()`, `lines()`, `c
 
 `File` et `Directory` agissent sur n’importe quel chemin qu’on leur donne : `../../etc/passwd` sort d’un répertoire de base, tout comme un lien symbolique qui s’y trouve. Ne joignez jamais une entrée de la requête à un chemin de base. Choisissez l’une ou l’autre de ces approches :
 
-- stocker sous un nom que vous générez, comme le fait l’uploader (voir [Téléversements](../uploads/)), et conserver dans votre base de données la correspondance avec le nom du client;
+- stocker sous un nom que vous générez, comme le fait l’uploader (voir [Téléversements](../uploads/)), et conserver dans votre base de données la correspondance avec le nom du client ;
 - ou contraindre strictement le paramètre de route, de sorte que rien d’autre qu’un simple nom de fichier ne puisse arriver :
 
 ```php

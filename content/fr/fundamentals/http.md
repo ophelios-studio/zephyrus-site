@@ -8,7 +8,7 @@ description: Lisez les requêtes avec des accesseurs typés, construisez des ré
 
 Chaque réponse, explicite.
 
-`Request` et `Response` sont les deux objets valeurs que chaque partie de Zephyrus s’échange. Une requête se lit par de petites parties typées; une réponse se construit une seule fois et n’est jamais modifiée sur place : chaque méthode `with*()` retourne une copie.
+`Request` et `Response` sont les deux objets valeurs que chaque partie de Zephyrus s’échange. Une requête se lit par de petites parties typées ; une réponse se construit une seule fois et n’est jamais modifiée sur place : chaque méthode `with*()` retourne une copie.
 
 ## Construire une requête
 
@@ -52,7 +52,7 @@ $request->uri()->baseUrl();      // 'https://app.example.test:8443'
 $request->uri()->full();         // the whole URL
 ```
 
-Utilisez `path()` pour les décisions comme les gardes et les listes autorisées : c’est le chemin tel qu’envoyé, encore encodé en pourcentage, ce que le routeur fait correspondre. `uri()->path()` sert à l’affichage. Un segment de paramètre reste encodé dans `path()`; lisez sa valeur décodée avec `routeParameter()`.
+Utilisez `path()` pour les décisions comme les gardes et les listes autorisées : c’est le chemin tel qu’envoyé, encore encodé en pourcentage, ce que le routeur fait correspondre. `uri()->path()` sert à l’affichage. Un segment de paramètre reste encodé dans `path()` ; lisez sa valeur décodée avec `routeParameter()`.
 
 Depuis `fromGlobals()`, un `POST` portant un champ `_method` ou un en-tête `X-HTTP-Method-Override` valant `PUT`, `PATCH` ou `DELETE` est routé comme cette méthode. `fromArray()` n’applique pas la substitution.
 
@@ -162,7 +162,7 @@ Response::redirect('/login', 303);       // Location header, empty body
 Response::localRedirect($next, '/');     // only to a local path, else the fallback
 ```
 
-Le constructeur permet de bâtir toute autre réponse : `new Response(body: $csv, status: 200, headers: ['Content-Type' => 'text/csv'])`. Le corps d’une réponse est une chaîne conservée en mémoire; pour diffuser en continu, voir [Événements envoyés par le serveur](../../digging-deeper/server-sent-events/).
+Le constructeur permet de bâtir toute autre réponse : `new Response(body: $csv, status: 200, headers: ['Content-Type' => 'text/csv'])`. Le corps d’une réponse est une chaîne conservée en mémoire ; pour diffuser en continu, voir [Événements envoyés par le serveur](../../digging-deeper/server-sent-events/).
 
 `Response::json()` lance une exception lorsque la charge utile ne peut pas être encodée (par exemple de l’UTF-8 invalide) plutôt que d’envoyer du JSON corrompu.
 
@@ -190,7 +190,7 @@ $changed->toHeaderLines();         // ['content-type: text/html; charset=utf-8',
 
 Les noms d’en-têtes sont stockés en minuscules, donc `$response->headers['X-B']` vaut `null` alors que `$response->headers['x-b']` vaut `'2'` : utilisez `getHeader()`.
 
-`withHeader()` et `withHeaders()` valident ce que vous leur donnez. Un nom contenant une espace lance `Invalid HTTP header name "Bad Name": a field name may only contain RFC 9110 token characters.`; une valeur contenant un saut de ligne lance `Invalid value for HTTP header "X-A": it contains a control character other than HTAB.` Cela ferme la porte à l’injection d’en-têtes lorsqu’une valeur provient d’une saisie utilisateur. Pour vérifier une valeur au préalable, utilisez `Response::isValidHeaderValue($value)`.
+`withHeader()` et `withHeaders()` valident ce que vous leur donnez. Un nom contenant une espace lance `Invalid HTTP header name "Bad Name": a field name may only contain RFC 9110 token characters.` ; une valeur contenant un saut de ligne lance `Invalid value for HTTP header "X-A": it contains a control character other than HTAB.` Cela ferme la porte à l’injection d’en-têtes lorsqu’une valeur provient d’une saisie utilisateur. Pour vérifier une valeur au préalable, utilisez `Response::isValidHeaderValue($value)`.
 
 ## Immuabilité
 
@@ -223,7 +223,7 @@ Posez toujours `Secure`, `HttpOnly` et une valeur `SameSite`, et construisez la 
 
 ## Émettre une réponse
 
-`Application::handle()` retourne une `Response`; quelque chose doit l’envoyer. Le contrôleur frontal habituel :
+`Application::handle()` retourne une `Response` ; quelque chose doit l’envoyer. Le contrôleur frontal habituel :
 
 ```php
 use Zephyrus\Http\SapiEmitter;
@@ -231,7 +231,7 @@ use Zephyrus\Http\SapiEmitter;
 (new SapiEmitter())->emit($app->handle(Request::fromGlobals()));
 ```
 
-`SapiEmitter` écrit la ligne de statut et les en-têtes, puis le corps par morceaux (8192 octets par défaut; `new SapiEmitter(chunkSize: 4096)` le change, et une taille inférieure à 1 lance `InvalidArgumentException`). Si les en-têtes ont déjà été envoyés, il les ignore et écrit le corps. `$response->send()` fait la même chose en un seul appel, sans découpage.
+`SapiEmitter` écrit la ligne de statut et les en-têtes, puis le corps par morceaux (8192 octets par défaut ; `new SapiEmitter(chunkSize: 4096)` le change, et une taille inférieure à 1 lance `InvalidArgumentException`). Si les en-têtes ont déjà été envoyés, il les ignore et écrit le corps. `$response->send()` fait la même chose en un seul appel, sans découpage.
 
 `EmitterInterface` n’a qu’une seule méthode, `emit(Response $response): void`. Implémentez-la pour un double de test qui capture la réponse en mémoire au lieu d’écrire vers le SAPI.
 

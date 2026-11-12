@@ -47,7 +47,7 @@ Ce que fait chaque directive ici :
 | --- | --- | --- |
 | `default-src` | `'self'` | Tout ce qui n’a pas sa propre directive se charge uniquement depuis votre origine. |
 | `script-src` | `'self'` et le nonce | Fichiers de script de votre origine, et scripts en ligne portant le nonce de cette requête. |
-| `style-src` | `'self'` | Feuilles de style de votre origine ; les `<style>` et `style=""` en ligne sont bloqués. |
+| `style-src` | `'self'` | Feuilles de style de votre origine ; les `<style>` et `style=""` en ligne sont bloqués. |
 | `img-src` | `'self' data:` | Images de votre origine et images `data:` en ligne. |
 | `connect-src` | `'self'` | `fetch()` et `XMLHttpRequest` vers votre origine seulement. |
 | `object-src` | `'none'` | Aucun plugin (`<object>`, `<embed>`). |
@@ -108,7 +108,7 @@ $policy->toHeaderValue();              // the header value, also what (string) $
 ContentSecurityPolicy::create()->isEmpty(); // true
 ```
 
-`withDirective()` remplace une directive ; `appendValue()` y ajoute. Les valeurs sont vérifiées à mesure qu’elles sont ajoutées, de sorte qu’un caractère égaré ne peut pas casser une politique :
+`withDirective()` remplace une directive ; `appendValue()` y ajoute. Les valeurs sont vérifiées à mesure qu’elles sont ajoutées, de sorte qu’un caractère égaré ne peut pas casser une politique :
 
 ```text
 ->appendValue('script-src', "'self' 'unsafe-inline'")
@@ -126,7 +126,7 @@ $policy = $policy->appendHash('style-src', 'sha256', base64_encode(hash('sha256'
 // style-src 'self' 'sha256-IAdwN3biDCQ3brrgp1m8kBEsPQYyqfREKOEfeoREopc='
 ```
 
-Toute modification de l’extrait, même une seule espace, change l’empreinte et le bloque. `appendNonce('script-src', $nonce)` existe pour un nonce que vous gérez vous-même ; avec le middleware, utilisez plutôt `nonceDirectives`.
+Toute modification de l’extrait, même une seule espace, change l’empreinte et le bloque. `appendNonce('script-src', $nonce)` existe pour un nonce que vous gérez vous-même ; avec le middleware, utilisez plutôt `nonceDirectives`.
 
 ## Le middleware
 
@@ -157,7 +157,7 @@ public function embed(): Response
 }
 ```
 
-Cette politique remplace entièrement celle du middleware, nonce compris : écrivez la politique complète dont la page a besoin. Avec `application.debug` activé, le middleware avertit sur une telle route que « the nonce policy was not applied because Content-Security-Policy is already set on the response » ; sur une route qui définit volontairement sa propre politique, cet avertissement est attendu.
+Cette politique remplace entièrement celle du middleware, nonce compris : écrivez la politique complète dont la page a besoin. Avec `application.debug` activé, le middleware avertit sur une telle route que « the nonce policy was not applied because Content-Security-Policy is already set on the response » ; sur une route qui définit volontairement sa propre politique, cet avertissement est attendu.
 
 ## Rapport seulement et rapports de violations
 
@@ -216,5 +216,5 @@ Pour essayer une politique plus stricte à côté d’une politique appliquée, 
 
 - Un nonce ou une empreinte dans une directive fait ignorer `'unsafe-inline'` par les navigateurs dans cette même directive. Avec `application.debug` activé, le middleware avertit de cette combinaison : `Content-Security-Policy: a nonce was added to script-src, which also contains 'unsafe-inline'. Browsers ignore 'unsafe-inline' when a nonce is present, so inline scripts without the nonce attribute will stop running. Remove one of the two.`
 - `frame-ancestors` remplace `X-Frame-Options` dans les navigateurs actuels. Gardez les deux : les navigateurs plus anciens ne lisent que le second.
-- Une route ne peut pas contourner le middleware avec `#[WithoutMiddleware]` ; définissez plutôt l’en-tête propre à la route, comme montré plus haut.
-- La politique limite les dégâts d’un script injecté ; elle ne remplace pas l’échappement. Latte échappe chaque `{$value}` selon son contexte : faites-en la seule voie par laquelle des données atteignent votre HTML.
+- Une route ne peut pas contourner le middleware avec `#[WithoutMiddleware]` ; définissez plutôt l’en-tête propre à la route, comme montré plus haut.
+- La politique limite les dégâts d’un script injecté ; elle ne remplace pas l’échappement. Latte échappe chaque `{$value}` selon son contexte : faites-en la seule voie par laquelle des données atteignent votre HTML.

@@ -23,8 +23,8 @@ interface MiddlewareInterface
 
 `$next` exécute le reste du pipeline et retourne sa réponse. Un middleware fait l’une de ces trois choses :
 
-- appelle `$next($request)` et retourne sa réponse, éventuellement décorée;
-- appelle `$next()` avec une requête modifiée (les requêtes sont immuables : utilisez `withAttribute()`);
+- appelle `$next($request)` et retourne sa réponse, éventuellement décorée ;
+- appelle `$next()` avec une requête modifiée (les requêtes sont immuables : utilisez `withAttribute()`) ;
 - retourne une réponse sans appeler `$next()`, ce qui arrête la requête à cet endroit.
 
 ## Un middleware qui court-circuite
@@ -141,7 +141,7 @@ global1:in global2:in global2:out global1:out
 
 Comme le pipeline enveloppe tout, placez en premier les middlewares qui doivent voir chaque réponse (en-têtes de sécurité, redirection HTTPS). Un middleware qui décore les réponses décore donc aussi les réponses 404, 405 et d’erreur.
 
-Lorsqu’aucune route ne correspond, la requête porte l’attribut `Request::ATTRIBUTE_UNMATCHED_ROUTE` à `true`. Un middleware qui valide une ressource (CSRF, par exemple) peut l’utiliser pour refuser de répondre à propos d’un chemin qui n’existe pas; un middleware décorateur doit l’ignorer et continuer de s’exécuter.
+Lorsqu’aucune route ne correspond, la requête porte l’attribut `Request::ATTRIBUTE_UNMATCHED_ROUTE` à `true`. Un middleware qui valide une ressource (CSRF, par exemple) peut l’utiliser pour refuser de répondre à propos d’un chemin qui n’existe pas ; un middleware décorateur doit l’ignorer et continuer de s’exécuter.
 
 ## Le pipeline lui-même
 

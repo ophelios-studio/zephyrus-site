@@ -28,7 +28,7 @@ localization:
 | `locale_path` | Le répertoire qui contient les catalogues. Un chemin relatif se résout à partir du `basePath` passé à `withConfiguration()`. |
 | `timezone` | Appliqué avec `date_default_timezone_set()` lors de `build()` (`UTC` par défaut). |
 | `currency` | Le code de devise que `money` utilise lorsqu’aucun n’est passé, sur trois lettres. |
-| `date_format`, `time_format`, `datetime_format` | La valeur par défaut de `date`, `time` et `datetime` : un préréglage ICU (`short`, `medium`, `long`, `full`) ou un motif ICU tel que `yyyy-MM-dd HH:mm`. Valeurs par défaut : `medium`, `short`, `medium`. |
+| `date_format`, `time_format`, `datetime_format` | La valeur par défaut de `date`, `time` et `datetime` : un préréglage ICU (`short`, `medium`, `long`, `full`) ou un motif ICU tel que `yyyy-MM-dd HH:mm`. Valeurs par défaut : `medium`, `short`, `medium`. |
 | `grouping_separator` | Le séparateur de milliers : `,`, `.`, `'`, une espace, U+00A0, U+202F ou U+2009. `''` désactive le regroupement, et il ne peut pas être le séparateur décimal de la locale. |
 
 Une clé inconnue interrompt le démarrage, comme partout ailleurs dans la configuration. Chaque clé accepte son orthographe en snake_case ou en camelCase.
@@ -142,7 +142,7 @@ return $this->json([
 
 (Les espaces à l’intérieur du montant sont insécables.)
 
-`LocaleResolver::resolve()` privilégie la valeur explicite (un segment d’URL, un témoin, un champ de formulaire), puis les candidats de `Accept-Language` selon leur qualité, puis la valeur par défaut. Un candidat est accepté lorsqu’il, ou sa langue de base, figure dans `supportedLocales` : `fr-CA,fr;q=0.9` face à `['en', 'fr']` donne `fr`, et `de` donne la valeur par défaut. La valeur explicite est vérifiée contre la même liste blanche : avec `supportedLocales` définie, un visiteur ne peut donc pas choisir une locale de son invention. `AcceptLanguageResolver::resolve($header, $supported, $default, $requested)` applique la même logique sans la gestion des valeurs nulles.
+`LocaleResolver::resolve()` privilégie la valeur explicite (un segment d’URL, un témoin, un champ de formulaire), puis les candidats de `Accept-Language` selon leur qualité, puis la valeur par défaut. Un candidat est accepté lorsqu’il, ou sa langue de base, figure dans `supportedLocales` : `fr-CA,fr;q=0.9` face à `['en', 'fr']` donne `fr`, et `de` donne la valeur par défaut. La valeur explicite est vérifiée contre la même liste blanche : avec `supportedLocales` définie, un visiteur ne peut donc pas choisir une locale de son invention. `AcceptLanguageResolver::resolve($header, $supported, $default, $requested)` applique la même logique sans la gestion des valeurs nulles.
 
 Définissez à la fois le traducteur et le formateur. Un filtre `money` ou `date` dans une traduction utilise le `Formatter` de l’application, non la langue de la traduction : si seul le traducteur est changé, une phrase française affiche tout de même `$1,234.50`.
 

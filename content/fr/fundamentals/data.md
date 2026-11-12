@@ -113,7 +113,7 @@ $db->update('UPDATE project SET archived = ? WHERE id = ?', [true, $id]);
 
 Avec PostgreSQL, l’identifiant revient uniquement par `RETURNING`. `insertGetId()` refuse une instruction qui en est dépourvue, et `lastInsertId()` est refusée, car elle peut désigner la séquence d’une autre table.
 
-Les paramètres sont liés selon leur type : `null`, entiers, nombres à virgule flottante, chaînes, booléens, `DateTimeInterface`, `BackedEnum` (sa valeur de support), `Stringable`, `Binary` et flux. Un tableau n’a pas de forme SQL et lève une `InvalidArgumentException` : voyez [Types PostgreSQL](#types-postgresql) pour les listes. Chaque appel exécute une seule instruction : `"INSERT ...; INSERT ..."` échoue et n’insère rien.
+Les paramètres sont liés selon leur type : `null`, entiers, nombres à virgule flottante, chaînes, booléens, `DateTimeInterface`, `BackedEnum` (sa valeur de support), `Stringable`, `Binary` et flux. Un tableau n’a pas de forme SQL et lève une `InvalidArgumentException` : voyez [Types PostgreSQL](#types-postgresql) pour les listes. Chaque appel exécute une seule instruction : `"INSERT ...; INSERT ..."` échoue et n’insère rien.
 
 `query()` retourne le `PDOStatement` brut et `pdo()` la connexion, pour les rares cas que les aides ne couvrent pas. Une instruction exécutée par `pdo()` n’est pas suivie par `transaction()`.
 
@@ -178,7 +178,7 @@ Enregistrez-la immédiatement après avoir créé la `Database`. Les convertisse
 
 ## Courtiers, services et entités
 
-Les applications bâties sur Zephyrus répartissent habituellement le code de données en trois parties, typiquement sous `app/Models/<Domain>/{Brokers,Services,Entities}`. Seules `Broker` et `Entity` sont des classes du framework; la répartition elle-même est une convention.
+Les applications bâties sur Zephyrus répartissent habituellement le code de données en trois parties, typiquement sous `app/Models/<Domain>/{Brokers,Services,Entities}`. Seules `Broker` et `Entity` sont des classes du framework ; la répartition elle-même est une convention.
 
 Un **courtier** (broker) contient le SQL d’un domaine. Il étend `Zephyrus\Data\Broker`, reçoit la `Database` et expose les méthodes de requête sous forme d’aides protégées (`select`, `selectOne`, `selectValue`, `selectInt`, `selectString`, `selectBool`, `selectFloat`, `selectCount`, `exists`, `selectPage`, les autres méthodes de pagination, `execute`, `transaction`). `selectString()`, `selectBool()` et `selectFloat()` lisent la première colonne de la première ligne sous la forme d’un `?string`, d’un `bool` ou d’un `float` (avec une valeur par défaut), et `selectPage($sql, $page, $perPage, $params)` retourne une page de lignes sous forme de liste. `execute()` exécute n’importe quelle instruction et retourne le nombre de lignes touchées. `lastInsertId()` est aussi présente, et refusée avec PostgreSQL comme son équivalent de `Database`. Les écritures se nomment `insertRow`, `insertRowGetId`, `updateRows` et `deleteRows`, afin de ne pas entrer en collision avec les noms de vos propres méthodes :
 
@@ -235,7 +235,7 @@ final class Project extends Entity
 }
 ```
 
-Un **service** est une classe ordinaire qui appelle le courtier et hydrate les entités. `Project::build($row)` retourne `null` pour une ligne `null`; `Project::buildArray($rows)` hydrate une liste :
+Un **service** est une classe ordinaire qui appelle le courtier et hydrate les entités. `Project::build($row)` retourne `null` pour une ligne `null` ; `Project::buildArray($rows)` hydrate une liste :
 
 ```php
 final class ProjectService
@@ -253,7 +253,7 @@ final class ProjectService
 
 ### Règles d’hydratation
 
-- Chaque colonne est convertie vers le type déclaré de la propriété du même nom. Une colonne sans propriété publique correspondante est ignorée; `getRawData()` retourne la ligne d’origine complète.
+- Chaque colonne est convertie vers le type déclaré de la propriété du même nom. Une colonne sans propriété publique correspondante est ignorée ; `getRawData()` retourne la ligne d’origine complète.
 - Une colonne nommée en `snake_case` a besoin d’un alias (`created_at AS "createdAt"`) pour atteindre une propriété en `camelCase`.
 - Une propriété de type énumération à valeur de support passe par `Enum::from()`. Une valeur hors de l’énumération lève une `InvalidArgumentException` qui nomme la propriété, non la valeur.
 - Une propriété `stdClass` conserve l’objet JSON décodé. Une propriété typée par une autre `Entity` est construite à partir d’une colonne contenant un objet JSON.
@@ -308,12 +308,12 @@ $result = $db->paginateFilteredSortedResultWith(
 );
 ```
 
-- `PaginationRequest::fromQuery()` lit `page` (ou `offset`) et `per_page` (aussi `perPage`, `page_size`, `pageSize`, `limit`). La taille de page est bornée entre 1 et `maxPerPage`, de sorte que `per_page=500` ne peut pas réclamer 500 lignes, et la page est bornée pour que le décalage ne puisse pas déborder : une page au-delà de la dernière retourne une liste vide, elle n’échoue pas. `fromArrayWithBounds()` est le même appel. `fromArray()` n’applique aucun plafond sans son argument `maxPerPage` : utilisez-la pour des valeurs déjà validées, jamais pour une requête brute.
+- `PaginationRequest::fromQuery()` lit `page` (ou `offset`) et `per_page` (aussi `perPage`, `page_size`, `pageSize`, `limit`). La taille de page est bornée entre 1 et `maxPerPage`, de sorte que `per_page=500` ne peut pas réclamer 500 lignes, et la page est bornée pour que le décalage ne puisse pas déborder : une page au-delà de la dernière retourne une liste vide, elle n’échoue pas. `fromArrayWithBounds()` est le même appel. `fromArray()` n’applique aucun plafond sans son argument `maxPerPage` : utilisez-la pour des valeurs déjà validées, jamais pour une requête brute.
 - `SortRequest::fromQuery()` exige une liste blanche de colonnes. Une colonne qui n’en fait pas partie, y compris toute tentative d’injection, retombe sur la colonne par défaut. Elle lit `sort` (`name` en ordre croissant, `-name` en ordre décroissant), `sort_by` ou `orderBy`, ainsi que `sort_dir` ou `direction`. `fromArray()` est destinée aux entrées validées et accepte toute colonne ayant la forme d’un identifiant, sauf si vous passez `allowedColumns`.
 - `$sort->toSql()` commence déjà par ` ORDER BY` et met l’identifiant entre guillemets : n’écrivez jamais `ORDER BY` avant.
 - `FilterRequest::fromQuery()` ne conserve que les clés permises et construit des conditions d’égalité exacte : `status=active` devient `"status" = :f_status`, une clé répétée (`status[]=a&status[]=b`) devient une liste `IN`, et un troisième argument énumère les clés lues comme des valeurs séparées par des virgules. Les valeurs sont des paramètres liés. Les clés absentes de la correspondance de colonnes que vous passez à la méthode de requête sont ignorées.
 
-Le résultat est un `PaginatedResult` :
+Le résultat est un `PaginatedResult` :
 
 ```php
 $result->items;        // list<stdClass>
@@ -331,7 +331,7 @@ Il offre aussi `isEmpty()`, `itemCount()`, `firstItem()`, `lastItem()`, `isFirst
 return $this->json($result->toArray());
 ```
 
-Les pièces plus petites se trouvent à la fois sur `Database` et sur `Broker` : `selectPageWith()`, `selectSorted()`, `selectFiltered()`, `selectFilteredSorted()`, `selectPageSorted()`; `paginateWith()` et `paginateSortedWith()`, qui retournent un tableau; `paginateResultWith()`, `paginateSortedResultWith()`, `paginateResultMappedWith()` et `paginateResultFromQuery($sql, $countSql, $request->query)`, qui retournent un `PaginatedResult`. Les variantes sans `With` prennent un numéro de page et une taille au lieu d’un `PaginationRequest`.
+Les pièces plus petites se trouvent à la fois sur `Database` et sur `Broker` : `selectPageWith()`, `selectSorted()`, `selectFiltered()`, `selectFilteredSorted()`, `selectPageSorted()` ; `paginateWith()` et `paginateSortedWith()`, qui retournent un tableau ; `paginateResultWith()`, `paginateSortedResultWith()`, `paginateResultMappedWith()` et `paginateResultFromQuery($sql, $countSql, $request->query)`, qui retournent un `PaginatedResult`. Les variantes sans `With` prennent un numéro de page et une taille au lieu d’un `PaginationRequest`.
 
 ## Bon à savoir
 

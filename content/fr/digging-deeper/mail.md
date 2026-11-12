@@ -43,7 +43,7 @@ mailer:
 | `smtp.encryption` | `tls` | `tls` (STARTTLS), `ssl` (TLS implicite) ou `''` pour aucun chiffrement. |
 | `from.address`, `from.name` | vide | L’expéditeur de chaque message. Une valeur qui n’est pas une adresse est refusée à la création du `Mailer`. |
 
-`smtp.encryption` est une liste blanche : toute autre valeur, `none` incluse, interrompt le démarrage avec une erreur qui énumère les trois valeurs acceptées. Une valeur vide désactive complètement le chiffrement et est destinée à un puits local; lorsque des identifiants sont définis, le mailer écrit un avertissement dans le journal d’erreurs une fois par processus. Avec `tls` ou `ssl`, le certificat du serveur est vérifié : un serveur SMTP de développement a donc besoin d’un certificat auquel PHP fait confiance, faute de quoi la connexion échoue avec `certificate verify failed`.
+`smtp.encryption` est une liste blanche : toute autre valeur, `none` incluse, interrompt le démarrage avec une erreur qui énumère les trois valeurs acceptées. Une valeur vide désactive complètement le chiffrement et est destinée à un puits local ; lorsque des identifiants sont définis, le mailer écrit un avertissement dans le journal d’erreurs une fois par processus. Avec `tls` ou `ssl`, le certificat du serveur est vérifié : un serveur SMTP de développement a donc besoin d’un certificat auquel PHP fait confiance, faute de quoi la connexion échoue avec `certificate verify failed`.
 
 `MailerConfig::fromArray([...])` construit le même objet à partir d’un simple tableau (clés imbriquées `smtp` et `from`), ce qui est pratique dans les tests. Le mot de passe est masqué lorsque l’objet est affiché.
 
@@ -129,20 +129,20 @@ $views = new LatteEngine($root . '/app/Views', $root . '/cache/latte');
     ->send();
 ```
 
-- `attach()` refuse un chemin contenant un octet NUL ou un enveloppeur de flux (stream wrapper), ainsi qu’un fichier inexistant. Lorsqu’une partie du chemin provient de l’extérieur de votre code, passez `$allowedRoot` : le fichier doit alors se résoudre à l’intérieur de ce répertoire après le suivi des liens symboliques et des `..`.
+- `attach()` refuse un chemin contenant un octet NUL ou un enveloppeur de flux (stream wrapper), ainsi qu’un fichier inexistant. Lorsqu’une partie du chemin provient de l’extérieur de votre code, passez `$allowedRoot` : le fichier doit alors se résoudre à l’intérieur de ce répertoire après le suivi des liens symboliques et des `..`.
 - Le nom affiché doit être un simple nom de fichier : sans séparateur de chemin, caractère de contrôle, `=?` ni point final, et d’au plus 255 octets. Sans nom, le nom propre du fichier est utilisé et soumis aux mêmes règles.
 - `attachContent()` accepte un type de média de la forme `type/subtype`, avec des paramètres facultatifs. `name`, `filename` et `boundary` sont définis par le mailer. Avec `null`, le type suit l’extension du nom.
 - Ne construisez jamais un nom de fichier ou un chemin à partir d’une entrée du client. Choisissez vous-même le nom et gardez les fichiers dans un répertoire que vous contrôlez.
 
 ## Échecs
 
-Chaque échec est une `MailerException`. Sa propriété `failure` est un cas de `MailerFailure` : vous aiguillez donc selon une valeur au lieu d’analyser du texte :
+Chaque échec est une `MailerException`. Sa propriété `failure` est un cas de `MailerFailure` : vous aiguillez donc selon une valeur au lieu d’analyser du texte :
 
 | `MailerFailure` | Quand |
 |---|---|
 | `InvalidAddress` | un destinataire, un reply-to ou `from.address` n’est pas une adresse |
 | `SendFailed` | le transport n’a pas accepté le message : refus de connexion, d’authentification ou de relais |
-| `RecipientsRefused` | certains destinataires ont été refusés; les autres ont peut-être reçu le message, de sorte qu’un nouvel envoi peut le dupliquer |
+| `RecipientsRefused` | certains destinataires ont été refusés ; les autres ont peut-être reçu le message, de sorte qu’un nouvel envoi peut le dupliquer |
 | `AttachmentNotFound` | un fichier joint n’existe pas |
 | `AttachmentRejected` | le chemin, le nom, le type de média ou le répertoire d’une pièce jointe a été refusé |
 | `ConfigurationMissing` | `template()` a été appelée sans moteur de rendu |
@@ -172,7 +172,7 @@ L’envoi est synchrone : la requête attend la conversation SMTP. Un serveur l
 
 ## Tester sans envoyer
 
-`Mailer` est une classe `final` : cachez-la donc derrière une interface de votre cru et donnez à vos tests une doublure. L’interface dit ce que votre application envoie, non comment :
+`Mailer` est une classe `final` : cachez-la donc derrière une interface de votre cru et donnez à vos tests une doublure. L’interface dit ce que votre application envoie, non comment :
 
 ```php
 namespace App\Mail;

@@ -177,6 +177,6 @@ Le flux démarre avant que le contrôleur ne retourne, de sorte que les en-tête
 - Videz chaque tampon de sortie avant `emit()`, et utilisez `set_time_limit(0)` pour un flux de longue durée.
 - Gardez le verrou de session hors du flux : ignorez `SessionMiddleware` sur la route.
 - Authentifiez le point d’accès du flux comme n’importe quelle autre route. Il se trouve derrière votre pipeline habituel jusqu’au début de la diffusion.
-- `event` et `id` tiennent chacun sur une ligne; les sauts de ligne dans `data` sont acceptés.
+- `event` et `id` tiennent chacun sur une ligne ; les sauts de ligne dans `data` sont acceptés.
 - Envoyez un événement périodique pour que les mandataires ne coupent pas la connexion, et terminez le générateur lorsque le travail est fini.
 - `SseEmitter::emit()` accepte un `Generator` de `SseEvent` : tout autre itérable doit y être enveloppé.

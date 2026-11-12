@@ -46,7 +46,7 @@ return $this->render('contact', ['errors' => $errors->toArray()], 422);
 | `renderWith($engine, $page, $args = [], $status = 200)` | Rend avec un moteur que vous passez, en ignorant celui qui est monté. |
 | `html($content, $status = 200)` | Retourne une réponse HTML à partir d’une chaîne que vous avez déjà. |
 
-Sans moteur monté, `render()` lance une `RenderException`, et l’application répond 500. Montez-en un avec `withRenderEngine()` sur le constructeur (voir [Application](../application/)); il est injecté dans chaque contrôleur qui utilise le trait.
+Sans moteur monté, `render()` lance une `RenderException`, et l’application répond 500. Montez-en un avec `withRenderEngine()` sur le constructeur (voir [Application](../application/)) ; il est injecté dans chaque contrôleur qui utilise le trait.
 
 ## Latte
 
@@ -178,7 +178,7 @@ $views = $config->section('render')->createEngine($root);
 
 La section `render:` doit être présente dans `config.yml` : sans elle, `$config->section('render')` vaut `null` et `createEngine()` provoque une erreur fatale.
 
-`createEngine()` prend la racine du projet et résout `directory` et `cache` relatifs par rapport à celle-ci; un chemin absolu est utilisé tel quel. Elle retourne un `LatteEngine` ou un `PhpEngine`, qui implémentent tous deux `RenderEngine`. Un nom de moteur inconnu lance une `RenderException` : `Unknown render engine [twig]. Supported engines: latte, php.`
+`createEngine()` prend la racine du projet et résout `directory` et `cache` relatifs par rapport à celle-ci ; un chemin absolu est utilisé tel quel. Elle retourne un `LatteEngine` ou un `PhpEngine`, qui implémentent tous deux `RenderEngine`. Un nom de moteur inconnu lance une `RenderException` : `Unknown render engine [twig]. Supported engines: latte, php.`
 
 ## Le moteur PHP
 
@@ -239,7 +239,7 @@ App::setAsset(new Asset($root . '/public'));
 <link rel="stylesheet" href="{asset('/css/app.css')}">
 ```
 
-affiche `<link rel="stylesheet" href="/css/app.css?v=145ccd37">`. La valeur `v` correspond aux 8 premiers caractères hexadécimaux du md5 du fichier. Le second argument du constructeur choisit un autre algorithme de hachage. La méthode derrière l’assistant est `$asset->url($path)`; elle est aussi appelable directement.
+affiche `<link rel="stylesheet" href="/css/app.css?v=145ccd37">`. La valeur `v` correspond aux 8 premiers caractères hexadécimaux du md5 du fichier. Le second argument du constructeur choisit un autre algorithme de hachage. La méthode derrière l’assistant est `$asset->url($path)` ; elle est aussi appelable directement.
 
 - Un fichier qui n’existe pas est retourné inchangé : `/css/none.css` reste `/css/none.css`.
 - Un chemin qui contient déjà une chaîne de requête reçoit `&v=...` : `/css/app.css?x=1` devient `/css/app.css?x=1&v=145ccd37`.

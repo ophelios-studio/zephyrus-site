@@ -217,7 +217,7 @@ Placez le jeton une fois dans la page, et envoyez-le dans l’en-tête `X-CSRF-T
 </script>
 ```
 
-L’attribut `nonce` sert à la [Content-Security-Policy](../../digging-deeper/content-security-policy/) ; retirez-le si vous n’en envoyez pas.
+L’attribut `nonce` sert à la [Content-Security-Policy](../../digging-deeper/content-security-policy/) ; retirez-le si vous n’en envoyez pas.
 
 ### Refus
 
@@ -227,7 +227,7 @@ Un jeton absent ou erroné donne un 403, et le gestionnaire ne s’exécute jama
 This form could not be verified. Your session may have expired or not been saved. Reload the page and try again.
 ```
 
-Tout autre client reçoit du JSON : `{"error":"Invalid or missing CSRF token."}`. Pour afficher votre propre page, passez `onFailure`. Il reçoit la requête et un `CsrfFailure` (`CsrfFailure::TokenMissing` ou `CsrfFailure::TokenInvalid`) ; retourner `null` conserve la réponse par défaut :
+Tout autre client reçoit du JSON : `{"error":"Invalid or missing CSRF token."}`. Pour afficher votre propre page, passez `onFailure`. Il reçoit la requête et un `CsrfFailure` (`CsrfFailure::TokenMissing` ou `CsrfFailure::TokenInvalid`) ; retourner `null` conserve la réponse par défaut :
 
 ```php
 use Zephyrus\Http\Request;
@@ -278,7 +278,7 @@ Une route exemptée a perdu sa protection CSRF : elle doit donc authentifier so
 
 ### CsrfConfig
 
-`CsrfConfig::fromSecurityConfig($config->security)` lit `csrf.enabled` et `csrf.exceptions`, ce qu’attend la vérification du câblage. Construit à la main, `new CsrfConfig()` accepte `bodyField` (par défaut `_csrf_token`), `headerName` (par défaut `X-CSRF-Token`), `excludedPathPatterns` et `enabled` ; `CsrfConfig::defaults()` équivaut à `new CsrfConfig()`. `CsrfConfig::fromArray()` lit les mêmes réglages depuis un tableau et refuse les clés inconnues.
+`CsrfConfig::fromSecurityConfig($config->security)` lit `csrf.enabled` et `csrf.exceptions`, ce qu’attend la vérification du câblage. Construit à la main, `new CsrfConfig()` accepte `bodyField` (par défaut `_csrf_token`), `headerName` (par défaut `X-CSRF-Token`), `excludedPathPatterns` et `enabled` ; `CsrfConfig::defaults()` équivaut à `new CsrfConfig()`. `CsrfConfig::fromArray()` lit les mêmes réglages depuis un tableau et refuse les clés inconnues.
 
 Pour utiliser un autre magasin de jetons, implémentez `CsrfTokenManagerInterface` : `getToken(): string` et `isTokenValid(string $submitted): bool`, ce dernier comparant en temps constant.
 
@@ -303,7 +303,7 @@ Pour utiliser un autre magasin de jetons, implémentez `CsrfTokenManagerInterfac
 | `Content-Security-Policy` | non envoyé | `csp` | Aucune politique n’est sûre pour toutes les applications. |
 | `Permissions-Policy` | non envoyé | `permissions_policy` | À activer fonctionnalité du navigateur par fonctionnalité. |
 
-Une clé que vous définissez remplace sa valeur par défaut ; une clé que vous omettez la conserve. Une valeur vide (`''`) signifie que l’en-tête n’est pas envoyé. La configuration au haut de cette page envoie :
+Une clé que vous définissez remplace sa valeur par défaut ; une clé que vous omettez la conserve. Une valeur vide (`''`) signifie que l’en-tête n’est pas envoyé. La configuration au haut de cette page envoie :
 
 ```text
 x-frame-options: DENY
@@ -321,8 +321,8 @@ strict-transport-security: max-age=31536000
 ### À savoir
 
 - `Strict-Transport-Security` n’est envoyé que sur les requêtes HTTPS. Derrière un proxy qui termine TLS, la requête ne compte comme HTTPS que si le proxy est approuvé (voir plus bas).
-- Un en-tête déjà défini par la route l’emporte, même s’il est plus permissif : une route qui doit être intégrée dans un cadre par un partenaire définit son propre `X-Frame-Options` ou sa propre politique. Le `Content-Security-Policy` d’une route remplace entièrement celui de la configuration ; ils ne sont pas fusionnés. Un en-tête vide défini par une route n’équivaut pas à un retrait.
-- Construisez la configuration avec `SecureHeadersConfig::defaults()` ou `SecureHeadersConfig::fromArray([...])` quand vous montez le middleware sans fichier de configuration ; avec une section `headers:` déclarée, passez `$config->security->headers`.
+- Un en-tête déjà défini par la route l’emporte, même s’il est plus permissif : une route qui doit être intégrée dans un cadre par un partenaire définit son propre `X-Frame-Options` ou sa propre politique. Le `Content-Security-Policy` d’une route remplace entièrement celui de la configuration ; ils ne sont pas fusionnés. Un en-tête vide défini par une route n’équivaut pas à un retrait.
+- Construisez la configuration avec `SecureHeadersConfig::defaults()` ou `SecureHeadersConfig::fromArray([...])` quand vous montez le middleware sans fichier de configuration ; avec une section `headers:` déclarée, passez `$config->security->headers`.
 
 ## Forcer HTTPS
 
@@ -392,7 +392,7 @@ Sans `x-forwarded-proto`, une requête qu’un proxy a terminée en TLS n’est 
 
 Le port de l’en-tête `Host` lui-même n’est pas vérifié non plus : un client peut donc placer son propre port dans une URL construite à partir de la requête. Construisez les liens envoyés par courriel (réinitialisation de mot de passe, invitations) à partir d’une URL de base configurée, jamais à partir de la requête.
 
-`['*']` approuve tous les pairs. Il existe pour le développement local derrière un proxy de conteneur ; en production, il permet à n’importe quel client de choisir sa propre adresse.
+`['*']` approuve tous les pairs. Il existe pour le développement local derrière un proxy de conteneur ; en production, il permet à n’importe quel client de choisir sa propre adresse.
 
 ### IpRange
 
@@ -428,7 +428,7 @@ $builder = $builder->withMiddleware(new MaxBodySizeMiddleware(
 ));
 ```
 
-Pour répondre vous-même, passez `onFailure`. Il reçoit la requête et un `BodyTooLarge` portant `bytes` (la taille mesurée ou déclarée) et `maxBytes` ; retourner `null` conserve la réponse par défaut :
+Pour répondre vous-même, passez `onFailure`. Il reçoit la requête et un `BodyTooLarge` portant `bytes` (la taille mesurée ou déclarée) et `maxBytes` ; retourner `null` conserve la réponse par défaut :
 
 ```php
 use Zephyrus\Http\Request;
@@ -448,7 +448,7 @@ $builder = $builder->withMiddleware(new MaxBodySizeMiddleware(
 - C’est un budget, pas une défense. Au moment où PHP s’exécute, le serveur web a déjà lu le corps. Fixez aussi la limite du serveur lui-même (`client_max_body_size` dans nginx, `LimitRequestBody` dans Apache) ainsi que `post_max_size` et `upload_max_filesize` de PHP.
 - Les téléversements multipart sont analysés par PHP avant l’exécution de votre code : leur corps brut est donc vide et seul `Content-Length` compte.
 - `bytes` reprend ce que le client a déclaré et peut être absurdement grand. Montrez `maxBytes` à l’utilisateur, pas `bytes`.
-- `new MaxBodySizeMiddleware(0)` est illimité ; une limite négative est refusée.
+- `new MaxBodySizeMiddleware(0)` est illimité ; une limite négative est refusée.
 
 ## Liste de vérification pour la production
 

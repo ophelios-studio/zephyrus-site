@@ -73,7 +73,7 @@ public function back(Request $request): Response
 }
 ```
 
-`?next=//evil.example` redirige vers `/account/`; `?next=/account/settings` redirige vers `/account/settings`.
+`?next=//evil.example` redirige vers `/account/` ; `?next=/account/settings` redirige vers `/account/settings`.
 
 ## Valider les entrées
 
@@ -95,7 +95,7 @@ public function changeEmail(Request $request): Response
 
 ## Points d’entrée de cycle de vie
 
-`Controller` implémente `ControllerLifecycleInterface` : `before(Request $request): ?Response` s’exécute avant le gestionnaire et `after(Request $request, Response $response): Response` s’exécute après. L’interface est le contrat; tout contrôleur peut l’implémenter sans étendre `Controller`.
+`Controller` implémente `ControllerLifecycleInterface` : `before(Request $request): ?Response` s’exécute avant le gestionnaire et `after(Request $request, Response $response): Response` s’exécute après. L’interface est le contrat ; tout contrôleur peut l’implémenter sans étendre `Controller`.
 
 L’ordre est `before()`, le gestionnaire, `after()`. Une `Response` retournée par `before()` est envoyée telle quelle : le gestionnaire et `after()` sont ignorés. Une exception lancée par le gestionnaire ignore aussi `after()`.
 
@@ -126,7 +126,7 @@ final class AccountController extends Controller
 }
 ```
 
-Le `before()` par défaut range la requête dans `$this->request`. Une redéfinition doit d’abord appeler `parent::before($request)`, sinon `$this->request` reste non initialisé. Les points d’entrée s’appliquent à un seul contrôleur; la logique partagée par plusieurs routes relève des [middlewares](../middleware/), qui voient aussi les réponses 404 et 405.
+Le `before()` par défaut range la requête dans `$this->request`. Une redéfinition doit d’abord appeler `parent::before($request)`, sinon `$this->request` reste non initialisé. Les points d’entrée s’appliquent à un seul contrôleur ; la logique partagée par plusieurs routes relève des [middlewares](../middleware/), qui voient aussi les réponses 404 et 405.
 
 Le 401 ci-dessus ignore `after()`, il ne porte donc aucun en-tête `Cache-Control`. Décorez les réponses d’erreur là où vous les construisez, ou faites-le dans un middleware.
 
@@ -178,8 +178,8 @@ Le conteneur construit `Clock` automatiquement lorsqu’il s’agit d’une clas
 ## Bon à savoir
 
 - Une redéfinition de `before()` doit appeler `parent::before($request)`, sinon `$this->request` n’est pas initialisé lorsque le gestionnaire le lit.
-- Une `Response` provenant de `before()` ignore `after()`; une exception du gestionnaire l’ignore aussi.
+- Une `Response` provenant de `before()` ignore `after()` ; une exception du gestionnaire l’ignore aussi.
 - N’enregistrez pas un contrôleur comme singleton du conteneur s’il garde un état propre à la requête, comme `$this->request` : la même instance servirait toutes les requêtes du processus.
-- Utilisez `localRedirect()` pour toute cible de redirection qui provient de la requête; `redirect()` fait confiance à son argument.
+- Utilisez `localRedirect()` pour toute cible de redirection qui provient de la requête ; `redirect()` fait confiance à son argument.
 - `abort()` envoie un corps HTML et `abortJson()` un corps JSON. Choisissez celui qu’attend votre client.
 - Un enregistrement manquant est un 404 : `return $this->abort(404)`, ou lancez `RouteNotFoundException` depuis un code plus profond (voir [Routage](../routing/#404-et-405)).

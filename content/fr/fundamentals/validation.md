@@ -91,7 +91,7 @@ try {
 }
 ```
 
-Le message de l’exception est `Validation failed.`; il n’est pas envoyé au client. `ValidationException::fromErrorBag($bag, $message)` en construit une à partir d’un sac que vous avez rempli vous-même.
+Le message de l’exception est `Validation failed.` ; il n’est pas envoyé au client. `ValidationException::fromErrorBag($bag, $message)` en construit une à partir d’un sac que vous avez rempli vous-même.
 
 ## Le sac d’erreurs
 

@@ -31,7 +31,7 @@ interface AuthGuardInterface
 }
 ```
 
-`AuthGuardMiddleware` exécute une garde et arrête la requête quand elle répond `false`. Par défaut, le refus est un 401 avec `{"error":"Unauthorized"}` ; les deuxième et troisième arguments changent le statut et le message :
+`AuthGuardMiddleware` exécute une garde et arrête la requête quand elle répond `false`. Par défaut, le refus est un 401 avec `{"error":"Unauthorized"}` ; les deuxième et troisième arguments changent le statut et le message :
 
 ```php
 use Zephyrus\Security\AuthGuardMiddleware;
@@ -120,7 +120,7 @@ final class MetricsController extends Controller
 }
 ```
 
-Un middleware nommé ne s’exécute que sur les routes qui le nomment, après les middlewares globaux (sessions et CSRF compris). Sur une classe, il s’applique à toutes les routes de cette classe ; les noms de classe s’exécutent avant les noms de méthode. `build()` refuse une route qui nomme un middleware que personne n’a enregistré, de sorte qu’une faute de frappe ne peut pas laisser une route ouverte. Plusieurs noms peuvent partager un alias grâce à un groupe de middlewares, décrit sur la [page des middlewares](../middleware/).
+Un middleware nommé ne s’exécute que sur les routes qui le nomment, après les middlewares globaux (sessions et CSRF compris). Sur une classe, il s’applique à toutes les routes de cette classe ; les noms de classe s’exécutent avant les noms de méthode. `build()` refuse une route qui nomme un middleware que personne n’a enregistré, de sorte qu’une faute de frappe ne peut pas laisser une route ouverte. Plusieurs noms peuvent partager un alias grâce à un groupe de middlewares, décrit sur la [page des middlewares](../middleware/).
 
 Le jeton vient de l’environnement, par une section de configuration à vous (voir [configuration](../configuration/)) qui refuse de démarrer sans lui :
 
@@ -330,7 +330,7 @@ final class SessionController extends Controller
 }
 ```
 
-Générez votre propre `TIMING_HASH` une seule fois avec `Cryptography::hashPassword(Cryptography::randomHex(32))` ; n’importe quelle empreinte Argon2id avec les mêmes paramètres convient. `SessionCsrfTokenManager` lit la même clé de session que celui de votre bootstrap ; si vous avez donné une clé personnalisée à ce dernier, passez-la aussi en deuxième argument ici.
+Générez votre propre `TIMING_HASH` une seule fois avec `Cryptography::hashPassword(Cryptography::randomHex(32))` ; n’importe quelle empreinte Argon2id avec les mêmes paramètres convient. `SessionCsrfTokenManager` lit la même clé de session que celui de votre bootstrap ; si vous avez donné une clé personnalisée à ce dernier, passez-la aussi en deuxième argument ici.
 
 ### Les formulaires
 
@@ -545,13 +545,13 @@ final class AdminController extends Controller
 {/block}
 ```
 
-Un visiteur anonyme qui se rend à `/account` est redirigé vers `/sign-in` ; un membre qui ouvre `/admin/users` reçoit un 403 `{"error":"Forbidden"}` ; un administrateur obtient la liste.
+Un visiteur anonyme qui se rend à `/account` est redirigé vers `/sign-in` ; un membre qui ouvre `/admin/users` reçoit un 403 `{"error":"Forbidden"}` ; un administrateur obtient la liste.
 
 ### Ce que tente un attaquant
 
 Chaque étape ci-dessus répond à une attaque connue :
 
-- **Fixation de session.** L’attaquant impose un identifiant de session dans le navigateur de la victime, attend la connexion, puis utilise le même identifiant. `regenerate()` donne à la session authentifiée un nouvel identifiant, et un gestionnaire de sauvegarde de session qui implémente `validateId()` refuse les identifiants qu’il n’a pas créés. Le gestionnaire de fichiers par défaut de PHP et `DatabaseSessionHandler` le font ; avec un gestionnaire personnalisé qui n’a pas `validateId()`, le mode strict est inopérant et `start()` en avertit en mode débogage (voir [sessions](../sessions/)).
+- **Fixation de session.** L’attaquant impose un identifiant de session dans le navigateur de la victime, attend la connexion, puis utilise le même identifiant. `regenerate()` donne à la session authentifiée un nouvel identifiant, et un gestionnaire de sauvegarde de session qui implémente `validateId()` refuse les identifiants qu’il n’a pas créés. Le gestionnaire de fichiers par défaut de PHP et `DatabaseSessionHandler` le font ; avec un gestionnaire personnalisé qui n’a pas `validateId()`, le mode strict est inopérant et `start()` en avertit en mode débogage (voir [sessions](../sessions/)).
 - **Un jeton lu avant la connexion.** `(new SessionCsrfTokenManager($session))->regenerate()` remplace le jeton CSRF, de sorte que celui lu depuis la page anonyme cesse de fonctionner : un envoi qui le porte après la connexion reçoit un 403.
 - **CSRF de connexion.** Un formulaire forgé connecte la victime au compte de l’attaquant, pour recueillir ce qu’elle saisit. Le formulaire de connexion porte le jeton comme n’importe quel autre.
 - **Énumération de comptes.** La réponse pour un courriel inconnu et pour un mauvais mot de passe est la même page, le même statut (422) et à peu près le même temps, parce que le chemin du courriel inconnu vérifie aussi `TIMING_HASH`. Cela ne tient que tant que chaque empreinte stockée a les paramètres de `TIMING_HASH` : une empreinte bcrypt importée, ou une empreinte Argon2id avec les paramètres par défaut de PHP, prend un temps de vérification mesurablement différent (126 ms pour un courriel inconnu, 147 ms pour une empreinte issue de `hashPassword()`, 208 ms pour une empreinte Argon2id aux paramètres par défaut de PHP, presque rien pour bcrypt), de sorte que ces comptes peuvent être distingués tant qu’ils ne sont pas migrés.
@@ -562,8 +562,8 @@ Chaque étape ci-dessus répond à une attaque connue :
 
 ## À savoir
 
-- `verifyPassword()` accepte n’importe quelle empreinte Argon2id, y compris une empreinte issue de `password_hash($password, PASSWORD_ARGON2ID)` de PHP ; `needsRehash()` retourne alors `true`, et la connexion ci-dessus stocke la nouvelle empreinte. Elle retourne `false` pour une empreinte bcrypt : pour migrer de tels comptes, vérifiez-les avec `password_verify()` et stockez `Cryptography::hashPassword()` en cas de succès. Tant qu’un compte n’est pas migré, son temps de connexion diffère de celui du chemin du courriel inconnu (voir l’énumération de comptes ci-dessus).
-- Affichez un seul message pour les deux échecs. « Aucun compte avec ce courriel » indique à un attaquant quels courriels sont inscrits ; ne fournissez cette information que par un courriel de réinitialisation de mot de passe.
+- `verifyPassword()` accepte n’importe quelle empreinte Argon2id, y compris une empreinte issue de `password_hash($password, PASSWORD_ARGON2ID)` de PHP ; `needsRehash()` retourne alors `true`, et la connexion ci-dessus stocke la nouvelle empreinte. Elle retourne `false` pour une empreinte bcrypt : pour migrer de tels comptes, vérifiez-les avec `password_verify()` et stockez `Cryptography::hashPassword()` en cas de succès. Tant qu’un compte n’est pas migré, son temps de connexion diffère de celui du chemin du courriel inconnu (voir l’énumération de comptes ci-dessus).
+- Affichez un seul message pour les deux échecs. « Aucun compte avec ce courriel » indique à un attaquant quels courriels sont inscrits ; ne fournissez cette information que par un courriel de réinitialisation de mot de passe.
 - Sans `SessionMiddleware` monté globalement, `$request->attribute('session')` vaut `null` et les écritures `session()` sont abandonnées en silence (voir [sessions](../sessions/)). Montez-le avant tout middleware de route qui lit l’utilisateur.
 - `AuthGuardMiddleware` répond toujours en JSON. Pour les pages, redirigez depuis votre propre middleware, comme le fait `RequireUserMiddleware`.
 - Stockez le moins possible dans la session : l’identifiant de l’utilisateur et ce que vous devez vérifier à chaque requête. Lisez le reste dans la base de données.

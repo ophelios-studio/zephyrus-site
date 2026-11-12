@@ -93,7 +93,7 @@ $config = Configuration::fromYamlFile(__DIR__ . '/config.yml');
 
 Seuls `$_ENV` et l’environnement du processus sont lus, jamais `$_SERVER`. `$_SERVER` porte des valeurs qu’un client peut influencer : une variable définie par requête avec `SetEnv` d’Apache ou un `fastcgi_param` n’est donc pas vue. Définissez-la dans le véritable environnement du processus : l’environnement du conteneur, ou `env[NAME]` dans un pool php-fpm.
 
-Pour la même raison, un nom de variable qu’une requête ou le serveur web peut fournir est refusé, quelle que soit sa casse. Appeler directement `env('HTTP_HOST')` lève une `InvalidArgumentException` ; le même nom dans un fichier YAML (`debug: !env HTTP_HOST`) lève une `ConfigurationException` dont le message est précédé de la balise et de la clé. Les noms refusés sont ceux qui commencent par `HTTP_`, `REDIRECT_`, `ORIG_`, `SSL_` ou `H2_`, les noms CGI et serveur comme `REMOTE_ADDR`, `QUERY_STRING`, `HTTPS` ou `SERVER_NAME`, et tout nom contenant `=` ou un octet NUL.
+Pour la même raison, un nom de variable qu’une requête ou le serveur web peut fournir est refusé, quelle que soit sa casse. Appeler directement `env('HTTP_HOST')` lève une `InvalidArgumentException` ; le même nom dans un fichier YAML (`debug: !env HTTP_HOST`) lève une `ConfigurationException` dont le message est précédé de la balise et de la clé. Les noms refusés sont ceux qui commencent par `HTTP_`, `REDIRECT_`, `ORIG_`, `SSL_` ou `H2_`, les noms CGI et serveur comme `REMOTE_ADDR`, `QUERY_STRING`, `HTTPS` ou `SERVER_NAME`, et tout nom contenant `=` ou un octet NUL.
 
 ```text
 !env tag at "application.debug": "HTTP_HOST": names starting with HTTP_ can be set per request by the client request headers, so they are never read as configuration; rename the variable.

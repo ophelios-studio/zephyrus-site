@@ -24,7 +24,7 @@ Un formulaire qui envoie un fichier doit être un formulaire `multipart/form-dat
 </form>
 ```
 
-Dans le contrôleur, `$request->file('avatar')` retourne un `FileUpload`, ou `null` lorsque le champ est absent. Confiez-le à un `Uploader` :
+Dans le contrôleur, `$request->file('avatar')` retourne un `FileUpload`, ou `null` lorsque le champ est absent. Confiez-le à un `Uploader` :
 
 ```php
 use Zephyrus\Http\Request;
@@ -99,7 +99,7 @@ Définissez les deux listes blanches. Sans elles, tous les fichiers sont accept�
 
 ### D’où vient le nom du fichier
 
-Lorsque vous ne passez pas de troisième argument à `store()`, le fichier est nommé avec 32 caractères hexadécimaux aléatoires, et son extension provient du type détecté : un PNG reçoit `.png`, peu importe son nom d’origine. Un type détecté qui n’a pas d’entrée dans la table du framework (un type que le framework ne connaît pas) ne reçoit aucune extension. Ajoutez-en une avec `mimeExtensionMap` :
+Lorsque vous ne passez pas de troisième argument à `store()`, le fichier est nommé avec 32 caractères hexadécimaux aléatoires, et son extension provient du type détecté : un PNG reçoit `.png`, peu importe son nom d’origine. Un type détecté qui n’a pas d’entrée dans la table du framework (un type que le framework ne connaît pas) ne reçoit aucune extension. Ajoutez-en une avec `mimeExtensionMap` :
 
 ```php
 new Uploader($root, mimeExtensionMap: ['application/octet-stream' => 'bin']);
@@ -143,7 +143,7 @@ Ce qui rend ceci sûr :
 
 Pour un fichier qu’un visiteur devrait télécharger plutôt qu’afficher, ajoutez `Content-Disposition: attachment`. Faites-le pour chaque type qui n’est pas une image que vous avez choisie : un SVG ouvert dans le navigateur exécute son script dans l’origine de votre site.
 
-Une requête vers `/avatars/<the generated name>` reçoit une réponse 200 avec `Content-Type: image/png`; `/avatars/shell.png` et un chemin `..` encodé reçoivent une réponse 404.
+Une requête vers `/avatars/<the generated name>` reçoit une réponse 200 avec `Content-Type: image/png` ; `/avatars/shell.png` et un chemin `..` encodé reçoivent une réponse 404.
 
 ## Limites de taille
 
@@ -182,7 +182,7 @@ N’utilisez ce déplaceur que dans les tests : il supprime la garantie que le 
 
 | Membre | Ce qu’il donne |
 |---|---|
-| `originalName`, `clientMimeType`, `sizeBytes` | Ce que le client a prétendu. Affichez-les; ne décidez jamais avec eux. |
+| `originalName`, `clientMimeType`, `sizeBytes` | Ce que le client a prétendu. Affichez-les ; ne décidez jamais avec eux. |
 | `tmpPath` | L’endroit où PHP a placé le fichier temporaire. |
 | `errorCode` | L’erreur de téléversement de PHP, `UPLOAD_ERR_OK` lorsque tout va bien. |
 | `isValid()` | Indique si PHP n’a signalé aucune erreur. |
@@ -194,7 +194,7 @@ N’utilisez ce déplaceur que dans les tests : il supprime la garantie que le 
 
 ## UploadException
 
-Chaque refus est une `UploadException` : une erreur de téléversement de PHP, un fichier temporaire manquant ou illisible, un type, une extension ou une taille non permis, un chemin qui s’échappe de la racine, une destination qui existe, un déplacement qui a échoué, et un fichier qui n’est pas un téléversement authentique. Interceptez-la autour de `store()` et répondez avec une phrase de votre cru. Son message est destiné à vos journaux.
+Chaque refus est une `UploadException` : une erreur de téléversement de PHP, un fichier temporaire manquant ou illisible, un type, une extension ou une taille non permis, un chemin qui s’échappe de la racine, une destination qui existe, un déplacement qui a échoué, et un fichier qui n’est pas un téléversement authentique. Interceptez-la autour de `store()` et répondez avec une phrase de votre cru. Son message est destiné à vos journaux.
 
 ## Bon à savoir
 
