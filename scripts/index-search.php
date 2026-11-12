@@ -2,7 +2,8 @@
 
 declare(strict_types=1);
 
-// Leaf indexes titles, headings and a short excerpt: add each page's body text.
+// Leaf indexes titles, headings and an excerpt that starts with the title:
+// add each page's body text, and use the page's tagline as the excerpt.
 const INLINE_TAGS = ['a', 'abbr', 'b', 'code', 'del', 'em', 'i', 'img', 'kbd', 'mark', 's', 'small', 'span', 'strong', 'sub', 'sup'];
 
 function readableText(Dom\Node $node): string
@@ -39,7 +40,9 @@ foreach ($indexes as $indexPath) {
         foreach ($prose->querySelectorAll('h1, .heading-permalink') as $redundant) {
             $redundant->remove();
         }
+        $tagline = $prose->querySelector('p');
         $text = collapse(readableText($prose));
+        $entry['excerpt'] = $tagline === null ? mb_substr($text, 0, 160) : collapse($tagline->textContent);
         $entry['text'] = $text;
     }
     unset($entry);
