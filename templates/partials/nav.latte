@@ -4,8 +4,8 @@
     <a href="{$leafBaseUrl}{$localePrefix}/" class="brand" aria-label="{localize('common.home')}">{include 'mark.latte'}<span>zephyrus<span class="brand-period">.</span></span></a>
     <nav class="main-nav" aria-label="{localize('common.navigation')}">
         {if !($docsMode ?? false)}
-        <a href="#philosophy">{localize('common.philosophy')}</a>
-        <a href="#framework">{localize('common.framework')}</a>
+        <a href="{$leafBaseUrl}{$localePrefix}/#philosophy">{localize('common.philosophy')}</a>
+        <a href="{$leafBaseUrl}{$localePrefix}/#framework">{localize('common.framework')}</a>
         {/if}
         <a href="{$leafBaseUrl}{$localePrefix}/getting-started/introduction/"{if $docsMode ?? false} aria-current="page"{/if}>{localize('common.documentation')} <span class="nav-preview">{localize('common.preview')}</span></a>
     </nav>
