@@ -65,7 +65,7 @@ The environment defaults to `production`, so an unset `APP_ENV` never means deve
 
 ## Bootstrap
 
-The bootstrap class builds the application and mounts the middleware, in order. The first one added runs outermost.
+The bootstrap class, `app/Kernel.php`, builds the application and mounts the middleware, in order. The first one added runs outermost.
 
 ```php
 <?php
@@ -127,6 +127,8 @@ final class Kernel
     }
 }
 ```
+
+`public/index.php` calls it:
 
 ```php
 <?php

@@ -65,7 +65,7 @@ L’environnement est `production` par défaut : un `APP_ENV` non défini ne si
 
 ## Démarrage
 
-La classe de démarrage construit l’application et monte les middlewares, dans l’ordre. Le premier ajouté est le plus à l’extérieur.
+La classe de démarrage, `app/Kernel.php`, construit l’application et monte les middlewares, dans l’ordre. Le premier ajouté est le plus à l’extérieur.
 
 ```php
 <?php
@@ -127,6 +127,8 @@ final class Kernel
     }
 }
 ```
+
+`public/index.php` l’appelle :
 
 ```php
 <?php
