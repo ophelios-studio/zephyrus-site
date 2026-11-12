@@ -205,12 +205,16 @@ N’importe qui peut envoyer des données à cette route : réencoder le rappor
 3. Quand les rapports cessent, passez à `reportOnly: false`. Gardez la directive `report-uri` pour être informé de ce que vous avez manqué.
 4. Resserrez ensuite davantage : gardez `'unsafe-inline'` et `'unsafe-eval'` hors de `script-src`, ajoutez `upgrade-insecure-requests` une fois que tout est servi en HTTPS, et, avec les nonces en place, envisagez `->appendValue('script-src', "'strict-dynamic'")`, qui permet à vos scripts munis d’un nonce de charger leurs propres dépendances et ignore les listes d’hôtes dans les navigateurs qui le prennent en charge.
 
-Montez un seul `ContentSecurityPolicyMiddleware` qui prend des nonces par requête. Chacun produit son propre nonce, et `nonce()` retourne le dernier produit, soit celui du middleware le plus interne. Le middleware externe envoie alors un en-tête qui nomme un nonce qu’aucune balise ne porte. Avec deux middlewares qui prennent tous deux des nonces, l’un appliqué et l’autre en rapport seulement :
+Plusieurs `ContentSecurityPolicyMiddleware` qui prennent des nonces partagent un seul nonce par requête : le premier le produit, les autres et `nonce()` le réutilisent. Une politique appliquée et un essai en rapport seulement peuvent donc nommer tous deux le nonce que porte la page :
 
-- Externe appliqué, interne en rapport seulement : `Content-Security-Policy` porte le nonce périmé, et le navigateur bloque donc tous les scripts qui ont l’attribut nonce. Seul `Content-Security-Policy-Report-Only` correspond à la page.
-- Externe en rapport seulement, interne appliqué : `Content-Security-Policy` correspond à la page, et `Content-Security-Policy-Report-Only` porte le nonce périmé, de sorte qu’il signale une violation pour chaque script muni d’un nonce.
+```php
+$kernel = $builder
+    ->withMiddleware(new ContentSecurityPolicyMiddleware($enforced, nonceDirectives: ['script-src']))
+    ->withMiddleware(new ContentSecurityPolicyMiddleware($trial, reportOnly: true, nonceDirectives: ['script-src']))
+    ->build();
+```
 
-Pour essayer une politique plus stricte à côté d’une politique appliquée, donnez à l’essai une politique sans nonce, ou exécutez-le seul en mode rapport seulement sur une copie de préproduction.
+Les en-têtes `Content-Security-Policy` et `Content-Security-Policy-Report-Only` portent alors la même valeur `'nonce-...'` que les balises produites avec `nonce()`. Avant la version 0.14.1, chaque middleware produisait son propre nonce et `nonce()` retournait celui du plus interne : l’en-tête externe nommait donc un nonce que aucune balise ne portait.
 
 ## À savoir
 

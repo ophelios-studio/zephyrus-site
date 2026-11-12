@@ -205,12 +205,16 @@ Anyone can post to this route: re-encoding the report with `json_encode()` keeps
 3. When the reports stop, switch to `reportOnly: false`. Keep the `report-uri` directive to hear about what you missed.
 4. Then tighten further: keep `'unsafe-inline'` and `'unsafe-eval'` out of `script-src`, add `upgrade-insecure-requests` once everything is served over HTTPS, and with nonces in place consider `->appendValue('script-src', "'strict-dynamic'")`, which lets your nonced scripts load their own dependencies and ignores host allowlists in browsers that support it.
 
-Mount one `ContentSecurityPolicyMiddleware` that takes nonces per request. Each one mints its own nonce, and `nonce()` returns the last one minted, which is the one of the innermost middleware. The outer middleware then sends a header that names a nonce no tag carries. With two middleware that both take nonces, one enforced and one report-only:
+Several `ContentSecurityPolicyMiddleware` that take nonces share one nonce per request: the first mints it, the others and `nonce()` reuse it. An enforced policy and a report-only trial can therefore both name the nonce the page carries:
 
-- Enforced outer, report-only inner: `Content-Security-Policy` carries the stale nonce, so the browser blocks every script that has the nonce attribute. Only `Content-Security-Policy-Report-Only` matches the page.
-- Report-only outer, enforced inner: `Content-Security-Policy` matches the page, and `Content-Security-Policy-Report-Only` carries the stale nonce, so it reports a violation for every nonced script.
+```php
+$kernel = $builder
+    ->withMiddleware(new ContentSecurityPolicyMiddleware($enforced, nonceDirectives: ['script-src']))
+    ->withMiddleware(new ContentSecurityPolicyMiddleware($trial, reportOnly: true, nonceDirectives: ['script-src']))
+    ->build();
+```
 
-To trial a stricter policy next to an enforced one, give the trial a policy with no nonce, or run it alone in report-only mode on a staging copy.
+Both `Content-Security-Policy` and `Content-Security-Policy-Report-Only` then carry the same `'nonce-...'` value as the tags rendered with `nonce()`. Before 0.14.1 each middleware minted its own nonce and `nonce()` returned the innermost one, so the outer header named a nonce no tag carried.
 
 ## Good to know
 
