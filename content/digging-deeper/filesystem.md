@@ -46,7 +46,7 @@ $copy = $file->copy($root . '/storage/archive/2026-copy.txt');
 $moved = $copy->move($root . '/storage/archive/2027.txt');
 ```
 
-A file that `File` creates (`create()`, `write()` or `copy()` onto a path that did not exist) gets the mode `File::DEFAULT_PERMISSIONS`, `0644`, whatever the process umask. That includes a restrictive umask: under `umask(0077)` a file made by `File::create()` is still `0644`, readable by every local user, where `file_put_contents()` would give `0600`. For a private file, call `chmod()` on it afterwards or keep it in a directory only your user can enter.
+A file that `File` creates (`create()`, `write()` or `copy()` onto a path that did not exist) gets `File::DEFAULT_PERMISSIONS`, `0644`, narrowed by the process umask: the mode is never wider than the umask allows. Under `umask(0077)` a file made by `File::create()` is `0600`, as with `file_put_contents()`, and under `umask(0022)` it is `0644`. A new copy is also never wider than its source: copying a `0600` file gives a `0600` file. A copy onto an existing destination keeps that file's permissions. Version 0.14.0 forced `0644` whatever the umask or the source.
 
 Before writing, `create()`, `write()` and `copy()` remove a symbolic link they find at the destination and write a regular file in its place. The check and the write are two steps, so it is not a guarantee against someone racing you in a directory they can write to. `append()` still follows a link.
 
@@ -78,7 +78,7 @@ $archive->recursiveGlob('*.csv'); // list of paths (every level)
 
 With an `archive` directory holding `2027.txt`, `a.csv` and `deep/b.csv`, those calls gave `2027.txt`, `deep`, one path and two paths. `size()` was `9` and `isEmpty()` was `false`.
 
-`delete(true)` removes the content first and throws on the first entry it cannot remove, so a partial purge is never reported as success. A symbolic link inside is unlinked, never followed: the target survives. Never call `delete(true)` on a path that may itself be a symbolic link: it empties the link's target, then throws. `delete()` without `true` on a directory that still has content throws `Failed to delete directory: <path>`.
+`delete(true)` removes the content first and throws on the first entry it cannot remove, so a partial purge is never reported as success. A symbolic link inside is unlinked, never followed: the target survives. Deleting a path that is itself a symbolic link, live or dangling, removes only the link, with or without `true`: its target survives. Version 0.14.0 emptied the target of a live link, then threw. `delete()` without `true` on a directory that still has content throws `Failed to delete directory: <path>`.
 
 ## What a node knows
 

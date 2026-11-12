@@ -46,7 +46,7 @@ $copy = $file->copy($root . '/storage/archive/2026-copy.txt');
 $moved = $copy->move($root . '/storage/archive/2027.txt');
 ```
 
-Un fichier que `File` crée (`create()`, `write()` ou `copy()` vers un chemin qui n’existait pas) reçoit le mode `File::DEFAULT_PERMISSIONS`, `0644`, quel que soit l’umask du processus. Cela inclut un umask restrictif : sous `umask(0077)`, un fichier créé par `File::create()` est tout de même `0644`, lisible par tous les utilisateurs locaux, là où `file_put_contents()` donnerait `0600`. Pour un fichier privé, appelez ensuite `chmod()` dessus ou gardez-le dans un répertoire que seul votre utilisateur peut ouvrir.
+Un fichier que `File` crée (`create()`, `write()` ou `copy()` vers un chemin qui n’existait pas) reçoit `File::DEFAULT_PERMISSIONS`, `0644`, restreint par l’umask du processus : le mode n’est jamais plus large que ce que l’umask permet. Sous `umask(0077)`, un fichier créé par `File::create()` est `0600`, comme avec `file_put_contents()`, et sous `umask(0022)` il est `0644`. Une nouvelle copie n’est de plus jamais plus large que sa source : copier un fichier `0600` donne un fichier `0600`. Une copie vers une destination existante conserve les permissions de ce fichier. La version 0.14.0 forçait `0644`, quels que soient l’umask et la source.
 
 Avant d’écrire, `create()`, `write()` et `copy()` suppriment un lien symbolique trouvé à la destination et écrivent un fichier ordinaire à sa place. La vérification et l’écriture sont deux étapes : ce n’est donc pas une garantie contre quelqu’un qui vous devancerait dans un répertoire où il peut écrire. `append()` suit toujours un lien.
 
@@ -78,7 +78,7 @@ $archive->recursiveGlob('*.csv'); // list of paths (every level)
 
 Avec un répertoire `archive` contenant `2027.txt`, `a.csv` et `deep/b.csv`, ces appels ont donné `2027.txt`, `deep`, un chemin et deux chemins. `size()` valait `9` et `isEmpty()` valait `false`.
 
-`delete(true)` supprime d’abord le contenu et lève une exception à la première entrée qu’il ne peut pas supprimer : une purge partielle n’est donc jamais signalée comme un succès. Un lien symbolique à l’intérieur est délié, jamais suivi : la cible survit. N’appelez jamais `delete(true)` sur un chemin qui peut lui-même être un lien symbolique : il vide la cible du lien, puis lève une exception. `delete()` sans `true` sur un répertoire qui a encore du contenu lève `Failed to delete directory: <path>`.
+`delete(true)` supprime d’abord le contenu et lève une exception à la première entrée qu’il ne peut pas supprimer : une purge partielle n’est donc jamais signalée comme un succès. Un lien symbolique à l’intérieur est délié, jamais suivi : la cible survit. Supprimer un chemin qui est lui-même un lien symbolique, valide ou orphelin, ne retire que le lien, avec ou sans `true` : sa cible survit. La version 0.14.0 vidait la cible d’un lien valide, puis levait une exception. `delete()` sans `true` sur un répertoire qui a encore du contenu lève `Failed to delete directory: <path>`.
 
 ## Ce que sait un nœud
 
