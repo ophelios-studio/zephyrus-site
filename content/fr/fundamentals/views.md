@@ -142,7 +142,7 @@ localization:
 
 Avec une locale qui n’a pas de devise native, comme `en`, le filtre lance `Currency required: locale "en" has no native currency...`. Avec la locale `en_CA` et la devise `CAD` ci-dessus, `{$total|money}` a affiché `$1,234.50`, `{$date|date}` a affiché `Mar 9, 2026` et `{$bytes|filesize}` a affiché `1.0 MB`.
 
-`App::getFormatter()` retourne le formateur que `build()` installe, appelez donc `registerFormatterFilters()` après `build()`.
+`App::getFormatter()` retourne le formateur que `build()` installe, appelez donc `registerFormatterFilters()` après `build()`. Les filtres gardent le formateur que vous passez. Pour suivre un formateur qu’un middleware installe plus tard, passez une fermeture : `$views->registerFormatterFilters(fn () => App::getFormatter())` l’appelle à chaque utilisation d’un filtre. Les noms de vos propres formateurs sont lus à l’enregistrement.
 
 Pour ajouter une fonction ou un filtre bien à vous, ou toute autre extension Latte, utilisez le moteur sous-jacent :
 

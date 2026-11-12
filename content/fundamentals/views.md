@@ -142,7 +142,7 @@ localization:
 
 With a locale that has no native currency, such as `en`, the filter throws `Currency required: locale "en" has no native currency...`. With the `en_CA` locale and `CAD` currency above, `{$total|money}` printed `$1,234.50`, `{$date|date}` printed `Mar 9, 2026` and `{$bytes|filesize}` printed `1.0 MB`.
 
-`App::getFormatter()` returns the formatter that `build()` installs, so call `registerFormatterFilters()` after `build()`.
+`App::getFormatter()` returns the formatter that `build()` installs, so call `registerFormatterFilters()` after `build()`. The filters keep the formatter you pass. To follow a formatter that a middleware installs later, pass a closure: `$views->registerFormatterFilters(fn () => App::getFormatter())` calls it on every filter use. The names of your own formatters are read when you register.
 
 To add a function or filter of your own, or any other Latte extension, use the underlying engine:
 
