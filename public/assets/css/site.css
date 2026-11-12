@@ -1930,6 +1930,7 @@ details[open] summary {
 }
 
 .search-result p {
+  overflow-wrap:anywhere;
   font-size:11px;
   color:#7f8a72;
   line-height:1.6;
