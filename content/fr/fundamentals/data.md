@@ -33,7 +33,7 @@ $config = Configuration::fromYamlFile($root . '/config.yml');
 $db = Database::fromConfig($config->database);
 ```
 
-`fromConfig()` ouvre la connexion avec des requêtes préparées côté serveur : le SQL et les valeurs voyagent toujours séparément, et il est impossible de désactiver ce comportement. Une connexion qui échoue lève une `DatabaseException` qui nomme le DSN (hôte, port, base de données, jamais le mot de passe) et la raison fournie par le pilote : journalisez-la, ne l’affichez pas.
+`fromConfig()` ouvre la connexion avec des requêtes préparées côté serveur : le SQL et les valeurs voyagent toujours séparément, et il est impossible de désactiver ce comportement. Sous PostgreSQL, chaque requête part aussi en instruction non nommée (`Pdo\Pgsql::ATTR_DISABLE_PREPARES`, posé après la connexion) : un aller-retour au lieu de trois (préparer, exécuter, fermer), les paramètres restant liés côté serveur et jamais émulés. La version 0.14.1 préparait une instruction nommée par requête. Pour retrouver les instructions nommées, appelez `$db->pdo()->setAttribute(\Pdo\Pgsql::ATTR_DISABLE_PREPARES, false)`. Une connexion qui échoue lève une `DatabaseException` qui nomme le DSN (hôte, port, base de données, jamais le mot de passe) et la raison fournie par le pilote : journalisez-la, ne l’affichez pas.
 
 `Database` n’est pas créée pour vous. Construisez-la une seule fois et transmettez-la à vos brokers, ou enregistrez-la dans le [conteneur](../../digging-deeper/container-and-events/) pour que les contrôleurs et les brokers la reçoivent par leur constructeur :
 
@@ -117,7 +117,20 @@ Les paramètres sont liés selon leur type : `null`, entiers, nombres à virgul
 
 `query()` retourne le `PDOStatement` brut et `pdo()` la connexion, pour les rares cas que les aides ne couvrent pas. Une instruction exécutée par `pdo()` n’est pas suivie par `transaction()`.
 
-`new Database($pdo)` enveloppe une connexion PDO que vous avez ouverte vous-même (une base de données de test, par exemple) : elle y force les exceptions, les lignes sous forme d’objets et les requêtes préparées côté serveur. `inTransaction()` indique si une transaction est ouverte à l’instant même : ne mettez pas la réponse en cache.
+`new Database($pdo)` enveloppe une connexion PDO que vous avez ouverte vous-même (une base de données de test, par exemple) : elle y force les exceptions, les lignes sous forme d’objets et les requêtes préparées côté serveur, et laisse les instructions nommées telles quelles. `inTransaction()` indique si une transaction est ouverte à l’instant même : ne mettez pas la réponse en cache.
+
+### Cache des types de colonnes
+
+Les lignes sont décodées d’après les types de colonnes que rapporte PostgreSQL. Ces types sont mis en cache par texte SQL et par largeur de résultat, dans le processus et dans APCu lorsqu’il est installé. Seule une instruction dont le premier élément, après les blancs et les commentaires, est une parenthèse ou `SELECT`, `WITH`, `VALUES`, `TABLE`, `INSERT`, `UPDATE`, `DELETE` ou `MERGE` utilise le cache (un commentaire de bloc qui en contient un autre n’est pas sauté). Toute autre instruction (`FETCH`, `EXECUTE`, `SHOW`, `CALL`) décrit ses colonnes à chaque appel, soit un à deux allers-retours par colonne : récupérez donc par grands lots. La version 0.14.1 laissait un `FETCH` sur un second curseur de même largeur hériter des convertisseurs du premier, et ses colonnes `jsonb` revenaient sous forme de chaînes.
+
+Une colonne qui change de type en gardant son nom et la largeur du résultat garde son ancien convertisseur : une colonne `jsonb` revient alors sous forme de chaîne. Réglez `column_cache_version`, dans la section `database`, sur une valeur qui change à chaque migration, et la forme périmée est abandonnée :
+
+```yaml
+database:
+  column_cache_version: !env DB_SCHEMA_VERSION
+```
+
+Changez la valeur après l’exécution de la migration et avant que la nouvelle version serve du trafic. Sans elle, une forme périmée vit jusqu’à une heure sous PHP-FPM avec APCu, seulement la requête en cours sous PHP-FPM sans APCu, et jusqu’au redémarrage du processus ou à l’appel de `Database::flushSharedColumnMetadata()` dans un processus de longue durée (ligne de commande, RoadRunner).
 
 ## Transactions
 
@@ -258,7 +271,8 @@ final class ProjectService
 - Une propriété de type énumération à valeur de support passe par `Enum::from()`. Une valeur hors de l’énumération lève une `InvalidArgumentException` qui nomme la propriété, non la valeur.
 - Une propriété `stdClass` conserve l’objet JSON décodé. Une propriété typée par une autre `Entity` est construite à partir d’une colonne contenant un objet JSON.
 - Un `null` est affecté tel quel : déclarez chaque colonne nullable en `?type`, faute de quoi l’hydratation lève une `TypeError`.
-- Une propriété typée par une autre classe (par exemple `DateTimeImmutable`), un type union ou une propriété privée n’est pas hydratée. Une propriété `DateTimeImmutable` reste non initialisée : lisez donc les dates sous forme de chaînes ou convertissez-les dans le service.
+- Une propriété de date typée `DateTimeImmutable`, `DateTimeInterface` ou `DateTime` accepte une chaîne ISO (`YYYY-MM-DD`, avec heure, fraction et décalage UTC facultatifs) et est hydratée avec cette classe. Une chaîne qui ne convient pas lève une `InvalidArgumentException` (`Invalid value for date DateTimeImmutable on property $createdAt`). La version 0.14.1 laissait la propriété non initialisée.
+- Une valeur qui ne peut pas être hydratée est refusée, là où la 0.14.1 l’ignorait ou échouait avec une `TypeError` : une propriété typée par une autre classe, par un type union ou intersection, ou par une énumération pure lève une `InvalidArgumentException` (`Cannot hydrate property $status of App\Models\Order: type string|int is not supported`), tout comme une entité imbriquée qui reçoit autre chose qu’un objet JSON (`Invalid value for entity App\Models\Customer on property $customer`). Donnez à la propriété un type pris en charge, ou lisez la colonne comme chaîne et convertissez-la dans le service.
 - Les propriétés privées et statiques, ainsi qu’une colonne nommée `rawData`, sont ignorées.
 
 ### Sérialisation des entités
@@ -348,4 +362,4 @@ Les pièces plus petites se trouvent à la fois sur `Database` et sur `Broker` 
 - Passez une requête de comptage qui correspond à la requête de données. Ce sont deux instructions distinctes, et le total provient du comptage.
 - Les insertions retournent les identifiants par `RETURNING` uniquement (`insertGetId()` dans `Database`, `insertRowGetId()` dans un `Broker`).
 - Gardez une transaction courte et laissez les exceptions s’en échapper.
-- `Database::setSharedColumnMetadataEnabled()`, `flushSharedColumnMetadata()` et la clé `column_cache_version` relèvent du cache des types de colonnes, qu’APCu partage entre les requêtes lorsqu’il est installé. La plupart des applications n’y touchent jamais.
+- `Database::setSharedColumnMetadataEnabled()`, `flushSharedColumnMetadata()` et la clé `column_cache_version` relèvent du [cache des types de colonnes](#cache-des-types-de-colonnes), qu’APCu partage entre les requêtes lorsqu’il est installé. La plupart des applications n’y touchent jamais.

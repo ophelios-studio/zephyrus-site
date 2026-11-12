@@ -33,7 +33,7 @@ $config = Configuration::fromYamlFile($root . '/config.yml');
 $db = Database::fromConfig($config->database);
 ```
 
-`fromConfig()` opens the connection with server-side prepared statements: the SQL and the values always travel separately, and this cannot be turned off. A failed connection throws a `DatabaseException` that names the DSN (host, port, database, never the password) and the driver reason: log it, do not show it.
+`fromConfig()` opens the connection with server-side prepared statements: the SQL and the values always travel separately, and this cannot be turned off. On PostgreSQL each query also goes out as an unnamed statement (`Pdo\Pgsql::ATTR_DISABLE_PREPARES`, set after connecting): one round trip instead of three (prepare, execute, close), with the parameters still bound by the server and never emulated. Version 0.14.1 prepared a named statement per query. To get named statements back, call `$db->pdo()->setAttribute(\Pdo\Pgsql::ATTR_DISABLE_PREPARES, false)`. A failed connection throws a `DatabaseException` that names the DSN (host, port, database, never the password) and the driver reason: log it, do not show it.
 
 `Database` is not created for you. Build it once and hand it to your brokers, or register it in the [container](../../digging-deeper/container-and-events/) so controllers and brokers receive it by their constructor:
 
@@ -117,7 +117,20 @@ Parameters are bound by type: `null`, integers, floats, strings, booleans, `Date
 
 `query()` returns the raw `PDOStatement` and `pdo()` the connection, for the rare case the helpers do not cover. A statement run through `pdo()` is not tracked by `transaction()`.
 
-`new Database($pdo)` wraps a PDO connection you opened yourself (a test database, for instance): it forces exceptions, object rows and server-side prepares on it. `inTransaction()` tells whether a transaction is open right now; do not cache the answer.
+`new Database($pdo)` wraps a PDO connection you opened yourself (a test database, for instance): it forces exceptions, object rows and server-side prepares on it, and leaves named statements as they are. `inTransaction()` tells whether a transaction is open right now; do not cache the answer.
+
+### Column type cache
+
+Rows are decoded from the column types PostgreSQL reports. Those types are cached per SQL text and result width, in the process and in APCu when it is installed. Only a statement whose first element, after blanks and comments, is a parenthesis or `SELECT`, `WITH`, `VALUES`, `TABLE`, `INSERT`, `UPDATE`, `DELETE` or `MERGE` uses the cache (a block comment that contains another is not skipped). Any other statement (`FETCH`, `EXECUTE`, `SHOW`, `CALL`) describes its columns on every call, one to two round trips per column, so fetch in large batches. Version 0.14.1 let a `FETCH` on a second cursor of the same width inherit the converters of the first, and its `jsonb` columns came back as strings.
+
+A column that changes type while keeping its name and the width of the result keeps its old converter, so a `jsonb` column comes back as a string. Set `column_cache_version` in the `database` section to a value that changes with every migration, and the stale shape is dropped:
+
+```yaml
+database:
+  column_cache_version: !env DB_SCHEMA_VERSION
+```
+
+Change the value after the migration has run and before the release serves traffic. Without it, a stale shape lives up to an hour under PHP-FPM with APCu, only the current request under PHP-FPM without APCu, and until the process restarts or `Database::flushSharedColumnMetadata()` runs in a long-running process (command line, RoadRunner).
 
 ## Transactions
 
@@ -258,7 +271,8 @@ final class ProjectService
 - A backed enum property takes `Enum::from()`. A value outside the enum throws an `InvalidArgumentException` that names the property, not the value.
 - A `stdClass` property keeps the decoded JSON object. A property typed as another `Entity` is built from a JSON object column.
 - A `null` is assigned as is: declare every nullable column as `?type`, or hydration throws a `TypeError`.
-- A property typed with another class (for example `DateTimeImmutable`), a union type or a private property is not hydrated. A `DateTimeImmutable` property stays uninitialized, so read dates as strings or convert them in the service.
+- A date property typed `DateTimeImmutable`, `DateTimeInterface` or `DateTime` takes an ISO string (`YYYY-MM-DD`, with optional time, fraction and UTC offset) and is hydrated as that class. A string that does not fit throws `InvalidArgumentException` (`Invalid value for date DateTimeImmutable on property $createdAt`). Version 0.14.1 left the property uninitialized.
+- A value that cannot be hydrated is refused, where 0.14.1 skipped it or failed with a `TypeError`: a property typed with another class, a union or intersection type, or a pure enum throws `InvalidArgumentException` (`Cannot hydrate property $status of App\Models\Order: type string|int is not supported`), and so does a nested entity given something other than a JSON object (`Invalid value for entity App\Models\Customer on property $customer`). Give the property a supported type, or read the column as a string and convert it in the service.
 - Private and static properties, and a column named `rawData`, are skipped.
 
 ### Serializing entities
@@ -348,4 +362,4 @@ The smaller pieces are on both `Database` and `Broker`: `selectPageWith()`, `sel
 - Pass a count query that matches the data query. They are separate statements, and the total comes from the count.
 - Inserts return ids through `RETURNING` only (`insertGetId()` in `Database`, `insertRowGetId()` in a `Broker`).
 - Keep a transaction short and let exceptions escape it.
-- `Database::setSharedColumnMetadataEnabled()`, `flushSharedColumnMetadata()` and the `column_cache_version` key belong to the column type cache, which APCu shares between requests when it is installed. Most applications never touch them.
+- `Database::setSharedColumnMetadataEnabled()`, `flushSharedColumnMetadata()` and the `column_cache_version` key belong to the [column type cache](#column-type-cache), which APCu shares between requests when it is installed. Most applications never touch them.

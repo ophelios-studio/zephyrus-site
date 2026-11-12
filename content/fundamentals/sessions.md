@@ -213,6 +213,8 @@ The lock has a cost: a slow request blocks the others of the same visitor, so fi
 new DatabaseSessionHandler($open, lockSessions: false);
 ```
 
+Without the lock (`lockSessions: false`, or a wait that went past five seconds), the handler no longer lets the later write overwrite the earlier one. It writes a resumed session only while its row still holds the data this request read: if another request changed or deleted the row in the meantime, the write is refused, nothing is stored, and the application sees no exception. `write()` returns `false`, which PHP reports as a warning, and the handler logs `Zephyrus: session write refused, the session changed or was deleted since this request read it`. The request's own changes to the session are lost, so keep session writes short and idempotent where the lock is off. Version 0.14.1 let the later write win.
+
 With the files handler, PHP locks the session file for the length of the request with the same effect.
 
 ## Test code that uses the session
