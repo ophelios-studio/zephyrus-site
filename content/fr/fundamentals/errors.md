@@ -39,9 +39,9 @@ $app = ApplicationBuilder::create()
     ->build();
 ```
 
-Avec cette configuration, une exception non interceptée devient un `500` avec un corps fixe, et la ligne ci-dessus se retrouve dans votre journal d’erreurs. Rien d’autre n’est nécessaire pour une configuration qui ne déclare aucun réglage `security:` (lorsqu’elle en déclare, les middlewares correspondants doivent être montés : voir [Sécurité](../security/)), hormis les réglages PHP ci-dessous. Les gestionnaires d’exceptions plus bas ne changent que ce que voit le client.
+Avec cette configuration, une exception qu’aucun gestionnaire ne traite devient un `500` avec un corps fixe, et le framework l’écrit, avec sa trace, dans le journal d’erreurs (`Zephyrus: unhandled exception, answered with a 500: ...`) en plus de la ligne que votre écouteur ajoute. Rien d’autre n’est nécessaire pour une configuration qui ne déclare aucun réglage `security:` (lorsqu’elle en déclare, les middlewares correspondants doivent être montés : voir [Sécurité](../security/)), hormis les réglages PHP ci-dessous. Les gestionnaires d’exceptions plus bas ne changent que ce que voit le client.
 
-Ni la configuration de cette page ni le framework ne désactive le `display_errors` de PHP, dont la valeur par défaut intégrée est activée lorsqu’aucun `php.ini` n’est chargé. Un échec de démarrage hors du noyau, comme une faute de frappe dans la configuration, est alors affiché avec sa trace et le chemin de `vendor`. La production exige `display_errors=Off`, `display_startup_errors=Off` et `log_errors=On` : voir [Réglages PHP pour la production](../../getting-started/installation/#réglages-php-pour-la-production).
+`build()` désactive `display_errors` et `display_startup_errors`, sauf si le débogage est actif pour ce démarrage et que le client est de ceux que le débogueur admet (un processus en ligne de commande l’est toujours). Un échec avant l’exécution de `build()`, comme une faute de frappe dans la configuration, est encore affiché avec sa trace et le chemin de `vendor` quand le `display_errors` de PHP est activé, et sa valeur par défaut intégrée est activée lorsqu’aucun `php.ini` n’est chargé. La production exige toujours `display_errors=Off`, `display_startup_errors=Off` et `log_errors=On` : voir [Réglages PHP pour la production](../../getting-started/installation/#réglages-php-pour-la-production).
 
 Sans répartiteur d’événements, un échec n’atteint personne : le client reçoit la réponse fixe et le message est perdu. Enregistrez l’écouteur.
 
@@ -118,7 +118,7 @@ $builder = $builder->withExceptionHandler(
 
 La page est un texte fixe. Ne placez jamais `$e->getMessage()` ou une trace dans le corps : un message peut contenir un nom d’hôte, un fragment SQL ou un justificatif d’accès. Un gestionnaire ne voit pas les attributs que les middlewares de route posent sur la requête.
 
-Un gestionnaire qui lève lui-même une exception produit le texte fixe du `500`, et l’échec est signalé par un `ExceptionEvent`. Un gestionnaire d’une page visible par le client devrait aussi examiner `Accept` si la même route sert des clients JSON :
+Un gestionnaire qui lève lui-même une exception produit le texte fixe du `500`, et l’échec est signalé par un `ExceptionEvent`. L’exception du gestionnaire et celle qu’il traitait sont toutes deux écrites dans le journal d’erreurs. Un gestionnaire d’une page visible par le client devrait aussi examiner `Accept` si la même route sert des clients JSON :
 
 ```php
 $wantsJson = str_contains($request->headers()->get('accept') ?? '', 'json');
@@ -126,7 +126,7 @@ $wantsJson = str_contains($request->headers()->get('accept') ?? '', 'json');
 
 ## Écouter les erreurs
 
-Le noyau émet un `ExceptionEvent` chaque fois qu’il convertit un `Throwable`, ce qui en fait l’endroit unique pour signaler les erreurs. Un middleware qui intercepte, signale et relance ne les voit jamais : la conversion se produit à l’intérieur du pipeline global, si bien que `$next()` retourne la réponse d’erreur au lieu de lever une exception.
+Le noyau émet un `ExceptionEvent` chaque fois qu’il convertit un `Throwable`, ce qui en fait l’endroit unique pour signaler les erreurs. Un middleware qui intercepte, signale et relance ne les voit jamais : la conversion se produit à l’intérieur du pipeline global, si bien que `$next()` retourne la réponse d’erreur au lieu de lever (sauf si l’exception est relancée pour le débogueur, voir [Déboguer en développement](#déboguer-en-développement)).
 
 | Méthode | Retourne |
 | --- | --- |
@@ -151,11 +151,11 @@ L’événement sert uniquement à l’observation : un écouteur ne peut pas r
 
 ## Déboguer en développement
 
-Avec `application.debug: true` dans un environnement de développement ou de test, `build()` active le débogueur [Tracy](https://tracy.nette.org). Tracy admet toujours les clients de bouclage, et personne d’autre à moins qu’ils figurent dans la liste d’autorisation ci-dessous. Il ne reconnaît un mandataire que par un en-tête `X-Forwarded-For` ou `Forwarded` : le débogage doit donc rester désactivé à moins que chaque mandataire devant PHP envoie `X-Forwarded-For` (nginx : `proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;`). Un client distant derrière un mandataire qui n’envoie aucun en-tête de ce genre ressemble à un client local et obtient la page d’erreur complète. Sa sortie comprend les arguments de la trace d’appels, l’environnement et les témoins : elle ne doit donc jamais atteindre tous les clients.
+Avec `application.debug: true` dans un environnement de développement ou de test, `build()` active le débogueur [Tracy](https://tracy.nette.org). Sans liste d’autorisation, Tracy admet un client de bouclage dont la requête ne porte aucun en-tête `X-Forwarded-For`, `Forwarded` ou `X-Real-IP`. Une liste d’autorisation déclarée (ci-dessous) n’admet que ses propres entrées, le bouclage compris. Tracy ne reconnaît un mandataire que par ces en-têtes : le débogage doit donc rester désactivé à moins que chaque mandataire devant PHP en envoie un (nginx : `proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;`). Un client distant derrière un mandataire du même hôte qui n’en ajoute aucun (un simple `proxy_pass`, un tunnel TLS) ressemble à un client local et obtient la page d’erreur complète, sans liste d’autorisation comme avec une entrée de bouclage nue : inscrivez plutôt `secret@127.0.0.1` et envoyez le témoin. La page comprend les arguments de la trace d’appels et l’environnement : elle ne doit donc jamais atteindre tous les clients.
 
-Activer le débogage n’affiche pas une exception à lui seul. Avec `APP_ENV=dev` et `APP_DEBUG=true`, un contrôleur qui lance une exception répond toujours un simple `Internal Server Error`, et rien n’est journalisé tant qu’un écouteur d’`ExceptionEvent` (celui du premier exemple) ne l’écrit pas dans le journal d’erreurs.
+Avec le débogage actif, une exception qu’aucun gestionnaire ne traite (ou qu’un gestionnaire relance) montre la page de Tracy à un client que le débogueur admet. Tout autre client reçoit le `500` générique, et l’exception va dans le journal d’erreurs. En ligne de commande avec le débogage actif (tests, scripts), elle sort plutôt de `Application::handle()`. `KernelBuilder::withUnhandledExceptionsRethrown()` force ce comportement quel que soit l’indicateur de débogage ; hors d’un test, l’exception atteint alors le gestionnaire propre à PHP. Une exception relancée traverse les middlewares globaux comme une exception, non comme une réponse d’erreur.
 
-Le noyau intercepte les exceptions avant que Tracy ne les voie. Pour obtenir la page de Tracy lors d’une erreur, laissez l’exception sortir d’un gestionnaire, en développement seulement :
+Pour obtenir la page de Tracy pour une erreur qu’un gestionnaire fourre-tout traiterait autrement, laissez l’exception sortir de ce gestionnaire, en développement seulement :
 
 ```php
 $debug = $builder->isDebugEnabledForBoot();
@@ -164,7 +164,7 @@ $builder = $builder->withExceptionHandler(
     \Throwable::class,
     function (\Throwable $e, Request $request) use ($debug): ?Response {
         if ($debug) {
-            throw $e; // the same object: handle() rethrows it, so Tracy can show it
+            throw $e; // the same object: the kernel passes it on, so Tracy can show it
         }
         error_log($e::class . ': ' . $e->getMessage());
 
@@ -173,7 +173,7 @@ $builder = $builder->withExceptionHandler(
 );
 ```
 
-Obtenez `$debug` de `isDebugEnabledForBoot()` sur le builder entièrement configuré (après `withConfiguration()`). Ne le tirez jamais de `$config->application->debug` : en production, cette valeur peut être `true` alors que le débogage est en fait désactivé, et une relance sans débogueur derrière elle atteint le gestionnaire d’erreurs de PHP, qui affiche le message, les chemins du serveur et la trace lorsque `display_errors` est activé. En production, ce gestionnaire répond avec la page fixe ci-dessus et ne relance jamais.
+Obtenez `$debug` de `isDebugEnabledForBoot()` sur le builder entièrement configuré (après `withConfiguration()`). Ne le tirez jamais de `$config->application->debug` : en production, cette valeur peut être `true` alors que le débogage est en fait désactivé, et le gestionnaire relancerait alors l’exception et laisserait votre client avec le `500` générique au lieu de votre page. En production, ce gestionnaire répond avec la page fixe ci-dessus et ne relance jamais.
 
 ### La production désactive le débogage
 
@@ -183,7 +183,7 @@ En `production` et en `staging`, `build()` désactive le débogage quoi que dise
 Zephyrus: application.debug is true while application.environment is production-like. Debug output has been FORCED OFF for this boot: ...
 ```
 
-Un nom d’environnement non reconnu (`prodution`) équivaut aussi à la production : une faute de frappe échoue donc de façon sûre. Pour déboguer volontairement un environnement en ligne, appelez `withProductionDebugAcknowledged()` dans votre code de démarrage. C’est du code à dessein, et non une clé de configuration : une valeur de configuration est ce qu’on bascule sur un serveur et qu’on oublie. Même alors, les clients ci-dessous (et le bouclage) sont les seuls censés voir quoi que ce soit, pourvu que la règle du mandataire ci-dessus soit respectée.
+Un nom d’environnement non reconnu (`prodution`) équivaut aussi à la production : une faute de frappe échoue donc de façon sûre. Pour déboguer volontairement un environnement en ligne, appelez `withProductionDebugAcknowledged()` dans votre code de démarrage. C’est du code à dessein, et non une clé de configuration : une valeur de configuration est ce qu’on bascule sur un serveur et qu’on oublie. Même alors, les clients ci-dessous (ou le bouclage, sans liste d’autorisation) sont les seuls censés voir quoi que ce soit, pourvu que la règle du mandataire ci-dessus soit respectée.
 
 ```php
 $builder = $builder->withProductionDebugAcknowledged();
@@ -191,14 +191,14 @@ $builder = $builder->withProductionDebugAcknowledged();
 
 ### La liste d’autorisation des clients
 
-Derrière Docker, le navigateur atteint PHP depuis la passerelle du pont, et non depuis le bouclage. Nommez ce client, avec un secret que vous envoyez aussi dans un témoin `tracy-debug` :
+Derrière Docker, le navigateur atteint PHP depuis la passerelle du pont, et non depuis le bouclage. Nommez ce client, avec un secret que vous envoyez aussi dans un témoin `tracy-debug`. Le bouclage n’est plus sous-entendu dès qu’une liste existe : inscrivez-le aussi si vous le voulez :
 
 ```php
-// DEBUG_CLIENTS holds "secret@172.17.0.1"; unset or empty names no client beyond loopback.
+// DEBUG_CLIENTS holds "secret@172.17.0.1"; unset or empty leaves loopback only.
 $builder = $builder->withDebugClientAllowlist(env('DEBUG_CLIENTS'));
 ```
 
-Une entrée est une adresse exacte, ou `secret@address`, qui exige aussi le témoin `tracy-debug=secret`. Une chaîne peut énumérer plusieurs entrées séparées par des virgules ou des espaces, ou vous pouvez passer un tableau avec une entrée par élément. Les entrées sont vérifiées lorsque vous les enregistrez :
+Une entrée est une adresse exacte, ou `secret@address`, qui exige aussi le témoin `tracy-debug=secret`. Une entrée de bouclage nue (`127.0.0.1`, `::1`) n’admet aucune requête qui porte `X-Forwarded-For`, `Forwarded` ou `X-Real-IP` : derrière un mandataire du même hôte, inscrivez `secret@127.0.0.1` et envoyez le témoin. La version 0.14.0 admettait le bouclage quelle que soit la liste. Une chaîne peut énumérer plusieurs entrées séparées par des virgules ou des espaces, ou vous pouvez passer un tableau avec une entrée par élément. Les entrées sont vérifiées lorsque vous les enregistrez :
 
 | Entrée | Refus |
 | --- | --- |
@@ -209,7 +209,7 @@ Une entrée est une adresse exacte, ou `secret@address`, qui exige aussi le tém
 
 Une adresse seule, sans secret, admet quiconque peut atteindre PHP depuis cette adresse : préférez donc `secret@address`. Les messages nomment la position de l’entrée et ne répètent jamais le secret.
 
-Le secret est un justificatif d’accès. Gardez-le dans l’environnement, jamais dans git. Le framework le garde, avec les autres secrets qu’il connaît, hors de la sortie du débogueur : la propriété de la liste d’autorisation du builder et le témoin `tracy-debug` sont masqués dans les vidages et les traces, tout comme les clés `password`, `token`, `secret`, `apiKey`, `authorization` et `cookie`, la clé de chiffrement, le témoin de session et le corps brut de la requête (`DebugIntegration::SENSITIVE_KEYS` énumère les noms exacts et `isSensitiveKey()` en teste un). Le Bluescreen masque aussi par motif, mais seulement les valeurs de type chaîne : un secret numérique doit tout de même être ajouté par son nom à `keysToHide` de Tracy.
+Le secret est un justificatif d’accès. Gardez-le dans l’environnement, jamais dans git. Le framework le garde, avec les autres secrets qu’il connaît, hors de la sortie du débogueur : la propriété de la liste d’autorisation du builder et le témoin `tracy-debug` sont masqués dans les vidages et les traces, tout comme les clés `password`, `token`, `secret`, `apiKey`, `authorization` et `cookie`, la clé de chiffrement, le témoin de session, le corps brut de la requête et les lignes `Set-Cookie` d’une réponse (`Response::$cookies`). `DebugIntegration::SENSITIVE_KEYS` énumère les noms de clés exacts, `SENSITIVE_PROPERTIES` les propriétés masquées, et `isSensitiveKey()` teste une clé. Le Bluescreen masque aussi par motif, mais seulement les valeurs de type chaîne : un secret numérique doit tout de même être ajouté par son nom à `keysToHide` de Tracy.
 
 ### Bon à savoir
 

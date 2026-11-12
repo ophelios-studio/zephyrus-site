@@ -39,9 +39,9 @@ $app = ApplicationBuilder::create()
     ->build();
 ```
 
-With this setup an uncaught exception becomes a `500` with a fixed body, and the line above lands in your error log. Nothing else is needed for a configuration that declares no `security:` settings (when it does, the matching middlewares must be mounted: see [Security](../security/)), apart from the PHP settings below. The exception handlers below only change what the client sees.
+With this setup an exception that no handler answers becomes a `500` with a fixed body, and the framework writes it, with its trace, to the error log (`Zephyrus: unhandled exception, answered with a 500: ...`) besides the line your listener adds. Nothing else is needed for a configuration that declares no `security:` settings (when it does, the matching middlewares must be mounted: see [Security](../security/)), apart from the PHP settings below. The exception handlers below only change what the client sees.
 
-Neither this page's setup nor the framework turns PHP's own `display_errors` off, and PHP's built-in default is on when no `php.ini` is loaded. A boot failure outside the kernel, such as a configuration typo, is then printed with its trace and vendor path. Production needs `display_errors=Off`, `display_startup_errors=Off` and `log_errors=On`: see [PHP settings for production](../../getting-started/installation/#php-settings-for-production).
+`build()` turns `display_errors` and `display_startup_errors` off, unless debug is on for that boot and the client is one the debugger admits (a command-line process always is). A failure before `build()` runs, such as a configuration typo, is still printed with its trace and vendor path when PHP's `display_errors` is on, and PHP's built-in default is on when no `php.ini` is loaded. Production still needs `display_errors=Off`, `display_startup_errors=Off` and `log_errors=On`: see [PHP settings for production](../../getting-started/installation/#php-settings-for-production).
 
 Without an event dispatcher, a failure reaches nobody: the client gets the fixed answer and the message is dropped. Register the listener.
 
@@ -118,7 +118,7 @@ $builder = $builder->withExceptionHandler(
 
 The page is fixed text. Never put `$e->getMessage()` or a trace in the body: a message can hold a host name, a SQL fragment or a credential. A handler does not see the attributes that route middlewares set on the request.
 
-A handler that itself throws produces the fixed `500` text, and the failure is reported as an `ExceptionEvent`. A handler on a client-visible page should also look at `Accept` if the same route serves JSON clients:
+A handler that itself throws produces the fixed `500` text, and the failure is reported as an `ExceptionEvent`. Both the handler's exception and the one it was answering are written to the error log. A handler on a client-visible page should also look at `Accept` if the same route serves JSON clients:
 
 ```php
 $wantsJson = str_contains($request->headers()->get('accept') ?? '', 'json');
@@ -126,7 +126,7 @@ $wantsJson = str_contains($request->headers()->get('accept') ?? '', 'json');
 
 ## Listening to errors
 
-The kernel fires an `ExceptionEvent` each time it converts a throwable, which makes it the one place to report errors. A middleware that catches, reports and rethrows never sees them: the conversion happens inside the global pipeline, so `$next()` returns the error response instead of throwing.
+The kernel fires an `ExceptionEvent` each time it converts a throwable, which makes it the one place to report errors. A middleware that catches, reports and rethrows never sees them: the conversion happens inside the global pipeline, so `$next()` returns the error response instead of throwing (unless the exception is rethrown for the debugger, see [Debugging in development](#debugging-in-development)).
 
 | Method | Returns |
 | --- | --- |
@@ -151,11 +151,11 @@ The event is observation only: a listener cannot replace the response. A listene
 
 ## Debugging in development
 
-With `application.debug: true` in a development or testing environment, `build()` enables the [Tracy](https://tracy.nette.org) debugger. Tracy always admits loopback clients, and nobody else unless they are on the allowlist below. It recognises a proxy only by an `X-Forwarded-For` or `Forwarded` header, so debug must stay off unless every proxy in front of PHP sends `X-Forwarded-For` (nginx: `proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;`). A remote client behind a proxy that sends no such header looks like a local one and gets the full error page. Its output includes stack-trace arguments, the environment and cookies, so it must never reach every client.
+With `application.debug: true` in a development or testing environment, `build()` enables the [Tracy](https://tracy.nette.org) debugger. Without an allowlist, Tracy admits a loopback client whose request carries no `X-Forwarded-For`, `Forwarded` or `X-Real-IP` header. A declared allowlist (below) admits only its own entries, loopback included. Tracy recognises a proxy only by those headers, so debug must stay off unless every proxy in front of PHP sends one (nginx: `proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;`). A remote client behind a proxy on the same host that adds none of them (a bare `proxy_pass`, a TLS tunnel) looks like a local one and gets the full error page, with no allowlist or with a bare loopback entry: list `secret@127.0.0.1` and send the cookie instead. The page includes stack-trace arguments and the environment, so it must never reach every client.
 
-Enabling debug does not show an exception by itself. With `APP_ENV=dev` and `APP_DEBUG=true`, a controller that throws still answers a plain `Internal Server Error`, and nothing is logged until an `ExceptionEvent` listener (the one in the first example) writes it to the error log.
+With debug on, an exception that no handler answers (or that a handler rethrows) shows Tracy's page to a client the debugger admits. Any other client gets the generic `500`, and the exception goes to the error log. On the command line with debug on (tests, scripts), it leaves `Application::handle()` instead. `KernelBuilder::withUnhandledExceptionsRethrown()` forces that whatever the debug flag; outside a test, the exception then reaches PHP's own handler. A rethrown exception passes through the global middlewares as an exception, not as an error response.
 
-The kernel catches exceptions before Tracy sees them. To get Tracy's page for an error, let the exception out of a handler in development only:
+To get Tracy's page for an error that a catch-all handler would otherwise answer, let the exception out of that handler in development only:
 
 ```php
 $debug = $builder->isDebugEnabledForBoot();
@@ -164,7 +164,7 @@ $builder = $builder->withExceptionHandler(
     \Throwable::class,
     function (\Throwable $e, Request $request) use ($debug): ?Response {
         if ($debug) {
-            throw $e; // the same object: handle() rethrows it, so Tracy can show it
+            throw $e; // the same object: the kernel passes it on, so Tracy can show it
         }
         error_log($e::class . ': ' . $e->getMessage());
 
@@ -173,7 +173,7 @@ $builder = $builder->withExceptionHandler(
 );
 ```
 
-Take `$debug` from `isDebugEnabledForBoot()` on the fully configured builder (after `withConfiguration()`). Never take it from `$config->application->debug`: in production that value can be `true` while debug is actually off, and a rethrow with no debugger behind it reaches PHP's own error handler, which prints the message, the server paths and the trace when `display_errors` is on. In production this handler answers with the fixed page above and never rethrows.
+Take `$debug` from `isDebugEnabledForBoot()` on the fully configured builder (after `withConfiguration()`). Never take it from `$config->application->debug`: in production that value can be `true` while debug is actually off, and the handler would then rethrow and leave your client with the generic `500` instead of your page. In production this handler answers with the fixed page above and never rethrows.
 
 ### Production forces debug off
 
@@ -183,7 +183,7 @@ In `production` and `staging`, `build()` turns debug off whatever the file says,
 Zephyrus: application.debug is true while application.environment is production-like. Debug output has been FORCED OFF for this boot: ...
 ```
 
-An unrecognized environment name (`prodution`) is production too, so a typo fails safe. To debug a live tier on purpose, call `withProductionDebugAcknowledged()` in your bootstrap code. It is code on purpose, not a configuration key: a configuration value is what gets flipped on a server and forgotten. Even then, the clients below (and loopback) are the only ones meant to see anything, provided the proxy rule above holds.
+An unrecognized environment name (`prodution`) is production too, so a typo fails safe. To debug a live tier on purpose, call `withProductionDebugAcknowledged()` in your bootstrap code. It is code on purpose, not a configuration key: a configuration value is what gets flipped on a server and forgotten. Even then, the clients below (or loopback, when there is no allowlist) are the only ones meant to see anything, provided the proxy rule above holds.
 
 ```php
 $builder = $builder->withProductionDebugAcknowledged();
@@ -191,14 +191,14 @@ $builder = $builder->withProductionDebugAcknowledged();
 
 ### The client allowlist
 
-Behind Docker, the browser reaches PHP from the bridge gateway, not from loopback. Name that client, with a secret that you also send in a `tracy-debug` cookie:
+Behind Docker, the browser reaches PHP from the bridge gateway, not from loopback. Name that client, with a secret that you also send in a `tracy-debug` cookie. Loopback is no longer implied once the allowlist exists, so list it too if you want it:
 
 ```php
-// DEBUG_CLIENTS holds "secret@172.17.0.1"; unset or empty names no client beyond loopback.
+// DEBUG_CLIENTS holds "secret@172.17.0.1"; unset or empty leaves loopback only.
 $builder = $builder->withDebugClientAllowlist(env('DEBUG_CLIENTS'));
 ```
 
-An entry is an exact address, or `secret@address`, which also requires the cookie `tracy-debug=secret`. A string may list several entries separated by commas or spaces, or you can pass an array with one entry per element. Entries are checked when you register them:
+An entry is an exact address, or `secret@address`, which also requires the cookie `tracy-debug=secret`. A bare loopback entry (`127.0.0.1`, `::1`) admits no request that carries `X-Forwarded-For`, `Forwarded` or `X-Real-IP`: behind a proxy on the same host, list `secret@127.0.0.1` and send the cookie. Version 0.14.0 admitted loopback whatever the allowlist said. A string may list several entries separated by commas or spaces, or you can pass an array with one entry per element. Entries are checked when you register them:
 
 | Entry | Refusal |
 | --- | --- |
@@ -209,7 +209,7 @@ An entry is an exact address, or `secret@address`, which also requires the cooki
 
 A bare address with no secret admits anyone who can reach PHP from it, so prefer `secret@address`. The messages name the position of the entry and never repeat the secret.
 
-The secret is a credential. Keep it in the environment, never in git. The framework keeps it, and the other secrets it knows about, out of the debugger's output: the allowlist property of the builder and the `tracy-debug` cookie are masked in dumps and traces, along with `password`, `token`, `secret`, `apiKey`, `authorization` and `cookie` keys, the encryption key, the session cookie and the raw request body (`DebugIntegration::SENSITIVE_KEYS` lists the exact names and `isSensitiveKey()` tests one). The Bluescreen also masks by pattern, but only string values: a numeric secret still needs to be added to Tracy's `keysToHide` by name.
+The secret is a credential. Keep it in the environment, never in git. The framework keeps it, and the other secrets it knows about, out of the debugger's output: the allowlist property of the builder and the `tracy-debug` cookie are masked in dumps and traces, along with `password`, `token`, `secret`, `apiKey`, `authorization` and `cookie` keys, the encryption key, the session cookie, the raw request body and the `Set-Cookie` lines of a response (`Response::$cookies`). `DebugIntegration::SENSITIVE_KEYS` lists the exact key names, `SENSITIVE_PROPERTIES` the masked properties, and `isSensitiveKey()` tests a key. The Bluescreen also masks by pattern, but only string values: a numeric secret still needs to be added to Tracy's `keysToHide` by name.
 
 ### Good to know
 
