@@ -23,11 +23,9 @@ Créez un `composer.json` :
 
 ```json
 {
-    "minimum-stability": "dev",
-    "prefer-stable": true,
     "require": {
         "php": "^8.4",
-        "zephyrus-framework/core": "dev-dev"
+        "zephyrus-framework/core": "^0.14"
     },
     "autoload": { "psr-4": { "App\\": "app/" } }
 }
@@ -39,7 +37,7 @@ puis exécutez :
 composer install
 ```
 
-Le framework est installé depuis la branche `dev` du paquet Packagist, d’où la valeur `dev` de `minimum-stability`. `prefer-stable` garde toutes les autres dépendances sur leur version stable. L’espace de noms `App\` vous appartient : il correspond au répertoire `app/`.
+`^0.14` installe la dernière version 0.14. Avant la 1.0, une version mineure peut briser l’API : Composer ne vous fait donc jamais passer à la 0.15 de lui-même. Lisez le [journal des modifications](https://github.com/ophelios-studio/zephyrus-core/blob/dev/CHANGELOG.md) avant de changer la contrainte. L’espace de noms `App\` vous appartient : il correspond au répertoire `app/`.
 
 ## La plus petite application
 
