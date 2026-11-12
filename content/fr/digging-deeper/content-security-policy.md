@@ -205,7 +205,7 @@ N’importe qui peut envoyer des données à cette route : réencoder le rappor
 3. Quand les rapports cessent, passez à `reportOnly: false`. Gardez la directive `report-uri` pour être informé de ce que vous avez manqué.
 4. Resserrez ensuite davantage : gardez `'unsafe-inline'` et `'unsafe-eval'` hors de `script-src`, ajoutez `upgrade-insecure-requests` une fois que tout est servi en HTTPS, et, avec les nonces en place, envisagez `->appendValue('script-src', "'strict-dynamic'")`, qui permet à vos scripts munis d’un nonce de charger leurs propres dépendances et ignore les listes d’hôtes dans les navigateurs qui le prennent en charge.
 
-Plusieurs `ContentSecurityPolicyMiddleware` qui prennent des nonces partagent un seul nonce par requête : le premier le produit, les autres et `nonce()` le réutilisent. Une politique appliquée et un essai en rapport seulement peuvent donc nommer tous deux le nonce que porte la page :
+Plusieurs `ContentSecurityPolicyMiddleware` qui prennent des nonces partagent un seul nonce par requête : le premier le produit, les autres et `nonce()` le réutilisent. Une politique appliquée et une politique en mode rapport seul peuvent donc nommer tous deux le nonce que porte la page :
 
 ```php
 $kernel = $builder
@@ -214,7 +214,7 @@ $kernel = $builder
     ->build();
 ```
 
-Les en-têtes `Content-Security-Policy` et `Content-Security-Policy-Report-Only` portent alors la même valeur `'nonce-...'` que les balises produites avec `nonce()`. Avant la version 0.14.1, chaque middleware produisait son propre nonce et `nonce()` retournait celui du plus interne : l’en-tête externe nommait donc un nonce que aucune balise ne portait.
+Les en-têtes `Content-Security-Policy` et `Content-Security-Policy-Report-Only` portent alors la même valeur `'nonce-...'` que les balises produites avec `nonce()`. Avant la version 0.14.1, chaque middleware produisait son propre nonce et `nonce()` retournait celui du plus interne : l’en-tête externe nommait donc un nonce qu’aucune balise ne portait.
 
 ## À savoir
 

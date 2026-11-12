@@ -194,7 +194,7 @@ $builder = $builder->withProductionDebugAcknowledged();
 Derrière Docker, le navigateur atteint PHP depuis la passerelle du pont, et non depuis le bouclage. Nommez ce client, avec un secret que vous envoyez aussi dans un témoin `tracy-debug`. Le bouclage n’est plus sous-entendu dès qu’une liste existe : inscrivez-le aussi si vous le voulez :
 
 ```php
-// DEBUG_CLIENTS holds "secret@172.17.0.1"; unset or empty leaves loopback only.
+// DEBUG_CLIENTS holds "secret@172.17.0.1"; unset or empty means no allowlist, so loopback only.
 $builder = $builder->withDebugClientAllowlist(env('DEBUG_CLIENTS'));
 ```
 

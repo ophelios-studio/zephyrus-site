@@ -194,7 +194,7 @@ $builder = $builder->withProductionDebugAcknowledged();
 Behind Docker, the browser reaches PHP from the bridge gateway, not from loopback. Name that client, with a secret that you also send in a `tracy-debug` cookie. Loopback is no longer implied once the allowlist exists, so list it too if you want it:
 
 ```php
-// DEBUG_CLIENTS holds "secret@172.17.0.1"; unset or empty leaves loopback only.
+// DEBUG_CLIENTS holds "secret@172.17.0.1"; unset or empty means no allowlist, so loopback only.
 $builder = $builder->withDebugClientAllowlist(env('DEBUG_CLIENTS'));
 ```
 
