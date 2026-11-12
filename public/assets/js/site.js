@@ -128,18 +128,48 @@
   const results = dialog.querySelector('.search-results');
   let searchIndex, selected = 0, rendered = [];
   const normalize = text => text.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+  // Listed by rank: a term found in the title beats one found in a heading, which beats the body text.
+  const SEARCH_FIELDS = ['title', 'headings', 'text'];
+  const clip = (text, length) => text.length > length ? text.slice(0, length) + '…' : text;
+  function originalOffset(text, foldedOffset) {
+    let low = 0, high = text.length;
+    while (low < high) {
+      const middle = (low + high) >> 1;
+      if (normalize(text.slice(0, middle + 1)).length > foldedOffset) high = middle; else low = middle + 1;
+    }
+    return low;
+  }
+  function snippet(entry, term) {
+    const text = entry.page.text, at = entry.text.indexOf(term);
+    const start = originalOffset(text, at), end = originalOffset(text, at + term.length - 1) + 1;
+    let from = Math.max(0, start - 40), to = Math.min(text.length, end + 80);
+    const spaceAfterFrom = text.indexOf(' ', from), spaceBeforeTo = text.lastIndexOf(' ', to);
+    if (from > 0 && spaceAfterFrom !== -1 && spaceAfterFrom < start) from = spaceAfterFrom + 1;
+    if (to < text.length && spaceBeforeTo > end) to = spaceBeforeTo;
+    return (from > 0 ? '…' : '') + text.slice(from, to) + (to < text.length ? '…' : '');
+  }
+  function match(entry, terms) {
+    const fields = terms.map(term => SEARCH_FIELDS.findIndex(field => entry[field].includes(term)));
+    if (fields.includes(-1)) return null;
+    const bodyTerm = terms.find((term, position) => SEARCH_FIELDS[fields[position]] === 'text');
+    return {
+      page: entry.page,
+      score: fields.reduce((sum, field) => sum + field, 0),
+      hits: terms.reduce((sum, term) => sum + entry.text.split(term).length - 1, 0),
+      summary: bodyTerm === undefined ? clip(entry.page.excerpt, 120) : snippet(entry, bodyTerm),
+    };
+  }
   function renderResults() {
     if (!searchIndex) return;
-    const query = normalize(input.value.trim());
-    const terms = query.split(/\s+/).filter(Boolean);
-    const matches = searchIndex.filter(page => terms.every(term => normalize(page.title + ' ' + page.excerpt + ' ' + page.headings.join(' ')).includes(term)));
-    matches.sort((a, b) => Number(normalize(b.title).includes(query)) - Number(normalize(a.title).includes(query)));
+    const terms = normalize(input.value.trim()).split(/\s+/).filter(Boolean);
+    const matches = searchIndex.map(entry => match(entry, terms)).filter(Boolean);
+    matches.sort((a, b) => a.score - b.score || b.hits - a.hits);
     results.replaceChildren(); selected = 0;
-    matches.forEach(page => {
+    matches.forEach(({ page, summary }) => {
       const link = document.createElement('a'); link.className = 'search-result'; link.href = localePrefix + page.url + '/';
       const section = document.createElement('span'); section.textContent = page.section === 'getting-started' ? ui.startSection : ui.fundamentalsSection;
       const title = document.createElement('h3'); title.textContent = page.title;
-      const excerpt = document.createElement('p'); excerpt.textContent = page.excerpt.slice(0, 120) + (page.excerpt.length > 120 ? '…' : '');
+      const excerpt = document.createElement('p'); excerpt.textContent = summary;
       link.append(section, title, excerpt); results.append(link);
     });
     rendered = [...results.querySelectorAll('a')]; rendered[0]?.classList.add('selected');
@@ -150,7 +180,10 @@
     closeMenu(); setSidebar(false); dialog.showModal(); input.focus();
     if (!searchIndex) {
       results.textContent = ui.loading;
-      try { const response = await fetch(localePrefix + '/search.json'); if (!response.ok) throw new Error('Index unavailable'); searchIndex = await response.json(); }
+      try {
+        const response = await fetch(localePrefix + '/search.json'); if (!response.ok) throw new Error('Index unavailable');
+        searchIndex = (await response.json()).map(page => ({ page, title: normalize(page.title), headings: normalize(page.headings.join('\n')), text: normalize(page.text) }));
+      }
       catch { results.textContent = ui.searchError; return; }
     }
     renderResults();
