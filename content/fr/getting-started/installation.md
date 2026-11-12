@@ -162,7 +162,7 @@ RewriteRule ^ index.php [L]
 
 ### Réglages PHP pour la production
 
-Zephyrus ne modifie pas l’affichage des erreurs de PHP, et la valeur par défaut intégrée de PHP est `display_errors=1` lorsqu’aucun `php.ini` n’est chargé (certaines images de conteneur officielles n’en fournissent aucun). Si ce réglage reste actif, une exception non interceptée ou un avertissement est affiché au client avec le chemin du fichier et la trace. Définissez ces valeurs dans le `php.ini` que php-fpm ou Apache charge (PHP fournit un `php.ini-production` qui les contient déjà) :
+`ApplicationBuilder::build()` désactive `display_errors` et `display_startup_errors`, sauf si le débogage est actif pour ce démarrage et que le client est de ceux que l’outil de débogage admet (ou que le processus s’exécute en ligne de commande). Une erreur levée avant l’appel à `build()`, comme celle de la lecture de la configuration, s’affiche encore quand le réglage de PHP est activé, et la valeur par défaut intégrée de PHP est `display_errors=1` lorsqu’aucun `php.ini` n’est chargé (certaines images de conteneur officielles n’en fournissent aucun). Si ce réglage reste actif, une telle erreur est affichée au client avec le chemin du fichier et la trace. Définissez ces valeurs dans le `php.ini` que php-fpm ou Apache charge (PHP fournit un `php.ini-production` qui les contient déjà) :
 
 ```ini
 display_errors = Off

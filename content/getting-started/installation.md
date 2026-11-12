@@ -162,7 +162,7 @@ RewriteRule ^ index.php [L]
 
 ### PHP settings for production
 
-Zephyrus does not change PHP's own error display, and PHP's built-in default is `display_errors=1` when no `php.ini` is loaded (some official container images ship none). Left on, an uncaught exception or a warning is printed to the client with its file path and trace. Set these in the `php.ini` that php-fpm or Apache loads (PHP ships a `php.ini-production` that already has them):
+`ApplicationBuilder::build()` turns `display_errors` and `display_startup_errors` off, unless debug is on for that boot and the client is one the debugger admits (or the process runs on the command line). An error raised before `build()` is called, such as one reading the configuration, is still shown when PHP's own setting is on, and PHP's built-in default is `display_errors=1` when no `php.ini` is loaded (some official container images ship none). Left on, such an error is printed to the client with its file path and trace. Set these in the `php.ini` that php-fpm or Apache loads (PHP ships a `php.ini-production` that already has them):
 
 ```ini
 display_errors = Off
