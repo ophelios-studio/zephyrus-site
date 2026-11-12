@@ -1680,6 +1680,10 @@ details[open] summary {
   padding:3px 5px;
 }
 
+.prose :not(pre)>code {
+  overflow-wrap:break-word;
+}
+
 .prose pre {
   position:relative;
   overflow:auto;
@@ -2285,6 +2289,17 @@ html.motion-ready [data-reveal].is-visible {
   }
   .prose p {
     font-size:13px;
+  }
+  .prose table {
+    display:block;
+    overflow-x:auto;
+    container-type:inline-size;
+  }
+  /* An empty caption as wide as the box keeps a narrow table full width once it is a scroll container. */
+  .prose table:before {
+    content:"";
+    display:table-caption;
+    min-width:100cqi;
   }
 }
 
