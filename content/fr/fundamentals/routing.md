@@ -127,7 +127,7 @@ Un paramètre substituable remplit un segment entier et ne peut pas le partager 
 
 ## Nommer les routes
 
-L’argument `name` donne un nom à une route pour la [génération d’URL](#générer-des-url). Les noms doivent être uniques. Deux routes par attribut d’une même classe qui partagent un nom sont refusées (`Duplicate route name "same" discovered while reading attributes on class "Dup\A".`). Entre classes, ou avec des routes enregistrées sur le routeur, rien ne refuse un doublon à l’enregistrement : appelez `$router->assertNoDuplicateRouteNames()` une fois les routes enregistrées, ce qui lance `Duplicate route names detected: same`.
+L’argument `name` donne un nom à une route pour la [génération d’URL](#générer-des-url). Les noms doivent être uniques. Deux routes par attribut d’une même classe qui partagent un nom sont refusées (`Duplicate route name "same" discovered while reading attributes on class "Dup\A".`). Entre classes, ou avec des routes enregistrées sur le routeur, le doublon est refusé à la construction de l’application : `ApplicationBuilder::build()` lance une `Zephyrus\Routing\Exception\DuplicateRouteNameException` (`Duplicate route names detected: same`). La version 0.14.1 acceptait un doublon entre classes, `route()` prenant la première, jusqu’à l’appel de `$router->assertNoDuplicateRouteNames()`, qui lançait alors une `RouteSignatureException` : un `catch` sur cette classe ne l’attrape plus.
 
 ## Attacher des middlewares
 
@@ -336,5 +336,5 @@ Circular middleware group reference detected: a -> b -> a
 - `discoverControllers()` n’enregistre rien, silencieusement, lorsque le répertoire ou l’espace de noms est erroné : un répertoire absent retourne le routeur inchangé et une classe qui ne correspond pas à l’espace de noms est ignorée. Vérifiez `$router->count()` pendant la mise en place.
 - Les attributs de route sur les méthodes d’une classe parente ne s’appliquent pas aux sous-classes ; `#[Root]`, `#[Middleware]` et `#[RequiresEnv]` sur la classe parente, eux, s’appliquent.
 - Déclarez les groupes de middlewares avant `discoverControllers()` : un groupe est développé lors de l’ajout d’une route.
-- Les noms de routes ne sont vérifiés pour les doublons qu’à l’intérieur d’une même classe : appelez `$router->assertNoDuplicateRouteNames()` pour le reste.
+- Deux routes par attribut d’une même classe qui partagent un nom sont refusées à l’enregistrement de la classe ; tout autre doublon arrête `build()` avec `DuplicateRouteNameException`.
 - Un `POST` portant un champ `_method` ou un en-tête `X-HTTP-Method-Override` valant `PUT`, `PATCH` ou `DELETE` est routé comme cette méthode lorsque la requête provient de `Request::fromGlobals()`.

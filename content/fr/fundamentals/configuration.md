@@ -193,7 +193,14 @@ $config->hasSection('billing');         // true
 
 `ConfigSection` offre `get()`, `getString()`, `getInt()`, `getFloat()`, `getBool()`, `getArray()` et `has()`. Les clés imbriquées utilisent des points (`smtp.host`), et `trialDays` comme `trial_days` retrouvent la même valeur. Les secrets que vous déclarez dans une propriété `$secretKeys` sont masqués par `toArray()`.
 
-Le `MailerConfig` du framework est une section de ce type. Enregistrez-le sous la forme `['mailer' => MailerConfig::class]` pour configurer SMTP depuis le YAML : voir [Courriel](../../digging-deeper/mail/).
+Le `MailerConfig` du framework est une section de ce type, tout comme la section `render:`. Les deux refusent une clé inconnue avec le même message (la version 0.14.1 l’ignorait) :
+
+```text
+Configuration section 'render' field 'cach' is an unknown key: did you mean "cache"?
+Configuration section 'mailer' field 'smtp.hots' is an unknown key: did you mean "smtp.host"?
+```
+
+Enregistrez le mailer sous la forme `['mailer' => MailerConfig::class]` pour configurer SMTP depuis le YAML : voir [Courriel](../../digging-deeper/mail/).
 
 ### Bon à savoir
 

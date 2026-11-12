@@ -45,6 +45,8 @@ mailer:
 
 `smtp.encryption` est une liste d’autorisation : toute autre valeur, `none` incluse, interrompt le démarrage avec une erreur qui énumère les trois valeurs acceptées. Une valeur vide désactive complètement le chiffrement et est destinée à un puits local ; lorsque des identifiants sont définis, le mailer écrit un avertissement dans le journal d’erreurs une fois par processus. Avec `tls` ou `ssl`, le certificat du serveur est vérifié : un serveur SMTP de développement a donc besoin d’un certificat auquel PHP fait confiance, faute de quoi la connexion échoue avec `certificate verify failed`.
 
+Une clé que la section ne connaît pas, sous `mailer:` ou dans `smtp:` et `from:`, interrompt le démarrage avec une `ConfigurationException` qui nomme la clé acceptée la plus proche (`Configuration section 'mailer' field 'smtp.hots' is an unknown key: did you mean "smtp.host"?`) ; la version 0.14.1 l’ignorait. `smtp.port` est un entier dans l’objet exporté : `!env MAIL_PORT` donne `587`, et non `"587"`, dans `toArray()`.
+
 `MailerConfig::fromArray([...])` construit le même objet à partir d’un simple tableau (clés imbriquées `smtp` et `from`), ce qui est pratique dans les tests. Le mot de passe est masqué lorsque l’objet est affiché.
 
 ## Envoyer un message

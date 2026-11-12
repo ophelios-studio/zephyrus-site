@@ -45,6 +45,8 @@ mailer:
 
 `smtp.encryption` is an allowlist: any other value, `none` included, stops the boot with an error that lists the three accepted values. An empty value disables encryption entirely and is meant for a local sink; with credentials set, the mailer writes a warning to the error log once per process. With `tls` or `ssl` the server certificate is verified, so a development SMTP server needs a certificate PHP trusts, otherwise the connection fails with `certificate verify failed`.
 
+A key the section does not know, under `mailer:` or inside `smtp:` and `from:`, stops the boot with a `ConfigurationException` that names the closest accepted key (`Configuration section 'mailer' field 'smtp.hots' is an unknown key: did you mean "smtp.host"?`); version 0.14.1 ignored it. `smtp.port` is an integer in the exported object: `!env MAIL_PORT` gives `587`, not `"587"`, in `toArray()`.
+
 `MailerConfig::fromArray([...])` builds the same object from a plain array (nested keys `smtp` and `from`), which is handy in tests. The password is masked when the object is dumped.
 
 ## Sending a message

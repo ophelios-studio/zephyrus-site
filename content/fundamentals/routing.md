@@ -127,7 +127,7 @@ A placeholder fills a whole segment and cannot share it with text. To match `rep
 
 ## Naming routes
 
-The `name` argument gives a route a name for [URL generation](#generating-urls). Names must be unique. Two attribute routes of one class sharing a name are refused (`Duplicate route name "same" discovered while reading attributes on class "Dup\A".`). Across classes, or with routes registered on the router, nothing refuses a repeat at registration: call `$router->assertNoDuplicateRouteNames()` once routes are registered, which throws `Duplicate route names detected: same`.
+The `name` argument gives a route a name for [URL generation](#generating-urls). Names must be unique. Two attribute routes of one class sharing a name are refused (`Duplicate route name "same" discovered while reading attributes on class "Dup\A".`). Across classes, or with routes registered on the router, the repeat is refused when the application is built: `ApplicationBuilder::build()` throws a `Zephyrus\Routing\Exception\DuplicateRouteNameException` (`Duplicate route names detected: same`). Version 0.14.1 accepted a duplicate between classes, `route()` picking the first, until `$router->assertNoDuplicateRouteNames()` was called, and that call threw a `RouteSignatureException`: a `catch` on that class no longer catches it.
 
 ## Attaching middleware
 
@@ -336,5 +336,5 @@ Circular middleware group reference detected: a -> b -> a
 - `discoverControllers()` registers nothing, silently, when the directory or namespace is wrong: a missing directory returns the router unchanged and a class that does not match the namespace is skipped. Check `$router->count()` while you set up.
 - Route attributes on a parent class's methods do not apply to subclasses; `#[Root]`, `#[Middleware]` and `#[RequiresEnv]` on the parent class do.
 - Declare middleware groups before `discoverControllers()`: a group is expanded when a route is added.
-- Route names are only checked for duplicates inside one class: call `$router->assertNoDuplicateRouteNames()` for the rest.
+- Two attribute routes of one class sharing a name are refused when the class is registered; any other duplicate name stops `build()` with `DuplicateRouteNameException`.
 - A `POST` carrying a `_method` field or an `X-HTTP-Method-Override` header of `PUT`, `PATCH` or `DELETE` is routed as that method when the request comes from `Request::fromGlobals()`.
