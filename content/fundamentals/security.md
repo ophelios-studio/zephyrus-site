@@ -165,8 +165,8 @@ The section is strict, so a value that would silently do something else stops th
 ```text
 max_body_size: 2M
   Configuration section 'security' field 'max_body_size' has invalid value "2M": must be a number of bytes, for example 2097152 (no unit suffix).
-allowed_hosts: [localhost:8080]
-  Configuration section 'security' field 'allowedHosts[0]' has invalid value "localhost:8080": ports are not matched: list "localhost" only.
+allowed_hosts: ['example.com:99999']
+  Configuration section 'security' field 'allowedHosts[0]' has invalid value "example.com:99999": the port must be a number from 1 to 65535 without a leading zero.
 allowed_hosts: ['https://example.com']
   Configuration section 'security' field 'allowedHosts[0]' has invalid value "https://example.com": drop the scheme, list the host only, such as example.com.
 csrf: true
@@ -344,7 +344,9 @@ security:
 - An exact entry matches that host, case-insensitively. A trailing dot is ignored.
 - `*.example.com` matches every subdomain, at any depth (`www.example.com`, `a.b.example.com`), but never `example.com` itself: list both if you need both.
 - An IPv6 literal is written `2001:db8::1` or `[2001:db8::1]`.
-- The port is not matched: `app.example.test:8443` passes when `app.example.test` is listed. Entries with a port, a scheme, a lone `*` or a non-ASCII name are refused at boot (use the punycode form of an internationalised name).
+- An entry without a port admits any port: `app.example.test:8443` passes when `app.example.test` is listed. An entry with a port pins it: `app.example.test:443`, `[2001:db8::1]:8080` or `*.example.com:443` admits that port only, and a URL without a port counts as 80 for `http` and 443 for `https`. Pin the port in production when the application builds absolute URLs from the request. An IPv6 literal pins a port only in brackets: `::1:8080` is an address, admitted on any port.
+- Behind `ForceHttpsMiddleware`, also list the host on port 80, which then only reaches the redirect: with `[app.example.test:443, app.example.test:80]`, `http://app.example.test/` is answered with a 308, and with `[app.example.test:443]` alone, with a 400.
+- Entries with a scheme, a port outside 1 to 65535, a lone `*` or a non-ASCII name are refused at boot (use the punycode form of an internationalised name).
 - An empty list accepts every host. In production, list yours.
 
 `$middleware->allows('www.example.com')` applies the same rules outside a request, for example to check a host read from somewhere else.
@@ -369,9 +371,9 @@ The forwarded chain is read from the right, skipping trusted proxies, and the fi
 
 `trusted_headers` lists which forwarding headers a trusted proxy may set: by default `x-forwarded-for`, `x-forwarded-host`, `x-forwarded-proto` and `x-forwarded-port`. `forwarded`, `x-real-ip`, `cf-connecting-ip` and `x-client-ip` are also understood, but only read when you list them, because they are only trustworthy when your nearest proxy overwrites them. Listing `trusted_headers` replaces the default set, so name every header you need.
 
-The default set is not safe behind every proxy. `x-forwarded-for` is read from the right, so a value the client prepends is never reached, provided the nearest proxy appends to the header or overwrites it. `x-forwarded-host`, `x-forwarded-proto` and `x-forwarded-port` are read from the left: the first value of the list wins. A proxy that appends to a header the client sent leaves the client's value first, and the client then picks the host and scheme your application sees. With a trusted peer forwarding `X-Forwarded-Host: evil.example, app.example.test` and `X-Forwarded-Proto: https, http`, `Request::uri()` answers `https://evil.example`, and with an empty `allowed_hosts` a password reset link built from it points at `evil.example`.
+The default set is not safe behind every proxy. `x-forwarded-for` is read from the right, so a value the client prepends is never reached, provided the nearest proxy appends to the header or overwrites it. `x-forwarded-host`, `x-forwarded-proto` and `x-forwarded-port` are read from their last entry, the one the nearest proxy wrote, and an empty last entry counts as absent. With a trusted peer forwarding `X-Forwarded-Host: evil.example, app.example.test` and `X-Forwarded-Proto: https, http`, `Request::uri()` answers `http://app.example.test/`: the client's value is never reached. The proxy must still write each of these headers on every request, by overwriting or appending. One that writes a header only sometimes lets the client choose it: a request that reaches the application with `X-Forwarded-Host: evil.example` alone yields `http://evil.example/`, and with an empty `allowed_hosts` a password reset link built from it points at `evil.example`. Version 0.14.0 read the first entry instead, which the client supplies even through an appending proxy, so there the proxy had to overwrite them.
 
-So the forwarding headers are trustworthy only when the nearest proxy overwrites them or, for `X-Forwarded-For`, appends to it. A proxy that passes the client's `X-Forwarded-For` through lets the client choose `clientIp()` and get past `IpAllowlistGuard`. In nginx:
+So the forwarding headers are trustworthy only when the nearest proxy writes them on every request. A proxy that passes the client's `X-Forwarded-For` through lets the client choose `clientIp()` and get past `IpAllowlistGuard`. In nginx:
 
 ```nginx
 proxy_set_header X-Forwarded-Host $host;
@@ -380,7 +382,7 @@ proxy_set_header X-Forwarded-Port $server_port;
 proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
 ```
 
-Apache `mod_proxy` appends to `X-Forwarded-Host` by default, which is the unsafe case. When the proxy does not overwrite a header, take it out of the trusted set. With only the client address trusted, the same request resolves to `http://app.example.test`:
+Apache `mod_proxy` appends `X-Forwarded-Host` only when the request has a `Host` (an HTTP/1.0 request without one keeps the client's value) and never writes `X-Forwarded-Proto` or `X-Forwarded-Port`. Add `RequestHeader unset X-Forwarded-Host early`, `RequestHeader set X-Forwarded-Proto expr=%{REQUEST_SCHEME}` and, in each vhost, `RequestHeader set X-Forwarded-Port` with the port it listens on (`443` for TLS, `80` otherwise). Behind two appending proxies the value read is the nearest one's: if the outer proxy rewrote `Host`, that is the internal name, so `allowed_hosts` refuses it, and the outer proxy should overwrite instead. When a proxy does not write a header, take it out of the trusted set. With only the client address trusted, a request that carries `X-Forwarded-Host: evil.example` resolves to `http://app.example.test`:
 
 ```yaml
 security:
@@ -388,9 +390,7 @@ security:
   trusted_headers: [x-forwarded-for]
 ```
 
-Without `x-forwarded-proto`, a request that a proxy terminated over TLS is no longer seen as HTTPS, so enforce HTTPS at the proxy and acknowledge `forceHttps` (see [forcing HTTPS](#forcing-https)). `allowed_hosts` is the backstop for every host header, forwarded or not: list your hosts in production. With `app.example.test` listed, the request above is answered with a 400. It does not check ports: an `X-Forwarded-Port` that the proxy does not overwrite must leave the trusted set, or a client can put its own port into generated URLs.
-
-The port of the `Host` header itself is not checked either, so a client can put its own port into a URL built from the request. Build the links you send by email (password resets, invitations) from a configured base URL, never from the request.
+Without `x-forwarded-proto`, a request that a proxy terminated over TLS is no longer seen as HTTPS, so enforce HTTPS at the proxy and acknowledge `forceHttps` (see [forcing HTTPS](#forcing-https)). `allowed_hosts` is the backstop for every host header, forwarded or not: list your hosts in production. With `app.example.test` listed, a request whose host resolves to `evil.example` is answered with a 400. An entry without a port does not check ports: pin the port (`app.example.test:443`) so that a client cannot put its own port, through `X-Forwarded-Port` or the `Host` header, into a URL built from the request. Still build the links you send by email (password resets, invitations) from a configured base URL, never from the request.
 
 `['*']` trusts every peer. It exists for local development behind a container proxy; in production it lets any client choose its own address.
 

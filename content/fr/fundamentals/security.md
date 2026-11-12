@@ -165,8 +165,8 @@ La section est stricte : une valeur qui ferait silencieusement autre chose inte
 ```text
 max_body_size: 2M
   Configuration section 'security' field 'max_body_size' has invalid value "2M": must be a number of bytes, for example 2097152 (no unit suffix).
-allowed_hosts: [localhost:8080]
-  Configuration section 'security' field 'allowedHosts[0]' has invalid value "localhost:8080": ports are not matched: list "localhost" only.
+allowed_hosts: ['example.com:99999']
+  Configuration section 'security' field 'allowedHosts[0]' has invalid value "example.com:99999": the port must be a number from 1 to 65535 without a leading zero.
 allowed_hosts: ['https://example.com']
   Configuration section 'security' field 'allowedHosts[0]' has invalid value "https://example.com": drop the scheme, list the host only, such as example.com.
 csrf: true
@@ -344,7 +344,9 @@ security:
 - Une entrée exacte correspond à cet hôte, sans tenir compte de la casse. Un point final est ignoré.
 - `*.example.com` correspond à tous les sous-domaines, à toute profondeur (`www.example.com`, `a.b.example.com`), mais jamais à `example.com` lui-même : inscrivez les deux si vous avez besoin des deux.
 - Un littéral IPv6 s’écrit `2001:db8::1` ou `[2001:db8::1]`.
-- Le port n’est pas comparé : `app.example.test:8443` passe quand `app.example.test` est inscrit. Les entrées avec un port, un schéma, un `*` seul ou un nom non ASCII sont refusées au démarrage (utilisez la forme punycode d’un nom internationalisé).
+- Une entrée sans port admet n’importe quel port : `app.example.test:8443` passe quand `app.example.test` est inscrit. Une entrée avec un port l’épingle : `app.example.test:443`, `[2001:db8::1]:8080` ou `*.example.com:443` n’admet que ce port, et une URL sans port compte pour 80 en `http` et 443 en `https`. Épinglez le port en production quand l’application construit des URL absolues à partir de la requête. Un littéral IPv6 n’épingle un port qu’entre crochets : `::1:8080` est une adresse, admise sur n’importe quel port.
+- Derrière `ForceHttpsMiddleware`, inscrivez aussi l’hôte sur le port 80, qui n’atteint alors que la redirection : avec `[app.example.test:443, app.example.test:80]`, `http://app.example.test/` reçoit un 308, et avec `[app.example.test:443]` seul, un 400.
+- Les entrées avec un schéma, un port hors de 1 à 65535, un `*` seul ou un nom non ASCII sont refusées au démarrage (utilisez la forme punycode d’un nom internationalisé).
 - Une liste vide accepte tous les hôtes. En production, inscrivez les vôtres.
 
 `$middleware->allows('www.example.com')` applique les mêmes règles en dehors d’une requête, par exemple pour vérifier un hôte lu ailleurs.
@@ -369,9 +371,9 @@ La chaîne de transfert est lue depuis la droite, en sautant les mandataires de 
 
 `trusted_headers` énumère les en-têtes de transfert qu’un mandataire de confiance peut définir : par défaut `x-forwarded-for`, `x-forwarded-host`, `x-forwarded-proto` et `x-forwarded-port`. `forwarded`, `x-real-ip`, `cf-connecting-ip` et `x-client-ip` sont aussi compris, mais lus seulement si vous les inscrivez, parce qu’ils ne sont dignes de confiance que lorsque votre mandataire le plus proche les écrase. Indiquer `trusted_headers` remplace l’ensemble par défaut : nommez donc chaque en-tête dont vous avez besoin.
 
-L’ensemble par défaut n’est pas sûr derrière tous les mandataires. `x-forwarded-for` est lu depuis la droite : une valeur ajoutée en tête par le client n’est donc jamais atteinte, pourvu que le mandataire le plus proche ajoute à la suite de l’en-tête ou l’écrase. `x-forwarded-host`, `x-forwarded-proto` et `x-forwarded-port` sont lus depuis la gauche : la première valeur de la liste l’emporte. Un mandataire qui ajoute à la suite d’un en-tête envoyé par le client laisse la valeur du client en premier, et le client choisit alors l’hôte et le schéma que voit votre application. Avec un pair de confiance qui transmet `X-Forwarded-Host: evil.example, app.example.test` et `X-Forwarded-Proto: https, http`, `Request::uri()` répond `https://evil.example`, et avec un `allowed_hosts` vide, un lien de réinitialisation de mot de passe construit à partir de celui-ci pointe vers `evil.example`.
+L’ensemble par défaut n’est pas sûr derrière tous les mandataires. `x-forwarded-for` est lu depuis la droite : une valeur ajoutée en tête par le client n’est donc jamais atteinte, pourvu que le mandataire le plus proche ajoute à la suite de l’en-tête ou l’écrase. `x-forwarded-host`, `x-forwarded-proto` et `x-forwarded-port` sont lus depuis leur dernière entrée, celle qu’a écrite le mandataire le plus proche, et une dernière entrée vide compte pour absente. Avec un pair de confiance qui transmet `X-Forwarded-Host: evil.example, app.example.test` et `X-Forwarded-Proto: https, http`, `Request::uri()` répond `http://app.example.test/` : la valeur du client n’est jamais atteinte. Le mandataire doit tout de même écrire chacun de ces en-têtes à chaque requête, en l’écrasant ou en ajoutant à la suite. Un mandataire qui n’en écrit un que parfois laisse le client le choisir : une requête qui parvient à l’application avec `X-Forwarded-Host: evil.example` seul donne `http://evil.example/`, et avec un `allowed_hosts` vide, un lien de réinitialisation de mot de passe construit à partir de celui-ci pointe vers `evil.example`. La version 0.14.0 lisait la première entrée, que le client fournit même à travers un mandataire qui ajoute à la suite : le mandataire devait alors les écraser.
 
-Les en-têtes de transfert ne sont donc dignes de confiance que lorsque le mandataire le plus proche les écrase ou, pour `X-Forwarded-For`, ajoute à la suite. Un mandataire qui laisse passer le `X-Forwarded-For` du client permet au client de choisir `clientIp()` et de contourner `IpAllowlistGuard`. Dans nginx :
+Les en-têtes de transfert ne sont donc dignes de confiance que lorsque le mandataire le plus proche les écrit à chaque requête. Un mandataire qui laisse passer le `X-Forwarded-For` du client permet au client de choisir `clientIp()` et de contourner `IpAllowlistGuard`. Dans nginx :
 
 ```nginx
 proxy_set_header X-Forwarded-Host $host;
@@ -380,7 +382,7 @@ proxy_set_header X-Forwarded-Port $server_port;
 proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
 ```
 
-Apache `mod_proxy` ajoute à la suite de `X-Forwarded-Host` par défaut, ce qui est le cas non sécuritaire. Quand le mandataire n’écrase pas un en-tête, retirez-le de l’ensemble approuvé. Avec seulement l’adresse du client approuvée, la même requête se résout en `http://app.example.test` :
+Apache `mod_proxy` n’ajoute `X-Forwarded-Host` que lorsque la requête porte un `Host` (une requête HTTP/1.0 sans `Host` garde la valeur du client) et n’écrit jamais `X-Forwarded-Proto` ni `X-Forwarded-Port`. Ajoutez `RequestHeader unset X-Forwarded-Host early`, `RequestHeader set X-Forwarded-Proto expr=%{REQUEST_SCHEME}` et, dans chaque vhost, `RequestHeader set X-Forwarded-Port` avec le port qu’il écoute (`443` pour TLS, `80` sinon). Derrière deux mandataires qui ajoutent à la suite, la valeur lue est celle du plus proche : si le mandataire extérieur a réécrit `Host`, c’est le nom interne, donc `allowed_hosts` le refuse, et le mandataire extérieur devrait plutôt écraser. Quand un mandataire n’écrit pas un en-tête, retirez-le de l’ensemble approuvé. Avec seulement l’adresse du client approuvée, une requête qui porte `X-Forwarded-Host: evil.example` se résout en `http://app.example.test` :
 
 ```yaml
 security:
@@ -388,9 +390,7 @@ security:
   trusted_headers: [x-forwarded-for]
 ```
 
-Sans `x-forwarded-proto`, une requête qu’un mandataire a terminée en TLS n’est plus vue comme HTTPS : appliquez donc HTTPS au mandataire et reconnaissez `forceHttps` (voir [forcer HTTPS](#forcer-https)). `allowed_hosts` est le filet de sécurité pour tous les en-têtes d’hôte, transmis ou non : inscrivez vos hôtes en production. Avec `app.example.test` inscrit, la requête ci-dessus reçoit un 400. Il ne vérifie pas les ports : un `X-Forwarded-Port` que le mandataire n’écrase pas doit sortir de l’ensemble approuvé, sans quoi un client peut mettre son propre port dans les URL générées.
-
-Le port de l’en-tête `Host` lui-même n’est pas vérifié non plus : un client peut donc placer son propre port dans une URL construite à partir de la requête. Construisez les liens envoyés par courriel (réinitialisation de mot de passe, invitations) à partir d’une URL de base configurée, jamais à partir de la requête.
+Sans `x-forwarded-proto`, une requête qu’un mandataire a terminée en TLS n’est plus vue comme HTTPS : appliquez donc HTTPS au mandataire et reconnaissez `forceHttps` (voir [forcer HTTPS](#forcer-https)). `allowed_hosts` est le filet de sécurité pour tous les en-têtes d’hôte, transmis ou non : inscrivez vos hôtes en production. Avec `app.example.test` inscrit, une requête dont l’hôte se résout en `evil.example` reçoit un 400. Une entrée sans port ne vérifie pas les ports : épinglez le port (`app.example.test:443`) pour qu’un client ne puisse pas placer son propre port, par `X-Forwarded-Port` ou l’en-tête `Host`, dans une URL construite à partir de la requête. Construisez tout de même les liens envoyés par courriel (réinitialisation de mot de passe, invitations) à partir d’une URL de base configurée, jamais à partir de la requête.
 
 `['*']` approuve tous les pairs. Il existe pour le développement local derrière un mandataire de conteneur ; en production, il permet à n’importe quel client de choisir sa propre adresse.
 
