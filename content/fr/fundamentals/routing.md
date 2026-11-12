@@ -280,7 +280,7 @@ public function show(int $id): Response
 
 ## Mettre la table de routes en cache
 
-`RouteCache` enregistre les routes compilées dans un fichier JSON afin qu’une requête puisse éviter de parcourir et de réfléchir les contrôleurs. L’application ne l’utilise jamais d’elle-même : c’est vous qui décidez quand l’écrire et le lire.
+`RouteCache` enregistre les routes compilées dans un fichier JSON afin qu’une requête puisse éviter de parcourir les contrôleurs et de les analyser par réflexion. L’application ne l’utilise jamais d’elle-même : c’est vous qui décidez quand l’écrire et le lire.
 
 ```php
 use Zephyrus\Routing\RouteCache;
