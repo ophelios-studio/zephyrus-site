@@ -104,15 +104,27 @@
   const sidebar = document.querySelector('.docs-sidebar');
   const chapters = document.querySelector('.docs-menu-button');
   const narrow = matchMedia('(max-width: 600px)');
+  const sidebarLinks = () => [...(sidebar?.querySelectorAll('a[href]') ?? [])];
   function setSidebar(open) {
     document.body.classList.toggle('sidebar-open', open);
     chapters?.setAttribute('aria-expanded', String(open));
     if (sidebar) sidebar.inert = narrow.matches && !open;
+    if (open) sidebarLinks()[0]?.focus({ preventScroll: true });
   }
   chapters?.addEventListener('click', () => setSidebar(!document.body.classList.contains('sidebar-open')));
   document.querySelector('.sidebar-shade')?.addEventListener('click', () => setSidebar(false));
   narrow.addEventListener('change', () => setSidebar(false)); setSidebar(false);
-  document.addEventListener('keydown', event => { if (event.key === 'Escape' && document.body.classList.contains('sidebar-open')) { setSidebar(false); chapters?.focus(); } });
+  document.addEventListener('keydown', event => {
+    if (!document.body.classList.contains('sidebar-open')) return;
+    if (event.key === 'Escape') { setSidebar(false); chapters?.focus(); return; }
+    if (event.key !== 'Tab') return;
+    const links = sidebarLinks(), first = links[0], last = links.at(-1), current = document.activeElement;
+    let target = null;
+    if (!sidebar.contains(current)) target = event.shiftKey ? last : first;
+    else if (event.shiftKey && current === first) target = last;
+    else if (!event.shiftKey && current === last) target = first;
+    if (target) { event.preventDefault(); target.focus(); }
+  });
   const headings = document.querySelectorAll('.prose h2, .prose h3');
   if ('IntersectionObserver' in window && headings.length) {
     const observer = new IntersectionObserver(entries => entries.forEach(entry => {
