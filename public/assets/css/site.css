@@ -1885,6 +1885,11 @@ details[open] summary {
   color:var(--ink);
 }
 
+.search-input-row input::-webkit-search-cancel-button {
+  -webkit-appearance:none;
+  appearance:none;
+}
+
 .search-close {
   font-family:var(--mono);
   font-size:9px;
