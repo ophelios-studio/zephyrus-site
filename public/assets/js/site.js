@@ -24,7 +24,7 @@
     menu.setAttribute('aria-label', open ? ui.closeMenu : ui.openMenu);
   });
   mobileNav?.querySelectorAll('a').forEach(link => link.addEventListener('click', closeMenu));
-  document.addEventListener('keydown', event => { if (event.key === 'Escape') closeMenu(); });
+  document.addEventListener('keydown', event => { if (event.key === 'Escape' && menu?.getAttribute('aria-expanded') === 'true') { closeMenu(); menu.focus(); } });
   matchMedia('(min-width: 601px)').addEventListener('change', closeMenu);
 
   const escapeHTML = text => text.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;');
