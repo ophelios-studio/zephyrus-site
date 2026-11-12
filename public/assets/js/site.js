@@ -125,6 +125,7 @@
     else if (!event.shiftKey && current === last) target = first;
     if (target) { event.preventDefault(); target.focus(); }
   });
+  document.querySelectorAll('.heading-permalink').forEach(link => { link.tabIndex = -1; if (ui.permalink) link.title = ui.permalink; });
   const headings = document.querySelectorAll('.prose h2, .prose h3');
   if ('IntersectionObserver' in window && headings.length) {
     const observer = new IntersectionObserver(entries => entries.forEach(entry => {
