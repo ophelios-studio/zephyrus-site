@@ -128,6 +128,7 @@
   const results = dialog.querySelector('.search-results');
   let searchIndex, selected = 0, rendered = [];
   const normalize = text => text.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+  const sectionLabel = section => document.querySelector('#ui-strings')?.getAttribute('data-section-' + section) || '';
   // Listed by rank: a term found in the title beats one found in a heading, which beats the body text.
   const SEARCH_FIELDS = ['title', 'headings', 'text'];
   const clip = (text, length) => text.length > length ? text.slice(0, length) + '…' : text;
@@ -167,7 +168,7 @@
     results.replaceChildren(); selected = 0;
     matches.forEach(({ page, summary }) => {
       const link = document.createElement('a'); link.className = 'search-result'; link.href = localePrefix + page.url + '/';
-      const section = document.createElement('span'); section.textContent = page.section === 'getting-started' ? ui.startSection : ui.fundamentalsSection;
+      const section = document.createElement('span'); section.textContent = sectionLabel(page.section);
       const title = document.createElement('h3'); title.textContent = page.title;
       const excerpt = document.createElement('p'); excerpt.textContent = summary;
       link.append(section, title, excerpt); results.append(link);
