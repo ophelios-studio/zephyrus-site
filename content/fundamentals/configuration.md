@@ -40,7 +40,7 @@ session:
 
 security:
   force_https: false
-  allowed_hosts: [example.com]     # host names only: no port, no scheme; an empty list accepts every Host header
+  allowed_hosts: [example.com]     # host names, optionally pinned to a port (example.com:443); no scheme; empty accepts every Host
   max_body_size: 2097152           # bytes, no unit suffix
   trusted_proxies: []              # addresses or CIDR network addresses
   csrf:
