@@ -112,7 +112,7 @@ $request->cookies()->has('theme');       // true
 $request->cookies()->all();              // ['theme' => 'dark']
 ```
 
-Le témoin de session est géré pour vous par le [middleware de session](../sessions/). `Response` n’a pas d’assistant pour les témoins, et poser un témoin sur une réponse a des effets de bord : voir [Témoins sur une réponse](#témoins-sur-une-réponse).
+Le témoin de session est géré pour vous par le [middleware de session](../sessions/). Posez-en un sur une réponse avec `withCookie()` : voir [Témoins sur une réponse](#témoins-sur-une-réponse).
 
 ## Fichiers téléversés
 
@@ -208,18 +208,32 @@ Il en va de même pour `Request` : `withAttribute()` retourne une copie. Un mid
 
 ## Témoins sur une réponse
 
-`Response` n’offre aucune API de témoins, et ses en-têtes ne contiennent qu’une valeur par nom, donc une réponse porte un seul en-tête `Set-Cookie` :
+`withCookie()` retourne une copie de la réponse qui pose un témoin sur sa propre ligne `Set-Cookie`. Appelez-la une fois par témoin :
 
 ```php
-Response::noContent()->withHeader(
-    'Set-Cookie',
-    'theme=dark; Path=/; Secure; HttpOnly; SameSite=Lax',
-);
+$response = Response::noContent()
+    ->withCookie('theme', 'dark', maxAge: 31_536_000) // maxAge: 0 le fait expirer
+    ->withCookie('lang', 'fr', secure: $request->uri()->isSecure());
+
+$response->cookies;
+// ['theme=dark; Max-Age=31536000; Path=/; Secure; HttpOnly; SameSite=Lax',
+//  'lang=fr; Path=/; HttpOnly; SameSite=Lax']
 ```
 
-Posez toujours `Secure`, `HttpOnly` et une valeur `SameSite`, et construisez la valeur à partir de données de confiance seulement. Pour l’état de connexion, utilisez la session, qui pose son propre témoin.
+Les valeurs par défaut sont `Path=/; Secure; HttpOnly; SameSite=Lax`, et la valeur est encodée en pourcentage comme le fait `setcookie()`. `Secure` reste actif même quand `session.secure` vaut `auto` : en développement en HTTP simple, passez `secure: false` (ou `secure: $request->uri()->isSecure()`), sans quoi le navigateur abandonne le témoin. Un témoin de même nom, domaine et chemin remplace le précédent (le domaine est comparé sans tenir compte de la casse ni d’un point initial) ; le même nom sur un autre domaine ou un autre chemin est conservé sur sa propre ligne. `$response->cookies` liste les lignes, et `new Response(cookies: [...])` prend une liste de lignes, jamais une table nom-valeur.
 
-> **Attention :** l’émetteur envoie chaque en-tête avec `header()`, qui remplace les en-têtes `Set-Cookie` que PHP a déjà mis en file. Un `Set-Cookie` sur une réponse supprime donc tous les autres témoins de cette requête : le témoin de session compris, de sorte qu’un visiteur qui n’en a pas ne reçoit aucun témoin de session sur cette réponse, et tout appel à `setcookie()` fait plus tôt dans la requête est perdu. Gardez plutôt la valeur dans la session, ou n’envoyez le témoin de réponse que sur une réponse où aucun témoin de session ni autre témoin n’est posé.
+Tout ce que les navigateurs abandonneraient est refusé par une `InvalidArgumentException` :
+
+```php
+$response->withCookie('sid', 'x', sameSite: 'None', secure: false);
+// Cookie "sid" cannot use SameSite=None without Secure: browsers discard it.
+$response->withCookie('__Host-sid', 'x', path: '/app');
+// Cookie "__Host-sid" uses the __Host- prefix, which requires Secure, the path "/" and no domain.
+```
+
+`hasHeader('Set-Cookie')` est vrai quand la réponse ne porte que des témoins, et `withoutHeader('Set-Cookie')` les efface aussi ; `getHeader('Set-Cookie')` ne lit toujours que l’en-tête posé avec `withHeader()`. L’émetteur ajoute chaque ligne `Set-Cookie` au lieu de remplacer celles que PHP a déjà mises en file : le témoin de session et tout appel antérieur à `setcookie()` sont donc conservés. Construisez la valeur à partir de données de confiance seulement. Pour l’état de connexion, utilisez la session, qui pose son propre témoin.
+
+En 0.14.0, `Response` n’avait aucune API de témoins, et un en-tête `Set-Cookie` sur une réponse remplaçait tous les témoins que PHP avait mis en file, celui de la session compris.
 
 ## Émettre une réponse
 

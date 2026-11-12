@@ -112,7 +112,7 @@ $request->cookies()->has('theme');       // true
 $request->cookies()->all();              // ['theme' => 'dark']
 ```
 
-The session cookie is managed for you by the [session middleware](../sessions/). `Response` has no cookie helper, and setting a cookie on a response has side effects: see [Cookies on a response](#cookies-on-a-response).
+The session cookie is managed for you by the [session middleware](../sessions/). Set one on a response with `withCookie()`: see [Cookies on a response](#cookies-on-a-response).
 
 ## Uploaded files
 
@@ -208,18 +208,32 @@ The same is true of `Request`: `withAttribute()` returns a copy. A middleware th
 
 ## Cookies on a response
 
-There is no cookie API on `Response`, and its headers hold one value per name, so a response carries one `Set-Cookie` header:
+`withCookie()` returns a copy of the response that sets one cookie on its own `Set-Cookie` line. Call it once per cookie:
 
 ```php
-Response::noContent()->withHeader(
-    'Set-Cookie',
-    'theme=dark; Path=/; Secure; HttpOnly; SameSite=Lax',
-);
+$response = Response::noContent()
+    ->withCookie('theme', 'dark', maxAge: 31_536_000) // maxAge: 0 expires it
+    ->withCookie('lang', 'fr', secure: $request->uri()->isSecure());
+
+$response->cookies;
+// ['theme=dark; Max-Age=31536000; Path=/; Secure; HttpOnly; SameSite=Lax',
+//  'lang=fr; Path=/; HttpOnly; SameSite=Lax']
 ```
 
-Always set `Secure`, `HttpOnly` and a `SameSite` value, and build the value from trusted data only. For login state use the session, which sets its own cookie.
+The defaults are `Path=/; Secure; HttpOnly; SameSite=Lax`, and the value is percent-encoded as `setcookie()` does. `Secure` stays on even where `session.secure` is `auto`: on plain-HTTP development, pass `secure: false` (or `secure: $request->uri()->isSecure()`), or the browser drops the cookie. A cookie of the same name, domain and path replaces the earlier one (the domain is compared without case or a leading dot); the same name on another domain or path is kept as its own line. `$response->cookies` lists the lines, and `new Response(cookies: [...])` takes a list of lines, never a name-to-value map.
 
-> **Caution:** the emitter sends each header with `header()`, which replaces the `Set-Cookie` headers PHP has already queued. A `Set-Cookie` on a response therefore drops every other cookie of that request: the session cookie included, so a visitor who has none gets no session cookie on that response, and any `setcookie()` call made earlier in the request is lost. Keep the value in the session instead, or send the response cookie only on a response where no session cookie or other cookie is being set.
+Anything browsers would drop is refused with an `InvalidArgumentException`:
+
+```php
+$response->withCookie('sid', 'x', sameSite: 'None', secure: false);
+// Cookie "sid" cannot use SameSite=None without Secure: browsers discard it.
+$response->withCookie('__Host-sid', 'x', path: '/app');
+// Cookie "__Host-sid" uses the __Host- prefix, which requires Secure, the path "/" and no domain.
+```
+
+`hasHeader('Set-Cookie')` is true when the response only carries cookies, and `withoutHeader('Set-Cookie')` also clears them; `getHeader('Set-Cookie')` still reads only a header set with `withHeader()`. The emitter adds each `Set-Cookie` line instead of replacing the ones PHP already queued, so the session cookie and any earlier `setcookie()` call survive. Build the value from trusted data only. For login state use the session, which sets its own cookie.
+
+In 0.14.0 `Response` had no cookie API, and a `Set-Cookie` header on a response replaced every cookie PHP had queued, the session cookie included.
 
 ## Emitting a response
 
