@@ -140,7 +140,7 @@
   const input = document.querySelector('#doc-search');
   const results = dialog.querySelector('.search-results');
   let searchIndex, selected = 0, rendered = [];
-  const normalize = text => text.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+  const normalize = text => text.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[\u2018\u2019\u02bc]/g, "'").toLowerCase();
   const sectionLabel = section => document.querySelector('#ui-strings')?.getAttribute('data-section-' + section) || '';
   // Listed by rank: a term found in the title beats one found in a heading, which beats the body text.
   const SEARCH_FIELDS = ['title', 'headings', 'text'];
