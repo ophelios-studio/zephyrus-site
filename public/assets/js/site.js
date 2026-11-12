@@ -190,6 +190,8 @@
     renderResults();
   }
   document.querySelectorAll('[data-search-open]').forEach(button => button.addEventListener('click', openSearch));
+  const applePlatform = /^(mac|iphone|ipad|ipod|ios)/i.test(navigator.userAgentData?.platform ?? navigator.platform);
+  if (!applePlatform) document.querySelectorAll('[data-search-open] kbd').forEach(kbd => { kbd.textContent = 'Ctrl K'; });
   dialog.querySelector('.search-close').addEventListener('click', () => dialog.close());
   dialog.addEventListener('click', event => { if (event.target === dialog) { const rect = dialog.getBoundingClientRect(); if (event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom) dialog.close(); } });
   input.addEventListener('input', renderResults);
