@@ -30,6 +30,8 @@ app.example.test/
 │   └── index.php
 ├── tests/
 │   └── NotesTest.php
+├── var/
+│   └── zephyrus/
 ├── vendor/
 ├── .env
 ├── composer.json
@@ -45,6 +47,7 @@ app.example.test/
 | `cache/latte/` | Les gabarits compilés (le répertoire de cache que vous donnez à `LatteEngine`). Créé au premier besoin. |
 | `locale/<lang>/*.json` | Les catalogues de traduction (le réglage `localization.locale_path`). |
 | `public/` | La racine documentaire. Contient `index.php` et les ressources statiques. |
+| `var/zephyrus/` | Les caches qu’écrit `vendor/bin/zephyrus cache:warm` au déploiement (voir [Configuration](../../fundamentals/configuration/#caches-et-déploiement)). Absent en développement, et gardé hors du contrôle de version. |
 | `tests/` | Les tests PHPUnit, dans l’espace de noms `Tests\` si vous l’associez sous `autoload-dev`. |
 | `config.yml` | La configuration. |
 | `.env` | Les valeurs d’environnement locales, chargées par votre contrôleur frontal. |
@@ -54,8 +57,8 @@ app.example.test/
 Seules quelques choses sont fixes :
 
 - La racine documentaire est `public/`, avec un contrôleur frontal qui construit l’application. Le serveur web ne doit jamais servir la racine du projet.
-- Les contrôleurs se trouvent sous un répertoire que vous passez à `discoverControllers()`, dans un espace de noms qui correspond à leur chemin (PSR-4), afin que le routeur puisse déduire chaque nom de classe à partir de son fichier.
-- `config.yml` utilise les noms de sections intégrés (`application`, `session`, `security`, `localization`, `database`). Une clé qui ressemble à un nom intégré mal orthographié (`sesion`) est refusée au démarrage. Une section qui vous est propre, comme `render` ou `mailer`, n’est lue que si vous enregistrez une classe pour elle, voir [Configuration](../../fundamentals/configuration/).
+- Les contrôleurs se trouvent sous un répertoire que vous passez à `discoverControllers()`, ou que vous déclarez sous `router.controllers` dans `config.yml`, dans un espace de noms qui correspond à leur chemin (PSR-4), afin que le routeur puisse déduire chaque nom de classe à partir de son fichier.
+- `config.yml` utilise les noms de sections intégrés (`application`, `session`, `security`, `localization`, `database`, `router`). Une clé qui ressemble à un nom intégré mal orthographié (`sesion`) est refusée au démarrage. Une section qui vous est propre, comme `render` ou `mailer`, n’est lue que si vous enregistrez une classe pour elle, voir [Configuration](../../fundamentals/configuration/).
 
 Tout le reste peut être déplacé : `config.yml` peut se trouver ailleurs puisque vous donnez son chemin à `Configuration::fromYamlFile()`, les vues peuvent résider dans n’importe quel répertoire que vous passez à `LatteEngine`, et la classe de démarrage peut porter n’importe quel nom ou être écrite directement dans `public/index.php`, comme sur la page d’[installation](../installation/).
 
@@ -95,6 +98,6 @@ Les contrôleurs sont des classes, pas des fichiers : un projet peut appeler `d
 
 - Gardez les ressources statiques (CSS, JavaScript, images) dans `public/`, et tout le reste en dehors.
 - `cache/` doit être accessible en écriture à l’utilisateur du serveur web. Gardez-le hors du contrôle de version.
-- Ajoutez `.env` et `cache/` à `.gitignore`, et versionnez un `.env.example` avec les noms des variables et sans secrets.
+- Ajoutez `.env` et `cache/` à `.gitignore` (le réchauffage écrit son propre `.gitignore` dans `var/zephyrus/`), et versionnez un `.env.example` avec les noms des variables et sans secrets.
 - Les fichiers de localisation sont lus depuis `locale/<lang>/*.json` : un répertoire par langue. Voir [Localisation](../../fundamentals/localization/).
 - Les gabarits compilés sont reconstruits lorsqu’un gabarit change : supprimer `cache/latte/` est donc toujours sans risque.

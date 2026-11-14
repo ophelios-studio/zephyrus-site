@@ -30,6 +30,8 @@ app.example.test/
 │   └── index.php
 ├── tests/
 │   └── NotesTest.php
+├── var/
+│   └── zephyrus/
 ├── vendor/
 ├── .env
 ├── composer.json
@@ -45,6 +47,7 @@ app.example.test/
 | `cache/latte/` | Compiled templates (the cache directory you give to `LatteEngine`). Created when first needed. |
 | `locale/<lang>/*.json` | Translation catalogs (the `localization.locale_path` setting). |
 | `public/` | The document root. Holds `index.php` and static assets. |
+| `var/zephyrus/` | The caches `vendor/bin/zephyrus cache:warm` writes at deploy time (see [Configuration](../../fundamentals/configuration/#caches-and-deployment)). Absent in development, and kept out of version control. |
 | `tests/` | PHPUnit tests, in the `Tests\` namespace if you map it under `autoload-dev`. |
 | `config.yml` | The configuration. |
 | `.env` | Local environment values, loaded by your front controller. |
@@ -54,8 +57,8 @@ app.example.test/
 Only a few things are fixed:
 
 - The document root is `public/`, with a front controller that builds the application. The web server must never serve the project root.
-- Controllers live under a directory you pass to `discoverControllers()`, in a namespace that matches their path (PSR-4), so that the router can derive each class name from its file.
-- `config.yml` uses the built-in section names (`application`, `session`, `security`, `localization`, `database`). A key that looks like a misspelled built-in name (`sesion`) is refused at boot. A section of your own, such as `render` or `mailer`, is only read if you register a class for it, see [Configuration](../../fundamentals/configuration/).
+- Controllers live under a directory you pass to `discoverControllers()`, or declare under `router.controllers` in `config.yml`, in a namespace that matches their path (PSR-4), so that the router can derive each class name from its file.
+- `config.yml` uses the built-in section names (`application`, `session`, `security`, `localization`, `database`, `router`). A key that looks like a misspelled built-in name (`sesion`) is refused at boot. A section of your own, such as `render` or `mailer`, is only read if you register a class for it, see [Configuration](../../fundamentals/configuration/).
 
 Everything else is yours to move: `config.yml` can live elsewhere because you give its path to `Configuration::fromYamlFile()`, views can live in any directory you pass to `LatteEngine`, and the bootstrap class can have any name or be inlined in `public/index.php`, as on the [installation](../installation/) page.
 
@@ -95,6 +98,6 @@ Controllers are classes, not files: a project can call `discoverControllers()` s
 
 - Keep static assets (CSS, JavaScript, images) inside `public/`, and everything else outside it.
 - `cache/` must be writable by the web server user. Keep it out of version control.
-- Add `.env` and `cache/` to `.gitignore`, and commit a `.env.example` with the variable names and no secrets.
+- Add `.env` and `cache/` to `.gitignore` (the warm writes its own `.gitignore` in `var/zephyrus/`), and commit a `.env.example` with the variable names and no secrets.
 - Locale files are read from `locale/<lang>/*.json`: one directory per language. See [Localization](../../fundamentals/localization/).
 - Compiled templates are rebuilt when a template changes, so deleting `cache/latte/` is always safe.

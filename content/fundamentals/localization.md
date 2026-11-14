@@ -25,7 +25,7 @@ localization:
 |---|---|
 | `locale` | The default locale (default `en`). It is lower-cased: `en_CA` is stored as `en_ca`. |
 | `supported_locales` | The allowlist used when the locale is picked from a request. Always set it: an empty list accepts whatever locale the client sends. |
-| `locale_path` | The directory holding the catalogs. A relative path resolves against the `basePath` given to `withConfiguration()`. |
+| `locale_path` | The directory holding the catalogs. A relative path resolves against the `basePath` given to `withConfiguration()`; `fromConfigurationFile()` and `buildFromConfigurationFile()` pass the directory of the file (version 0.15.0 passed none, so it resolved against the current directory). |
 | `timezone` | Applied with `date_default_timezone_set()` at `build()` (default `UTC`). |
 | `currency` | The currency code `money` uses when none is passed, three letters. |
 | `date_format`, `time_format`, `datetime_format` | The default for `date`, `time` and `datetime`: an ICU preset (`short`, `medium`, `long`, `full`) or an ICU pattern such as `yyyy-MM-dd HH:mm`. Defaults `medium`, `short`, `medium`. |

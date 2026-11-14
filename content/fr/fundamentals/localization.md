@@ -25,7 +25,7 @@ localization:
 |---|---|
 | `locale` | La locale par défaut (`en` par défaut). Elle est convertie en minuscules : `en_CA` est stockée sous la forme `en_ca`. |
 | `supported_locales` | La liste d’autorisation utilisée lorsque la locale est choisie à partir d’une requête. Définissez-la toujours : une liste vide accepte n’importe quelle locale envoyée par le client. |
-| `locale_path` | Le répertoire qui contient les catalogues. Un chemin relatif se résout à partir du `basePath` passé à `withConfiguration()`. |
+| `locale_path` | Le répertoire qui contient les catalogues. Un chemin relatif se résout à partir du `basePath` passé à `withConfiguration()` ; `fromConfigurationFile()` et `buildFromConfigurationFile()` passent le répertoire du fichier (la version 0.15.0 n’en passait aucun, et il se résolvait donc à partir du répertoire courant). |
 | `timezone` | Appliqué avec `date_default_timezone_set()` lors de `build()` (`UTC` par défaut). |
 | `currency` | Le code de devise que `money` utilise lorsqu’aucun n’est passé, sur trois lettres. |
 | `date_format`, `time_format`, `datetime_format` | La valeur par défaut de `date`, `time` et `datetime` : un préréglage ICU (`short`, `medium`, `long`, `full`) ou un motif ICU tel que `yyyy-MM-dd HH:mm`. Valeurs par défaut : `medium`, `short`, `medium`. |

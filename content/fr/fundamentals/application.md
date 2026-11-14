@@ -100,8 +100,8 @@ App\Kernel::run(dirname(__DIR__));
 
 | Méthode | Ce qu’elle câble |
 | --- | --- |
-| `withConfiguration($config, basePath: $root)` | La configuration : la localisation (un `locale_path` relatif est résolu à partir de `basePath`). `build()` applique `application.debug` et `localization.timezone` |
-| `withRouter($router)` | Le routeur. Sans routeur, chaque requête reçoit un 404 |
+| `withConfiguration($config, basePath: $root)` | La configuration : la localisation (un `locale_path` relatif est résolu à partir de `basePath`) et, avec une section `router:`, le routeur. `build()` applique `application.debug` et `localization.timezone` |
+| `withRouter($router)` | Le routeur. Sans routeur, et sans section `router:`, chaque requête reçoit un 404 |
 | `withMiddleware($m)` | Un middleware global : il s’exécute à chaque requête, y compris les 404 et 405, le premier ajouté étant le plus à l’extérieur |
 | `registerMiddleware('name', $m)` | Donne à un middleware un nom que les routes peuvent référencer. Il ne s’exécute que sur ces routes |
 | `withContainer($container)` | Construit les contrôleurs au moyen du conteneur |
@@ -116,9 +116,25 @@ La localisation a ses propres points d’entrée : `withLocalizationConfig()`, 
 
 Vous pouvez aussi partir d’une configuration au lieu de l’ajouter ensuite : `ApplicationBuilder::fromConfiguration($config)`, `fromConfigurationFile($path)`, `fromConfigurationArray($array)`, `fromConfigurationFiles($paths)`, `fromOptionalConfigurationFiles($paths)` (les fichiers manquants sont ignorés), ainsi que les variantes `buildFrom...()` qui retournent directement l’`Application`. `withConfigurationFile()`, `withConfigurationFiles()`, `withOptionalConfigurationFiles()` et `withConfigurationArray()` font la même chose sur un builder existant.
 
+`fromConfigurationFile($path)` et `buildFromConfigurationFile($path)` passent le chemin réel du répertoire du fichier comme `basePath` : un `localization.locale_path` relatif et les chemins de `router:` se résolvent donc à partir de ce répertoire. La version 0.15.0 ne passait aucun `basePath`, et un `locale_path` relatif se résolvait à partir du répertoire courant : écrivez-le relatif au fichier de configuration, ou absolu. Les autres points d’entrée n’en prennent pas : `withConfigurationFile()` et `fromConfigurationFiles()` refusent une section `router:` faute de `basePath`, avec le correctif dans le message.
+
+### Des contrôleurs issus de la configuration
+
+Avec une section `router:` dans `config.yml` (voir [Routage](../routing/#la-section-router)), le builder construit lui-même le routeur et lit le cache des routes en production et en staging :
+
+```php
+$app = ApplicationBuilder::buildFromConfigurationFile($root . '/config.yml');
+```
+
+Appeler `withRouter()` avec un routeur que `Router::fromConfiguration($config, basePath: $root)` n’a pas construit est refusé :
+
+```text
+Configuration declares router.controllers, but withRouter() received a router that Router::fromConfiguration() did not build, so the routes cache would never be read. Remove the withRouter() call to let build() discover the controllers, or start the router passed to it from Router::fromConfiguration($configuration, basePath: <application root>).
+```
+
 ### Découvrir les contrôleurs
 
-`Router::discoverControllers($namespace, $directory)` enregistre chaque classe du répertoire dont les attributs déclarent une route. L’espace de noms est le préfixe PSR-4 de ce répertoire, et le répertoire est un chemin absolu. Un répertoire inexistant, ou un espace de noms qui ne correspond pas, n’enregistre rien et ne lève aucune erreur : si une route répond 404, vérifiez d’abord ces deux arguments. Voir [Routage](../routing/) et [Contrôleurs](../controllers/).
+Sans section `router:`, `Router::discoverControllers($namespace, $directory)` enregistre chaque classe du répertoire dont les attributs déclarent une route. L’espace de noms est le préfixe PSR-4 de ce répertoire, et le répertoire est un chemin absolu. Un répertoire inexistant, ou un espace de noms qui ne correspond pas, n’enregistre rien et ne lève aucune erreur : si une route répond 404, vérifiez d’abord ces deux arguments. Voir [Routage](../routing/) et [Contrôleurs](../controllers/).
 
 ### Des contrôleurs construits par le conteneur
 

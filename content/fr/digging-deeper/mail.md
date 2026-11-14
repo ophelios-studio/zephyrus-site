@@ -12,7 +12,7 @@ Un courriel, construit comme n’importe quelle autre valeur.
 
 ## Configuration
 
-Le mailer ne fait pas partie des cinq sections intégrées : enregistrez-le donc par son nom lorsque vous chargez la configuration :
+Le mailer ne fait pas partie des six sections intégrées : enregistrez-le donc par son nom lorsque vous chargez la configuration :
 
 ```php
 use Zephyrus\Core\Config\Configuration;

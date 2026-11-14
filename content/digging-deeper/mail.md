@@ -12,7 +12,7 @@ An email, built like any other value.
 
 ## Configuration
 
-The mailer is not one of the five built-in sections, so register it by name when you load the configuration:
+The mailer is not one of the six built-in sections, so register it by name when you load the configuration:
 
 ```php
 use Zephyrus\Core\Config\Configuration;

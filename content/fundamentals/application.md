@@ -100,8 +100,8 @@ App\Kernel::run(dirname(__DIR__));
 
 | Method | What it wires |
 | --- | --- |
-| `withConfiguration($config, basePath: $root)` | The configuration: localization (a relative `locale_path` resolves against `basePath`). `build()` applies `application.debug` and `localization.timezone` |
-| `withRouter($router)` | The router. Without one, every request answers 404 |
+| `withConfiguration($config, basePath: $root)` | The configuration: localization (a relative `locale_path` resolves against `basePath`) and, with a `router:` section, the router. `build()` applies `application.debug` and `localization.timezone` |
+| `withRouter($router)` | The router. Without one, and without a `router:` section, every request answers 404 |
 | `withMiddleware($m)` | A global middleware: it runs on every request, 404 and 405 included, the first one added outermost |
 | `registerMiddleware('name', $m)` | Gives a middleware a name that routes can reference. It runs only on those routes |
 | `withContainer($container)` | Builds controllers through the container |
@@ -116,9 +116,25 @@ Localization has its own entry points: `withLocalizationConfig()`, `withJsonLoca
 
 You can also start from a configuration instead of adding it afterwards: `ApplicationBuilder::fromConfiguration($config)`, `fromConfigurationFile($path)`, `fromConfigurationArray($array)`, `fromConfigurationFiles($paths)`, `fromOptionalConfigurationFiles($paths)` (missing files are skipped), and the `buildFrom...()` variants that return the `Application` directly. `withConfigurationFile()`, `withConfigurationFiles()`, `withOptionalConfigurationFiles()` and `withConfigurationArray()` do the same on an existing builder.
 
+`fromConfigurationFile($path)` and `buildFromConfigurationFile($path)` pass the real path of the file's directory as `basePath`, so a relative `localization.locale_path` and the paths of `router:` resolve against that directory. Version 0.15.0 passed no `basePath`, and a relative `locale_path` resolved against the current directory: write it relative to the configuration file, or absolute. The other entry points take no `basePath`: `withConfigurationFile()` and `fromConfigurationFiles()` refuse a `router:` section for lack of one, with the fix in the message.
+
+### Controllers from the configuration
+
+With a `router:` section in `config.yml` (see [Routing](../routing/#the-router-section)), the builder builds the router itself and reads the routes cache in production and staging:
+
+```php
+$app = ApplicationBuilder::buildFromConfigurationFile($root . '/config.yml');
+```
+
+Calling `withRouter()` with a router that `Router::fromConfiguration($config, basePath: $root)` did not build is refused:
+
+```text
+Configuration declares router.controllers, but withRouter() received a router that Router::fromConfiguration() did not build, so the routes cache would never be read. Remove the withRouter() call to let build() discover the controllers, or start the router passed to it from Router::fromConfiguration($configuration, basePath: <application root>).
+```
+
 ### Discover controllers
 
-`Router::discoverControllers($namespace, $directory)` registers every class under the directory whose attributes declare a route. The namespace is the PSR-4 prefix of that directory, and the directory is an absolute path. A directory that does not exist, or a namespace that does not match, registers nothing and raises no error: if a route answers 404, check these two arguments first. See [Routing](../routing/) and [Controllers](../controllers/).
+Without a `router:` section, `Router::discoverControllers($namespace, $directory)` registers every class under the directory whose attributes declare a route. The namespace is the PSR-4 prefix of that directory, and the directory is an absolute path. A directory that does not exist, or a namespace that does not match, registers nothing and raises no error: if a route answers 404, check these two arguments first. See [Routing](../routing/) and [Controllers](../controllers/).
 
 ### Controllers through the container
 

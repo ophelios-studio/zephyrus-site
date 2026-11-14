@@ -43,7 +43,7 @@ use Zephyrus\Routing\Router;
 $router = (new Router())->discoverControllers('App\\Controllers', $root . '/app/Controllers');
 ```
 
-`discoverControllers()` walks the directory, loads every concrete class whose name matches the namespace and registers the routes it declares. The router is then handed to the application builder with `withRouter($router)` (see [Application](../application/)).
+`discoverControllers()` walks the directory, loads every concrete class whose name matches the namespace and registers the routes it declares. The router is then handed to the application builder with `withRouter($router)` (see [Application](../application/)). With a `router:` section in `config.yml` you write none of this: see [The router section](#the-router-section).
 
 ## Method attributes
 
@@ -278,29 +278,53 @@ public function show(int $id): Response
 
 `RouteNotFoundException` thrown from handler code answers 404 like an unknown route, so a missing record needs no special case. `$this->abort(404)` does the same without an exception. A path that is not valid UTF-8 or contains a control character is also a 404. Global middleware runs on 404 and 405 answers, so they carry your security headers.
 
-## Caching the route table
+## The router section
 
-`RouteCache` saves the compiled routes to a JSON file so a request can skip scanning and reflecting controllers. The application never uses it on its own: you decide when to write and read it.
+Instead of calling `discoverControllers()` in code, declare the controllers in `config.yml`:
 
-```php
-use Zephyrus\Routing\RouteCache;
-
-$cache = new RouteCache($root . '/var/cache/routes.json');
-
-if ($cache->has()) {
-    $router = new Router($cache->load());
-} else {
-    $router = (new Router())->discoverControllers('App\\Controllers', $root . '/app/Controllers');
-    $cache->save($router->routes());
-}
+```yaml
+router:
+  controllers:                      # required: PSR-4 namespace => directory
+    App\Controllers: app/Controllers
+  middleware_groups:                # optional: name => middleware or group names
+    admin: [auth, audit]
+  cache: var/zephyrus/routes.php    # optional, this is the default
 ```
 
-- `warm($routes)` saves and returns the metadata; `warmIfStale($routes, $maxAgeSeconds)` rewrites only when the cache is out of date.
-- `isFresh($routes)` compares the file to the current routes; `inspect($routes, $maxAgeSeconds)` explains why a cache is stale, expired or invalid.
-- `clear()` deletes the file. Do it on every deploy, or warm the cache in the deploy step.
-- `load()` throws `RouteCacheException` when the file is missing or fails validation, for example `Route cache file /var/cache/routes.json has not been written; rebuild the cache with save() or warm()`.
+The builder does the rest: when the configuration declares `router:` and there is no `withRouter()`, `build()` builds the router from the section.
 
-The file holds `Class@method` strings that drive dispatch. Its hash detects corruption, not tampering, so keep it writable only by the deploy user.
+```php
+$app = ApplicationBuilder::buildFromConfigurationFile($root . '/config.yml');
+```
+
+- Relative paths resolve against the `basePath` (the directory of the file with `fromConfigurationFile()` and `buildFromConfigurationFile()`), never the current directory. `cache` must be a `.php` file under that root.
+- No value may carry a YAML tag, `!env` included. A controller directory that is missing, or holds no class of its namespace, is refused, where `discoverControllers()` registers nothing silently.
+- Write the namespace bare or in single quotes: in double quotes, `"App\Controllers"` is a YAML escape error.
+- Declare the groups under `router.middleware_groups` instead of calling `Router::middlewareGroup()`.
+- `Router::fromConfiguration($config, basePath: $root)` builds the same router when you need it before `build()`; pass it to `withRouter()`. Any other router given to `withRouter()` is refused when the configuration declares `router:`, so that a half-done migration cannot write a cache nobody reads:
+
+```text
+Configuration declares router.controllers, but withRouter() received a router that Router::fromConfiguration() did not build, so the routes cache would never be read. Remove the withRouter() call to let build() discover the controllers, or start the router passed to it from Router::fromConfiguration($configuration, basePath: <application root>).
+```
+
+Without a `router:` section nothing changes: `discoverControllers()` and `withRouter()` keep working, and discover the controllers on every request.
+
+## The routes cache
+
+In production and staging, `Router::fromConfiguration()` reads `var/zephyrus/routes.php`, the file `vendor/bin/zephyrus cache:warm` writes, instead of scanning and reflecting the controllers. In development and testing it always discovers them. When the cache is absent, stale or refused, or when `basePath` holds no `config.yml`, the router falls back to discovery and logs one line, for example:
+
+```text
+Zephyrus: no routes cache at /var/www/html/var/zephyrus/routes.php, so the controllers were discovered for this request. Run vendor/bin/zephyrus cache:warm to write it.
+```
+
+- The cache is stale once `config.yml`, a file under a controller directory, or the file of a parent class, trait or interface of a controller changes (to the second). A constant of another class read by an attribute is not tracked: run `cache:warm` on every build.
+- `#[RequiresEnv]` is evaluated on every request, so one cache serves every `MODE` and `APP_ENV`.
+- The cache holds every route path, name and constraint in clear: never build a route from a secret.
+- Two routes of one name that can be registered together are refused, by the warm and by the discovery in development.
+
+Writing the caches belongs to the build of the image: see [Caches and deployment](../configuration/#caches-and-deployment). On an application of about 340 routes with OPcache, reading the cache brings the routes from 6-8 ms to 1.3-1.6 ms per request.
+
+Version 0.15.0 exposed `RouteCache` (`new RouteCache($file)`, `has()`, `load()`, `save()`, `warm()`, `warmIfStale()`, `isFresh()`, `inspect()` and the rest) and left you to write and read a JSON file. That API is gone: `RouteCache` is internal, and a cache is judged by what it was read from, not by its age. Delete the code that warms or inspects a `RouteCache`, add the `router:` section and run `vendor/bin/zephyrus cache:warm`.
 
 ## Refusals at build time
 
@@ -333,8 +357,8 @@ Circular middleware group reference detected: a -> b -> a
 ## Good to know
 
 - The router is immutable. `$router->get(...)` on its own line registers nothing; reassign it or chain.
-- `discoverControllers()` registers nothing, silently, when the directory or namespace is wrong: a missing directory returns the router unchanged and a class that does not match the namespace is skipped. Check `$router->count()` while you set up.
+- `discoverControllers()` registers nothing, silently, when the directory or namespace is wrong: a missing directory returns the router unchanged and a class that does not match the namespace is skipped. Check `$router->count()` while you set up, or use the `router:` section, which refuses both.
 - Route attributes on a parent class's methods do not apply to subclasses; `#[Root]`, `#[Middleware]` and `#[RequiresEnv]` on the parent class do.
-- Declare middleware groups before `discoverControllers()`: a group is expanded when a route is added.
+- Declare middleware groups before `discoverControllers()`: a group is expanded when a route is added. With the `router:` section, declare them under `router.middleware_groups`.
 - Two attribute routes of one class sharing a name are refused when the class is registered; any other duplicate name stops `build()` with `DuplicateRouteNameException`.
 - A `POST` carrying a `_method` field or an `X-HTTP-Method-Override` header of `PUT`, `PATCH` or `DELETE` is routed as that method when the request comes from `Request::fromGlobals()`.
