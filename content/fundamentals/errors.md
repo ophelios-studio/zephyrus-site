@@ -151,7 +151,7 @@ The event is observation only: a listener cannot replace the response. A listene
 
 ## Debugging in development
 
-With `application.debug: true` in a development or testing environment, `build()` enables the [Tracy](https://tracy.nette.org) debugger. Without an allowlist, Tracy admits a client only under PHP's built-in server (`php -S`), and only a loopback one whose request carries no `X-Forwarded-For`, `Forwarded` or `X-Real-IP` header; under PHP-FPM or any other server API nobody is admitted, so a developer behind FPM must declare an allowlist to see the page. Version 0.14.1 admitted a loopback client under every server API. A declared allowlist (below) admits only its own entries, loopback included. Tracy recognises a proxy only by those headers, so debug must stay off unless every proxy in front of PHP sends one (nginx: `proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;`). A remote client behind a proxy on the same host that adds none of them (a bare `proxy_pass`, a TLS tunnel) looks like a local one and gets the full error page, under `php -S` with no allowlist or, under any server API, with a bare loopback entry: list `secret@127.0.0.1` and send the cookie instead. The page includes stack-trace arguments and the environment, so it must never reach every client.
+With `application.debug: true` in a development or testing environment, `build()` enables the [Tracy](https://tracy.nette.org) debugger. Without an allowlist, Tracy admits a client only under PHP's built-in server (`php -S`), and only a loopback one whose request carries no `X-Forwarded-For`, `Forwarded` or `X-Real-IP` header; under PHP-FPM or any other server API nobody is admitted, so a developer behind FPM must declare an allowlist to see the page. Version 0.14.1 admitted a loopback client under every server API. A declared allowlist (below) admits only its own entries, loopback included. Tracy recognises a proxy only by those headers, so debug must stay off unless every proxy in front of PHP sends one (nginx: `proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;`). A remote client behind a proxy on the same host that adds none of them (a bare `proxy_pass`, a TLS tunnel) looks like a local one and gets the full error page, under `php -S` with no allowlist or, under any server API, with a bare loopback entry: list `<secret>@127.0.0.1` and send the cookie instead. The page includes stack-trace arguments and the environment, so it must never reach every client.
 
 With debug on, an exception that no handler answers (or that a handler rethrows) shows Tracy's page to a client the debugger admits. Any other client gets the generic `500`, and the exception goes to the error log. On the command line with debug on (tests, scripts), it leaves `Application::handle()` instead. `KernelBuilder::withUnhandledExceptionsRethrown()` forces that whatever the debug flag; outside a test, the exception then reaches PHP's own handler. A rethrown exception passes through the global middlewares as an exception, not as an error response.
 
@@ -194,20 +194,20 @@ $builder = $builder->withProductionDebugAcknowledged();
 Behind Docker, the browser reaches PHP from the bridge gateway, not from loopback. Name that client, with a secret that you also send in a `tracy-debug` cookie. Loopback is no longer implied once the allowlist exists, so list it too if you want it:
 
 ```php
-// DEBUG_CLIENTS holds "secret@172.17.0.1"; unset or empty means no allowlist, so loopback only.
+// DEBUG_CLIENTS holds "<secret>@172.17.0.1", <secret> from bin2hex(random_bytes(16)); unset or empty means no allowlist, so loopback only.
 $builder = $builder->withDebugClientAllowlist(env('DEBUG_CLIENTS'));
 ```
 
-An entry is an exact address, or `secret@address`, which also requires the cookie `tracy-debug=secret`. A bare loopback entry (`127.0.0.1`, `::1`) admits no request that carries `X-Forwarded-For`, `Forwarded` or `X-Real-IP`: behind a proxy on the same host, list `secret@127.0.0.1` and send the cookie. Version 0.14.0 admitted loopback whatever the allowlist said. A string may list several entries separated by commas or spaces, or you can pass an array with one entry per element. Entries are checked when you register them:
+An entry is an exact address, or `<secret>@address`, which also requires the cookie `tracy-debug=<secret>`. A bare loopback entry (`127.0.0.1`, `::1`) admits no request that carries `X-Forwarded-For`, `Forwarded` or `X-Real-IP`: behind a proxy on the same host, list `<secret>@127.0.0.1` and send the cookie. Version 0.14.0 admitted loopback whatever the allowlist said. A string may list several entries separated by commas or spaces, or you can pass an array with one entry per element. Entries are checked when you register them:
 
 | Entry | Refusal |
 | --- | --- |
 | `@172.17.0.1` | `Debug client allowlist entry 1 has an empty secret before "@": with no tracy-debug cookie it would admit every client at that address. Set a secret, or list the bare address if that is intended.` |
-| `secret@` | `Debug client allowlist entry 1 has no address after "@".` |
+| `<secret>@` | `Debug client allowlist entry 1 has no address after "@".` |
 | `10.0.0.0/8` | `Debug client allowlist entry 1 is a range: Tracy matches exact addresses only, so list each address.` |
 | array element `'a b'` | `Debug client allowlist entry 1 holds whitespace or a comma: pass each address as its own array entry.` |
 
-A bare address with no secret admits anyone who can reach PHP from it, so prefer `secret@address`. The messages name the position of the entry and never repeat the secret.
+A bare address with no secret admits anyone who can reach PHP from it, so prefer `<secret>@address`, with a secret of 16 random characters or more, such as `bin2hex(random_bytes(16))`. The messages name the position of the entry and never repeat the secret.
 
 The secret is a credential. Keep it in the environment, never in git. The framework keeps it, and the other secrets it knows about, out of the debugger's output: the allowlist property of the builder and the `tracy-debug` cookie are masked in dumps and traces, along with `password`, `token`, `secret`, `apiKey`, `authorization` and `cookie` keys, the encryption key, the session cookie, the raw request body and the `Set-Cookie` lines of a response (`Response::$cookies`). `DebugIntegration::SENSITIVE_KEYS` lists the exact key names, `SENSITIVE_PROPERTIES` the masked properties, and `isSensitiveKey()` tests a key. The Bluescreen also masks by pattern, but only string values: a numeric secret still needs to be added to Tracy's `keysToHide` by name.
 
