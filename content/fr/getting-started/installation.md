@@ -25,7 +25,7 @@ Créez un `composer.json` :
 {
     "require": {
         "php": "^8.4",
-        "zephyrus-framework/core": "^0.16"
+        "zephyrus-framework/core": "^3.17"
     },
     "autoload": { "psr-4": { "App\\": "app/" } }
 }
@@ -37,7 +37,7 @@ puis exécutez :
 composer install
 ```
 
-`^0.16` installe la dernière version 0.16. Avant la 1.0, une version mineure peut briser l’API : Composer ne vous fait donc jamais passer à la 0.17 de lui-même. Lisez le [journal des modifications](https://github.com/ophelios-studio/zephyrus-core/blob/dev/CHANGELOG.md) avant de changer la contrainte. L’espace de noms `App\` vous appartient : il correspond au répertoire `app/`.
+`^3.17` installe la dernière version 3.x. Depuis la 3.17.0, l’API est stable et suit le versionnage sémantique : les versions mineures et correctives restent compatibles, et un changement incompatible attend la 4.0, annoncé d’abord par une dépréciation. Le [journal des modifications](https://github.com/ophelios-studio/zephyrus-core/blob/dev/CHANGELOG.md) détaille ce que change chaque version. L’espace de noms `App\` vous appartient : il correspond au répertoire `app/`.
 
 ## La plus petite application
 
