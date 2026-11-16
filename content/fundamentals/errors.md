@@ -203,11 +203,12 @@ An entry is an exact address, or `<secret>@address`, which also requires the coo
 | Entry | Refusal |
 | --- | --- |
 | `@172.17.0.1` | `Debug client allowlist entry 1 has an empty secret before "@": with no tracy-debug cookie it would admit every client at that address. Set a secret, or list the bare address if that is intended.` |
+| `short-secret@172.17.0.1` | `Debug client allowlist entry 1 has a secret shorter than 16 characters before "@": the tracy-debug cookie is all that guards the debugger at that address. Use a longer random secret.` |
 | `<secret>@` | `Debug client allowlist entry 1 has no address after "@".` |
 | `10.0.0.0/8` | `Debug client allowlist entry 1 is a range: Tracy matches exact addresses only, so list each address.` |
 | array element `'a b'` | `Debug client allowlist entry 1 holds whitespace or a comma: pass each address as its own array entry.` |
 
-A bare address with no secret admits anyone who can reach PHP from it, so prefer `<secret>@address`, with a secret of 16 random characters or more, such as `bin2hex(random_bytes(16))`. The messages name the position of the entry and never repeat the secret.
+A bare address with no secret admits anyone who can reach PHP from it, so prefer `<secret>@address`, with a secret of 16 random characters or more, such as `bin2hex(random_bytes(16))`: a shorter one is refused. Version 0.16 accepted any non-empty secret. The messages name the position of the entry and never repeat the secret.
 
 The secret is a credential. Keep it in the environment, never in git. The framework keeps it, and the other secrets it knows about, out of the debugger's output: the allowlist property of the builder and the `tracy-debug` cookie are masked in dumps and traces, along with `password`, `token`, `secret`, `apiKey`, `authorization` and `cookie` keys, the encryption key, the session cookie, the raw request body and the `Set-Cookie` lines of a response (`Response::$cookies`). `DebugIntegration::SENSITIVE_KEYS` lists the exact key names, `SENSITIVE_PROPERTIES` the masked properties, and `isSensitiveKey()` tests a key. The Bluescreen also masks by pattern, but only string values: a numeric secret still needs to be added to Tracy's `keysToHide` by name.
 

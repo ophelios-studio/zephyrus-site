@@ -203,11 +203,12 @@ Une entrée est une adresse exacte, ou `<secret>@address`, qui exige aussi le t�
 | Entrée | Refus |
 | --- | --- |
 | `@172.17.0.1` | `Debug client allowlist entry 1 has an empty secret before "@": with no tracy-debug cookie it would admit every client at that address. Set a secret, or list the bare address if that is intended.` |
+| `short-secret@172.17.0.1` | `Debug client allowlist entry 1 has a secret shorter than 16 characters before "@": the tracy-debug cookie is all that guards the debugger at that address. Use a longer random secret.` |
 | `<secret>@` | `Debug client allowlist entry 1 has no address after "@".` |
 | `10.0.0.0/8` | `Debug client allowlist entry 1 is a range: Tracy matches exact addresses only, so list each address.` |
 | élément de tableau `'a b'` | `Debug client allowlist entry 1 holds whitespace or a comma: pass each address as its own array entry.` |
 
-Une adresse seule, sans secret, admet quiconque peut atteindre PHP depuis cette adresse : préférez donc `<secret>@address`, avec un secret d’au moins 16 caractères aléatoires, comme `bin2hex(random_bytes(16))`. Les messages nomment la position de l’entrée et ne répètent jamais le secret.
+Une adresse seule, sans secret, admet quiconque peut atteindre PHP depuis cette adresse : préférez donc `<secret>@address`, avec un secret d’au moins 16 caractères aléatoires, comme `bin2hex(random_bytes(16))` : un secret plus court est refusé. La version 0.16 acceptait tout secret non vide. Les messages nomment la position de l’entrée et ne répètent jamais le secret.
 
 Le secret est un justificatif d’accès. Gardez-le dans l’environnement, jamais dans git. Le framework le garde, avec les autres secrets qu’il connaît, hors de la sortie du débogueur : la propriété de la liste d’autorisation du builder et le témoin `tracy-debug` sont masqués dans les vidages et les traces, tout comme les clés `password`, `token`, `secret`, `apiKey`, `authorization` et `cookie`, la clé de chiffrement, le témoin de session, le corps brut de la requête et les lignes `Set-Cookie` d’une réponse (`Response::$cookies`). `DebugIntegration::SENSITIVE_KEYS` énumère les noms de clés exacts, `SENSITIVE_PROPERTIES` les propriétés masquées, et `isSensitiveKey()` teste une clé. Le Bluescreen masque aussi par motif, mais seulement les valeurs de type chaîne : un secret numérique doit tout de même être ajouté par son nom à `keysToHide` de Tracy.
 
