@@ -1745,8 +1745,8 @@ details[open] summary {
 
 .docs-article-footer {
   font-family:var(--mono);
-  font-size:8px;
-  color:#91a07f;
+  font-size:10px;
+  color:#636f59;
   margin-top:40px;
   letter-spacing:.04em;
 }
@@ -2849,9 +2849,6 @@ html.motion-ready [data-reveal].is-visible {
   }
   .search-hint>span:first-child {
     display:none;
-  }
-  .docs-article-footer {
-    font-size:7px;
   }
   .heading-permalink {
     left:-16px;
