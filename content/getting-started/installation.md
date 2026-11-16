@@ -39,6 +39,8 @@ composer install
 
 `^3.17` installs the latest 3.x release. Since 3.17.0 the API is stable and follows semantic versioning: minor and patch releases stay compatible, and a breaking change waits for 4.0, announced first by a deprecation. The [changelog](https://github.com/ophelios-studio/zephyrus-core/blob/dev/CHANGELOG.md) lists what each release changes. The `App\` namespace is yours: it maps to the `app/` directory.
 
+Coming from `^0.16`? Composer does not move to `^3.17` on its own. Change the constraint by hand in `composer.json`, then read the [changelog](https://github.com/ophelios-studio/zephyrus-core/blob/dev/CHANGELOG.md): the breaking changes of 3.17.0 come first, each with the change to make.
+
 ## The smallest application
 
 Three files boot an application.

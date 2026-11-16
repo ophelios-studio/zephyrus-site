@@ -39,6 +39,8 @@ composer install
 
 `^3.17` installe la dernière version 3.x. Depuis la 3.17.0, l’API est stable et suit le versionnage sémantique : les versions mineures et correctives restent compatibles, et un changement incompatible attend la 4.0, annoncé d’abord par une dépréciation. Le [journal des modifications](https://github.com/ophelios-studio/zephyrus-core/blob/dev/CHANGELOG.md) détaille ce que change chaque version. L’espace de noms `App\` vous appartient : il correspond au répertoire `app/`.
 
+Vous partez de `^0.16` ? Composer ne passe pas seul de `^0.16` à `^3.17`. Changez la contrainte à la main dans `composer.json`, puis lisez le [journal des modifications](https://github.com/ophelios-studio/zephyrus-core/blob/dev/CHANGELOG.md) : les changements incompatibles de la 3.17.0 y figurent en tête, chacun avec la modification à faire.
+
 ## La plus petite application
 
 Trois fichiers suffisent pour démarrer une application.
