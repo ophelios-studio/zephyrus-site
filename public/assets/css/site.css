@@ -800,6 +800,17 @@ h2 em {
   text-align:right;
 }
 
+.code-footnote a {
+  color:var(--ink);
+  text-decoration:underline;
+  text-decoration-color:#b5bdac;
+  text-underline-offset:3px;
+}
+
+.code-footnote a:hover {
+  color:#76994b;
+}
+
 .architecture {
   background:var(--ink);
   padding-bottom:120px;
