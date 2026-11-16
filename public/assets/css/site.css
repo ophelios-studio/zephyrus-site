@@ -227,15 +227,6 @@ h2 em {
   color:var(--acid);
 }
 
-.nav-preview {
-  font-family:var(--mono);
-  font-size:9px;
-  color:var(--muted);
-  margin-left:6px;
-  position:relative;
-  top:-5px;
-}
-
 .header-actions {
   display:flex;
   gap:25px;
@@ -1156,22 +1147,6 @@ details[open] summary {
   align-items:center;
 }
 
-.preview-badge {
-  display:inline-flex;
-  align-items:center;
-  font-family:var(--mono);
-  font-size:8px;
-  letter-spacing:.05em;
-  margin-bottom:24px;
-  color:#6d7f58;
-}
-
-.preview-badge .status-dot {
-  background:#92ab6b;
-  width:5px;
-  height:5px;
-}
-
 .docs-teaser-main h2 {
   font-size:clamp(54px,5.5vw,88px);
 }
@@ -1481,13 +1456,6 @@ details[open] summary {
   font-size:9px;
 }
 
-.sidebar-caption>span:last-child {
-  font-family:var(--mono);
-  font-size:8px;
-  background:#e4ead7;
-  padding:3px 6px;
-}
-
 .sidebar-group {
   margin-bottom:28px;
 }
@@ -1565,36 +1533,6 @@ details[open] summary {
 
 .docs-breadcrumb span:last-child {
   color:#566b40;
-}
-
-.doc-preview-notice {
-  display:flex;
-  align-items:flex-start;
-  gap:10px;
-  background:#e6ecdc;
-  border:1px solid #d4ddc3;
-  padding:15px 17px;
-  margin-bottom:32px;
-}
-
-.notice-dot {
-  width:5px;
-  height:5px;
-  border-radius:50%;
-  background:#87a651;
-  flex-shrink:0;
-  margin-top:6px;
-}
-
-.doc-preview-notice p {
-  font-size:11px;
-  line-height:1.75;
-  color:#6f7c5e;
-}
-
-.doc-preview-notice strong {
-  font-weight:600;
-  color:#3b542a;
 }
 
 .prose>h1 {
@@ -2071,9 +2009,6 @@ html.motion-ready [data-reveal].is-visible {
   .docs-page .main-nav {
     margin-right:20px;
   }
-  .docs-page .nav-preview {
-    display:none;
-  }
   .docs-page .search-trigger kbd {
     margin-left:5px;
   }
@@ -2283,12 +2218,6 @@ html.motion-ready [data-reveal].is-visible {
   }
   .docs-main {
     padding-top:35px;
-  }
-  .doc-preview-notice {
-    padding:12px;
-  }
-  .doc-preview-notice p {
-    font-size:10px;
   }
   .prose>h1 {
     font-size:42px;
@@ -2657,10 +2586,6 @@ html.motion-ready [data-reveal].is-visible {
   .docs-teaser-main h2 {
     font-size:54px;
   }
-  .preview-badge {
-    font-size:7px;
-    margin-bottom:20px;
-  }
   .docs-teaser-main p {
     font-size:13px;
   }
@@ -2831,9 +2756,6 @@ html.motion-ready [data-reveal].is-visible {
   }
   .sidebar-group {
     margin-bottom:23px;
-  }
-  .doc-preview-notice {
-    margin-bottom:27px;
   }
   .docs-breadcrumb {
     font-size:8px;

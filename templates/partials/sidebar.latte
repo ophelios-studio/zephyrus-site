@@ -1,6 +1,6 @@
 {var $localePrefix = ($currentLocale ?? 'en') === ($defaultLocale ?? 'en') ? '' : '/' . $currentLocale}
 <aside class="docs-sidebar" id="docs-sidebar" n:if="isset($sidebar)">
-    <div class="sidebar-caption"><span class="mono">{localize('docs.field_guide')}</span><span>{localize('common.preview_upper')}</span></div>
+    <div class="sidebar-caption"><span class="mono">{localize('docs.field_guide')}</span></div>
     <nav aria-label="{localize('docs.chapters_label')}">
         {foreach $sidebar as $group}
         <div class="sidebar-group"><h3 class="sidebar-group-title">{localize('docs.sections.' . $group['items'][0]['section'])}</h3><ul class="sidebar-links">
