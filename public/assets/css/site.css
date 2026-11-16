@@ -1697,6 +1697,12 @@ details[open] summary {
   color:#6b775f;
 }
 
+@media(max-width:480px) {
+  .balanced-table td {
+    width:50%;
+  }
+}
+
 .docs-pagination {
   border-top:1px solid #d3dbca;
   display:grid;

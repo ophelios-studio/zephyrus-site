@@ -118,15 +118,19 @@ A line break or another control character in a path is escaped (`\n`, `\u0000`),
 
 A path the class refuses to write is refused before any directory or file is created:
 
-| Message | When |
+<div class="balanced-table">
+
+| When | Message |
 |---|---|
-| `Path is a stream wrapper URL, which is not written: "<path>"` | A URL such as `file://`, `phar://` or `data:` given to `create()`, `write()`, `append()`, `copy()` or `move()` (either side), `delete()`, or `Directory::ensure()`, `create()` and `delete()`. Pass the plain path, and write to a stream wrapper with `fopen()` yourself. |
-| `Path holds a NUL byte, which no file name can: "<path>"` | The same methods, where PHP raised a `ValueError`. |
-| `Path does not end with a file name: "<path>"` | A destination whose last segment is empty, `.` or `..`, such as `storage/`. |
-| `Path is not a regular file: "<path>"` | A write to a FIFO or a device, or a copy whose source is a directory. |
-| `Path is not readable, which a safe write requires: "<path>"` | An existing file the process may write but not read (mode `0200`): grant read permission. |
-| `Path belongs to another user in a shared directory, so it is not written: "<path>"` | An existing file in a sticky directory such as `/tmp` that belongs to neither the directory owner nor the process user. |
-| `Cannot copy a file onto itself: "<source>" to "<destination>"` | A copy onto the source, or onto a hard link to it. The file is left as it was. |
+| A URL such as `file://`, `phar://` or `data:` given to `create()`, `write()`, `append()`, `copy()` or `move()` (either side), `delete()`, or `Directory::ensure()`, `create()` and `delete()`. Pass the plain path, and write to a stream wrapper with `fopen()` yourself. | `Path is a stream wrapper URL, which is not written: "<path>"` |
+| The same methods, where PHP raised a `ValueError`. | `Path holds a NUL byte, which no file name can: "<path>"` |
+| A destination whose last segment is empty, `.` or `..`, such as `storage/`. | `Path does not end with a file name: "<path>"` |
+| A write to a FIFO or a device, or a copy whose source is a directory. | `Path is not a regular file: "<path>"` |
+| An existing file the process may write but not read (mode `0200`): grant read permission. | `Path is not readable, which a safe write requires: "<path>"` |
+| An existing file in a sticky directory such as `/tmp` that belongs to neither the directory owner nor the process user. | `Path belongs to another user in a shared directory, so it is not written: "<path>"` |
+| A copy onto the source, or onto a hard link to it. The file is left as it was. | `Cannot copy a file onto itself: "<source>" to "<destination>"` |
+
+</div>
 
 ### A path outside open_basedir
 
