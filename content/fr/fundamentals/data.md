@@ -1,7 +1,7 @@
 ---
 title: Accès aux données
 order: 12
-description: Connectez-vous à PostgreSQL, exécutez des requêtes paramétrées et des transactions, hydratez des entités et construisez des listes paginées, triées et filtrées à partir des paramètres de la requête.
+description: Connectez-vous à PostgreSQL, exécutez requêtes paramétrées et transactions, hydratez des entités et bâtissez des listes paginées, triées et filtrées depuis la requête.
 ---
 
 # Accès aux données

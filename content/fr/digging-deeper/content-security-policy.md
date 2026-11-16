@@ -1,7 +1,7 @@
 ---
 title: Content-Security-Policy
 order: 2
-description: Envoyez une Content-Security-Policy avec un nonce neuf à chaque requête, utilisez le nonce dans les gabarits Latte, commencez en mode rapport seulement et resserrez la politique étape par étape.
+description: Envoyez une Content-Security-Policy avec un nonce neuf par requête, utilisez-le dans les gabarits Latte, partez du mode rapport seulement et resserrez la politique pas à pas.
 ---
 
 # Content-Security-Policy

@@ -1,7 +1,7 @@
 ---
 title: Cryptographie
 order: 3
-description: Générez des jetons aléatoires, hachez et vérifiez des mots de passe avec Argon2id, chiffrez des données avec XChaCha20-Poly1305 à l’aide d’une clé tirée de l’environnement, et hachez des données avec BLAKE2b.
+description: Générez des jetons aléatoires, hachez les mots de passe avec Argon2id, chiffrez avec XChaCha20-Poly1305 et une clé tirée de l’environnement, et hachez avec BLAKE2b.
 ---
 
 # Cryptographie

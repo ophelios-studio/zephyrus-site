@@ -1,7 +1,7 @@
 ---
 title: Erreurs et débogage
 order: 14
-description: Ce que reçoit un client lorsque quelque chose échoue, comment signaler et personnaliser les erreurs, comment le débogueur Tracy est restreint, et comment lire les exceptions du framework.
+description: Ce que reçoit un client quand quelque chose échoue, comment signaler et personnaliser les erreurs, comment Tracy est restreint et comment lire les exceptions du framework.
 ---
 
 # Erreurs et débogage

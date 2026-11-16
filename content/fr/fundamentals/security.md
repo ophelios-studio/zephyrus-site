@@ -1,7 +1,7 @@
 ---
 title: Sécurité
 order: 11
-description: Comment Zephyrus vérifie votre configuration de sécurité au démarrage, et comment appliquer la protection CSRF, les en-têtes de sécurité, HTTPS, les hôtes autorisés, les mandataires de confiance et une limite de taille des requêtes.
+description: Ce que Zephyrus vérifie au démarrage, et comment appliquer CSRF, en-têtes de sécurité, HTTPS, hôtes autorisés, mandataires de confiance et taille maximale des requêtes.
 ---
 
 # Sécurité

@@ -1,7 +1,7 @@
 ---
 title: Authentification
 order: 10
-description: Protégez vos routes avec des gardes et des middlewares nommés, et construisez une connexion et une déconnexion par session qui résistent à la fixation, à l’énumération et aux redirections ouvertes.
+description: Protégez vos routes par gardes et middlewares nommés, et bâtissez connexion et déconnexion par session, à l’abri de la fixation, de l’énumération et des redirections ouvertes.
 ---
 
 # Authentification
