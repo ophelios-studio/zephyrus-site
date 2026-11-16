@@ -257,7 +257,7 @@ Configuration file not found: config.yml
 Configuration file is not readable: config.yml
 Configuration file config.yml: must be a mapping of sections
 Configuration file settings.json: must be YAML (.yml, .yaml) or PHP (.php)
-Configuration file config.yml: must be a local path, not a stream wrapper URL
+Configuration file must be a local path, not a stream wrapper URL (file://)
 Failed to parse configuration file [config.yml]: invalid YAML near line 5 (the parser's detail is withheld, since it can quote a secret from the file).
 ```
 
