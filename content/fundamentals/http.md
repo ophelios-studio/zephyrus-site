@@ -221,7 +221,7 @@ $response->cookies;
 //  'lang=fr; Path=/; HttpOnly; SameSite=Lax']
 ```
 
-The defaults are `Path=/; Secure; HttpOnly; SameSite=Lax`, and the value is percent-encoded as `setcookie()` does. `Secure` stays on even where `session.secure` is `auto`: on plain-HTTP development, pass `secure: false` (or `secure: $request->uri()->isSecure()`), or the browser drops the cookie. A cookie of the same name, domain and path replaces the earlier one (the domain is compared without case or a leading dot); the same name on another domain or path is kept as its own line. `$response->cookies` lists the lines, and `new Response(cookies: [...])` takes a list of lines, never a name-to-value map.
+The defaults are `Path=/; Secure; HttpOnly; SameSite=Lax`, and the value is percent-encoded as `setcookie()` does. `Secure` stays on even where `session.secure` is `auto`: on plain-HTTP development, pass `secure: false` (or `secure: $request->uri()->isSecure()`), or the browser drops the cookie. A cookie of the same name, domain and path replaces the earlier one, whatever the case and spacing of its attributes (`;path=/` and `PATH=/` included, as browsers read them; the domain is compared without case or a leading dot). A line marked `Partitioned` is kept, since browsers store it apart. The same name on another domain or path is kept as its own line. `$response->cookies` lists the lines, and `new Response(cookies: [...])` takes a list of lines, never a name-to-value map.
 
 Anything browsers would drop is refused with an `InvalidArgumentException`:
 
