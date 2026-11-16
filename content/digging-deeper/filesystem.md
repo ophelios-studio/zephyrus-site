@@ -37,7 +37,7 @@ $file->write("replaced\n");
 | `hash($algo = 'sha256')` | The hash of the content: 64 hex characters for `sha256`. |
 | `copy($destination)` | Copies the file and returns the new `File`. Missing directories are created. |
 | `move($destination)` | Renames or moves the file and returns the `File` at the new place. |
-| `delete()` | Deletes the file. Nothing happens when it is already gone (see [open_basedir](#a-path-outside-open_basedir) for the exception). |
+| `delete()` | Deletes the file. Nothing happens when it is already gone (see [open_basedir](#a-path-outside-openbasedir) for the exception). |
 
 `copy()` and `move()` return the file at the destination. The source object from before `move()` reports `exists()` as `false`:
 
