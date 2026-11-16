@@ -1458,7 +1458,6 @@ details[open] summary {
 .sidebar-caption {
   display:flex;
   align-items:center;
-  justify-content:space-between;
   margin-bottom:32px;
   color:#526d3b;
 }
