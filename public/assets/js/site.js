@@ -140,9 +140,10 @@
   const input = document.querySelector('#doc-search');
   const results = dialog.querySelector('.search-results');
   const status = dialog.querySelector('.search-status');
+  const searchButton = document.querySelector('[data-search-open]');
   results.id = 'search-results';
   input.setAttribute('aria-controls', results.id);
-  let searchIndex, selected = 0, rendered = [];
+  let searchIndex, selected = 0, rendered = [], opener = null;
   const normalize = text => text.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[\u2018\u2019\u02bc]/g, "'").toLowerCase();
   const sectionLabel = section => document.querySelector('#ui-strings')?.getAttribute('data-section-' + section) || '';
   // Listed by rank: a term found in the title beats one found in a heading, which beats the body text.
@@ -207,8 +208,9 @@
     if (!matches.length) { const empty = document.createElement('p'); empty.className = 'search-empty'; empty.textContent = ui.noResults; results.append(empty); }
     status.textContent = matches.length ? resultCount(matches.length) : ui.noResults;
   }
-  async function openSearch() {
+  async function openSearch(event) {
     if (dialog.open) return;
+    opener = event?.currentTarget ?? document.activeElement;
     closeMenu(); setSidebar(false); dialog.showModal(); input.focus();
     if (!searchIndex) {
       results.textContent = status.textContent = ui.loading;
@@ -221,7 +223,10 @@
     renderResults();
   }
   document.querySelectorAll('[data-search-open]').forEach(button => button.addEventListener('click', openSearch));
-  dialog.addEventListener('close', () => { status.textContent = ''; });
+  dialog.addEventListener('close', () => {
+    status.textContent = ''; opener?.focus();
+    if (document.activeElement !== opener || opener === document.body) searchButton?.focus();
+  });
   const applePlatform = /^(mac|iphone|ipad|ipod|ios)/i.test(navigator.userAgentData?.platform ?? navigator.platform);
   if (!applePlatform) document.querySelectorAll('[data-search-open] kbd').forEach(kbd => { kbd.textContent = 'Ctrl K'; });
   dialog.querySelector('.search-close').addEventListener('click', () => dialog.close());
