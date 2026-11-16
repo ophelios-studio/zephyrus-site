@@ -23,7 +23,7 @@ database:
   password: !env DB_PASSWORD
 ```
 
-`database` et `username` sont obligatoires. Les autres clés sont `driver` (seulement `pgsql`), `charset` (`utf8` par défaut), `ssl_mode` (`disable`, `allow`, `prefer`, `require`, `verify-ca` ou `verify-full`), `ssl_root_cert` et `column_cache_version`. Toute autre clé interrompt le démarrage en proposant l’orthographe acceptée la plus proche. La section est interprétée en un `DatabaseConfig`, accessible par `$config->database` (`null` lorsque la section est absente).
+`database` et `username` sont obligatoires. Les autres clés sont `driver` (seulement `pgsql`), `charset` (`utf8` par défaut), `ssl_mode` (`disable`, `allow`, `prefer`, `require`, `verify-ca` ou `verify-full`), `ssl_root_cert`, `column_cache_version` et `persistent` (voir [connexions persistantes](#connexions-persistantes)). Toute autre clé interrompt le démarrage en proposant l’orthographe acceptée la plus proche. La section est interprétée en un `DatabaseConfig`, accessible par `$config->database` (`null` lorsque la section est absente).
 
 ```php
 use Zephyrus\Core\Config\Configuration;
@@ -33,7 +33,7 @@ $config = Configuration::fromYamlFile($root . '/config.yml');
 $db = Database::fromConfig($config->database);
 ```
 
-`fromConfig()` ouvre la connexion avec des requêtes préparées côté serveur : le SQL et les valeurs voyagent toujours séparément, et il est impossible de désactiver ce comportement. Sous PostgreSQL, chaque requête part aussi en instruction non nommée (`Pdo\Pgsql::ATTR_DISABLE_PREPARES`, posé après la connexion) : un aller-retour au lieu de trois (préparer, exécuter, fermer), les paramètres restant liés côté serveur et jamais émulés. La version 0.14.1 préparait une instruction nommée par requête. Pour retrouver les instructions nommées, appelez `$db->pdo()->setAttribute(\Pdo\Pgsql::ATTR_DISABLE_PREPARES, false)`. Une connexion qui échoue lève une `DatabaseException` qui nomme le DSN (hôte, port, base de données, jamais le mot de passe) et la raison fournie par le pilote : journalisez-la, ne l’affichez pas.
+`fromConfig()` ouvre la connexion avec `PDO::connect()`, si bien que `$db->pdo()` est un `Pdo\Pgsql`, et avec des requêtes préparées côté serveur : le SQL et les valeurs voyagent toujours séparément, et il est impossible de désactiver ce comportement. Sous PostgreSQL, chaque requête part aussi en instruction non nommée (`Pdo\Pgsql::ATTR_DISABLE_PREPARES`, posé après la connexion) : un aller-retour au lieu de trois (préparer, exécuter, fermer), les paramètres restant liés côté serveur et jamais émulés. La version 0.14.1 préparait une instruction nommée par requête. Pour retrouver les instructions nommées, appelez `$db->pdo()->setAttribute(\Pdo\Pgsql::ATTR_DISABLE_PREPARES, false)`. Une connexion qui échoue lève une `DatabaseException` qui nomme le DSN (hôte, port, base de données, jamais le mot de passe) et la raison fournie par le pilote : journalisez-la, ne l’affichez pas.
 
 `Database` n’est pas créée pour vous. Construisez-la une seule fois et transmettez-la à vos brokers, ou enregistrez-la dans le [conteneur](../../digging-deeper/container-and-events/) pour que les contrôleurs et les brokers la reçoivent par leur constructeur :
 
@@ -44,6 +44,23 @@ $container = new Container();
 $container->singleton(Database::class, static fn (): Database => Database::fromConfig($config->database));
 
 $builder = $builder->withContainer($container);
+```
+
+### Connexions persistantes
+
+`persistent: true` garde une connexion par processus PHP et la remet au prochain `fromConfig()` de ce processus, ce qui épargne le coût d’une nouvelle connexion à chaque requête. La valeur par défaut est `false`, et `!env` fonctionne (`persistent: !env DB_PERSISTENT, false`).
+
+Chaque fois que `fromConfig()` reprend la connexion, il envoie `ROLLBACK` si une transaction est restée ouverte, puis `DISCARD ALL`, et écarte les notifications déjà reçues : les paramètres, `SET ROLE`, les verrous consultatifs de session, les tables temporaires et les instructions préparées n’atteignent jamais la requête suivante. Une trace subsiste : un paramètre personnalisé posé par le détenteur précédent se lit `''` au lieu de `NULL`, d’où la lecture `nullif(current_setting('app.actor_id', true), '')` dans une politique. Une connexion dont la remise à zéro échoue est fermée et remplacée une fois ; un second échec lève une `DatabaseException`.
+
+- Tant qu’une `Database` construite sur la connexion persistante est en vie, un autre `fromConfig()` avec les mêmes réglages ouvre une connexion ordinaire, pour qu’une session ne soit jamais remise à zéro sous son détenteur. Partagez une seule `Database` par requête.
+- Chaque processus garde sa connexion toute sa vie : le `max_connections` de PostgreSQL doit couvrir chaque processus PHP-FPM ou Apache de chaque serveur, plus vos scripts en ligne de commande.
+- Une fabrique de connexion ne pose aucun état de session : avec `persistent: true`, elle s’exécute avant la remise à zéro, qui l’efface. Posez l’état de session après le retour de `fromConfig()`.
+- Sous PHP 8.5, une fabrique à vous utilisée avec `persistent: true` construit la connexion avec `PDO::connect()`, comme celle par défaut, sinon chaque réutilisation émet une dépréciation.
+
+La persistance passe par cette clé seulement. `new Database($pdo)` refuse un PDO ouvert avec `PDO::ATTR_PERSISTENT`, et `fromConfig()` refuse une fabrique de connexion qui en renvoie un alors que `persistent` vaut `false`, car la session d’une telle connexion passerait telle quelle d’une requête précédente à la suivante :
+
+```text
+Zephyrus\Data\DatabaseException: Database refuses a persistent PDO, whose session would carry over from an earlier request: remove PDO::ATTR_PERSISTENT from the PDO and set database.persistent: true in the configuration, so Database::fromConfig() resets the session each time it reuses the connection.
 ```
 
 ## Exécuter des requêtes
@@ -148,6 +165,63 @@ $orderId = $db->transaction(function (Database $db): int {
 Appelée à l’intérieur d’une transaction ouverte, `transaction()` ouvre un point de sauvegarde : un échec n’annule que les écritures internes, et une exception interceptée à l’extérieur de l’appel interne laisse le travail externe intact.
 
 N’interceptez pas une instruction en échec à l’intérieur de la fonction pour poursuivre ensuite. PostgreSQL interrompt la transaction à la première erreur, de sorte que la confirmation deviendrait silencieusement une annulation. Le framework le détecte et lève une `DatabaseException` (SQLSTATE `25P02`) plutôt que de signaler un succès. Laissez l’exception se propager, ou interceptez-la autour d’un `transaction()` imbriqué.
+
+## Sécurité au niveau des lignes
+
+La sécurité au niveau des lignes (row level security) de PostgreSQL filtre les lignes dans la base, selon des politiques qui lisent dans un paramètre l’identité de celui qui agit. `Zephyrus\Data\DatabaseActor` publie cet acteur pour une seule transaction (`set_config(..., true)`) : il n’atteint jamais la requête suivante, le prochain détenteur d’une [connexion persistante](#connexions-persistantes), ni un autre client derrière un regroupeur de connexions en mode transaction.
+
+Une politique lit le paramètre avec `nullif(..., '')`, car un paramètre non posé peut se lire comme une chaîne vide :
+
+```sql
+ALTER TABLE project ADD COLUMN owner_id bigint;
+ALTER TABLE project ENABLE ROW LEVEL SECURITY;
+CREATE POLICY project_owner ON project
+    USING (owner_id = nullif(current_setting('app.actor_id', true), '')::bigint);
+```
+
+Le constructeur reçoit la `Database`, un préfixe et les clés que lisent vos politiques : `['actor_id']` sous `app` déclare le paramètre `app.actor_id`. `actAs()` ouvre une transaction, publie les valeurs, exécute la fonction (qui reçoit la `Database`) et confirme ; l’acteur prend fin avec la transaction :
+
+```php
+use Zephyrus\Data\Database;
+use Zephyrus\Data\DatabaseActor;
+
+$actor = new DatabaseActor($db, 'app', ['actor_id']);
+
+$projects = $actor->actAs(['actor_id' => (string) $userId], function (Database $db): array {
+    return $db->select('SELECT id, name FROM project ORDER BY id');
+});
+```
+
+Avec des projets appartenant aux utilisateurs 7 et 8, l’appel pour l’utilisateur 7 ne renvoie que son projet, et le même `SELECT` exécuté après `actAs()` ne renvoie aucune ligne. Dans un middleware, `return $actor->actAs([...], fn (): Response => $next($request));` exécute le reste de la requête dans cette seule transaction.
+
+Dans une transaction que vous avez déjà ouverte, `publish()` pose l’acteur jusqu’à la fin de la transaction la plus externe (un point de sauvegarde annulé le retire) :
+
+```php
+$db->transaction(function (Database $db) use ($actor, $userId, $id): void {
+    $actor->publish(['actor_id' => (string) $userId]);
+    $db->update('UPDATE project SET name = ? WHERE id = ?', ['Alpha 2', $id]);
+});
+```
+
+Les valeurs sont des chaînes non vides, pour les clés déclarées seulement. Chaque refus est une `DatabaseActorException`, dont le message ne contient jamais de valeur :
+
+| Appel | Refus |
+|---|---|
+| `actAs(['actor_id' => 7], ...)` | `The actor value for "actor_id" must be a string, int given: cast it first, such as (string) $userId.` |
+| `actAs(['actor_id' => ''], ...)` | `The actor value for "actor_id" must be a non-empty string, an empty string given: an empty value reads as no actor, so leave the key out instead.` |
+| `actAs(['org_id' => '3'], ...)` | `The actor values key "org_id" names no declared key (declared: "actor_id").` |
+| `actAs()` dans `transaction()` | `DatabaseActor::actAs() opens its own transaction and refuses one already open, where the actor would outlive the callback until that transaction ends: call actAs() outside any transaction, or publish() inside the open one.` |
+| `publish()` hors transaction | `DatabaseActor::publish() needs an open transaction: outside one, PostgreSQL drops the actor before the next statement. Use actAs(), or call publish() inside Database::transaction().` |
+| un second acteur dans la même transaction | `An actor is already published on this connection ("app.actor_id" is set): an actor changes only by ending its transaction, and a value set for the whole session is refused.` |
+
+Le constructeur refuse une connexion autre que PostgreSQL, ainsi qu’un préfixe ou une clé qui ne compte pas de 1 à 63 lettres minuscules, chiffres et soulignés sans commencer par un chiffre (`The actor key "Actor-Id" is not a valid setting name: use 1 to 63 lowercase letters, digits and underscores, not starting with a digit.`).
+
+- **Publier ne protège rien à soi seul.** Un superutilisateur, un rôle doté de `BYPASSRLS` et le propriétaire d’une table sans `ALTER TABLE ... FORCE ROW LEVEL SECURITY` voient toutes les lignes, quel que soit l’acteur. Connectez-vous avec un rôle auquel les politiques s’appliquent.
+- **Sans acteur**, un `SELECT` soumis à ces politiques ne renvoie aucune ligne et un `INSERT` est refusé, mais un `UPDATE` ou un `DELETE` touche 0 ligne sans erreur : vérifiez le nombre qu’il renvoie.
+- **L’acteur ne change qu’à la fin de sa transaction.** Une valeur posée pour toute la session avec `set_config(..., false)` est refusée de la même façon, sur n’importe quelle clé déclarée. Deux identités dans un même traitement sont deux clés d’un même acteur, publiées ensemble.
+- **Déclarez dans une seule instance toutes les clés que lisent vos politiques.** Le refus d’un second acteur couvre les clés que déclare cette instance : deux instances aux clés différentes sur la même `Database` peuvent chacune en publier un, et les acteurs s’empilent.
+- **Dans `actAs()`, chaque `transaction()` est un point de sauvegarde** et la confirmation a lieu au retour d’`actAs()`. Envoyez un courriel, ou tout autre effet qui doit suivre la confirmation, une fois qu’`actAs()` est revenu.
+- **Choisissez un préfixe à vous**, comme `app`, jamais `plpgsql`.
 
 ## Types PostgreSQL
 
@@ -273,6 +347,7 @@ final class ProjectService
 - Un `null` est affecté tel quel : déclarez chaque colonne nullable en `?type`, faute de quoi l’hydratation lève une `TypeError`.
 - Une propriété de date typée `DateTimeImmutable`, `DateTimeInterface` ou `DateTime` accepte une chaîne ISO (`YYYY-MM-DD`, avec heure, fraction et décalage UTC facultatifs) et est hydratée comme un `DateTimeImmutable` (un `DateTime` pour une propriété `DateTime`). Une chaîne qui ne convient pas lève une `InvalidArgumentException` (`Invalid value for date DateTimeImmutable on property $createdAt`). La version 0.14.1 laissait la propriété non initialisée.
 - Une valeur qui ne peut pas être hydratée est refusée, là où la 0.14.1 l’ignorait ou échouait avec une erreur : une propriété typée par une autre classe, par un type union ou intersection, ou par une énumération pure lève une `InvalidArgumentException` (`Cannot hydrate property $status of App\Models\Order: type string|int is not supported`), tout comme une entité imbriquée qui reçoit autre chose qu’un objet JSON (`Invalid value for entity App\Models\Customer on property $customer`). Donnez à la propriété un type pris en charge, ou lisez la colonne comme chaîne et convertissez-la dans le service.
+- Une propriété que l’entité ne peut pas écrire est refusée par une `InvalidArgumentException`, là où PHP levait une `Error` brute : une propriété readonly déjà posée par le constructeur (`Cannot hydrate property $id of App\Models\Project: it is readonly and its constructor already set it. Leave it unset in the constructor, or drop readonly.`), une propriété `private(set)` (`... its private(set) visibility keeps Entity from writing it. Use protected(set) instead.`) et une propriété virtuelle sans crochet `set` (`... it is virtual with no set hook. Alias the column in the query, or give the property a set hook.`). Une propriété readonly laissée non initialisée et une propriété `protected(set)` sont hydratées. `json_encode()` omet une propriété virtuelle sans crochet `get`.
 - Les propriétés privées et statiques, ainsi qu’une colonne nommée `rawData`, sont ignorées.
 
 ### Sérialisation des entités
