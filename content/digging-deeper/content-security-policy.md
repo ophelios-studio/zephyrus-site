@@ -157,7 +157,11 @@ public function embed(): Response
 }
 ```
 
-That policy replaces the middleware's whole, nonce included: write the complete policy the page needs. With `application.debug` on, the middleware warns on such a route that "the nonce policy was not applied because Content-Security-Policy is already set on the response"; on a route that sets its own policy on purpose, that warning is expected.
+That policy replaces the middleware's whole, nonce included: write the complete policy the page needs. The middleware sends it without a warning (version 0.16 warned in debug mode). The debug warning is kept for the mistake: a `SecureHeadersMiddleware` registered inside this one (on a group or a route) whose `csp` would replace the policy of the request:
+
+```text
+Content-Security-Policy: the csp of this SecureHeadersMiddleware replaces the policy of this request, because it is registered after (inside) ContentSecurityPolicyMiddleware. Leave its csp empty, or, when both are registered at the same level (global, group or route), register it before ContentSecurityPolicyMiddleware.
+```
 
 ## Report-only and violation reports
 

@@ -157,7 +157,11 @@ public function embed(): Response
 }
 ```
 
-Cette politique remplace entièrement celle du middleware, nonce compris : écrivez la politique complète dont la page a besoin. Avec `application.debug` activé, le middleware avertit sur une telle route que « the nonce policy was not applied because Content-Security-Policy is already set on the response » ; sur une route qui définit volontairement sa propre politique, cet avertissement est attendu.
+Cette politique remplace entièrement celle du middleware, nonce compris : écrivez la politique complète dont la page a besoin. Le middleware l’envoie sans avertissement (la version 0.16 avertissait en mode débogage). L’avertissement de débogage reste pour l’erreur : un `SecureHeadersMiddleware` enregistré à l’intérieur de celui-ci (sur un groupe ou une route) dont le `csp` remplacerait la politique de la requête :
+
+```text
+Content-Security-Policy: the csp of this SecureHeadersMiddleware replaces the policy of this request, because it is registered after (inside) ContentSecurityPolicyMiddleware. Leave its csp empty, or, when both are registered at the same level (global, group or route), register it before ContentSecurityPolicyMiddleware.
+```
 
 ## Rapport seulement et rapports de violations
 
