@@ -140,7 +140,6 @@
   const input = document.querySelector('#doc-search');
   const results = dialog.querySelector('.search-results');
   results.id = 'search-results';
-  results.setAttribute('aria-label', input.getAttribute('aria-label'));
   input.setAttribute('aria-controls', results.id);
   let searchIndex, selected = 0, rendered = [];
   const normalize = text => text.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[\u2018\u2019\u02bc]/g, "'").toLowerCase();
@@ -200,8 +199,8 @@
     });
     rendered = [...results.querySelectorAll('a')];
     // A listbox may only hold options: the loading, error and empty messages live outside that role.
-    if (rendered.length) { results.setAttribute('role', 'listbox'); select(0); }
-    else { results.removeAttribute('role'); input.removeAttribute('aria-activedescendant'); }
+    if (rendered.length) { results.setAttribute('role', 'listbox'); results.setAttribute('aria-label', input.getAttribute('aria-label')); select(0); }
+    else { results.removeAttribute('role'); results.removeAttribute('aria-label'); input.removeAttribute('aria-activedescendant'); }
     if (!matches.length) { const empty = document.createElement('p'); empty.className = 'search-empty'; empty.textContent = ui.noResults; results.append(empty); }
   }
   async function openSearch() {
