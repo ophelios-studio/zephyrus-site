@@ -105,6 +105,12 @@ public function show(int $id, int $userId): Response
 
 A constraint is a regular expression fragment. Without one, a placeholder matches `[^/]+`. Constrain every parameter you can: a request that does not satisfy the constraint, or whose value cannot be cast to the declared type, answers 404.
 
+A constraint that is not a valid regular expression throws a `RouteSignatureException` on the first request that reaches the route, with PHP's reason, even under an error handler that turns warnings into exceptions:
+
+```text
+Invalid route constraint pattern for parameter "id" on route "/users/{id}": \d+( (Compilation failed: missing closing parenthesis)
+```
+
 Handler parameters are resolved in this order:
 
 1. a parameter typed `Request` receives the request;

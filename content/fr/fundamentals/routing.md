@@ -105,6 +105,12 @@ public function show(int $id, int $userId): Response
 
 Une contrainte est un fragment d’expression régulière. Sans contrainte, un paramètre correspond à `[^/]+`. Contraignez chaque paramètre que vous pouvez : une requête qui ne satisfait pas la contrainte, ou dont la valeur ne peut pas être convertie vers le type déclaré, reçoit un 404.
 
+Une contrainte qui n’est pas une expression régulière valide lève une `RouteSignatureException` à la première requête qui atteint la route, avec la raison donnée par PHP, même sous un gestionnaire d’erreurs qui change les avertissements en exceptions :
+
+```text
+Invalid route constraint pattern for parameter "id" on route "/users/{id}": \d+( (Compilation failed: missing closing parenthesis)
+```
+
 Les paramètres du gestionnaire sont résolus dans cet ordre :
 
 1. un paramètre typé `Request` reçoit la requête ;
