@@ -246,14 +246,18 @@ $config = Configuration::fromOptionalYamlFiles([
 | `fromArray($array)` | un tableau imbriqué | |
 | `defaults()` | rien : chaque section utilise ses valeurs par défaut | |
 
-Toutes prennent la table des sections personnalisées comme dernier argument. Elles lèvent une `ConfigurationException` pour un fichier manquant ou illisible, un fichier qui ne s’analyse pas, une balise `!env` refusée et un fichier qui n’est pas une table de sections (un scalaire ou une liste YAML, un fichier PHP qui retourne une liste). Un fichier YAML vide ou fait de commentaires se lit comme vide. `fromFile()`, `fromFiles()` et `fromOptionalFiles()` ne lisent que des fichiers `.yml`, `.yaml` et `.php`. Un fichier `.php` ne se lit que depuis un simple chemin local : une URL de flux comme `file://` ou `phar://` est refusée. Un fichier YAML désigné par une URL est introuvable : `file:///srv/app/config.yml` lève `Configuration file not found: config.yml`, passez donc le chemin simple.
+Toutes prennent la table des sections personnalisées comme dernier argument. Elles lèvent une `ConfigurationException` pour un fichier manquant ou illisible, un fichier qui ne s’analyse pas, une balise `!env` refusée, et un fichier qui enfreint l’une de ces règles :
+
+- **Trois extensions.** `fromFile()`, `fromFiles()` et `fromOptionalFiles()` ne lisent que des fichiers `.yml`, `.yaml` et `.php`.
+- **Un chemin local seulement.** Un fichier, YAML ou PHP, se lit depuis un simple chemin local. Une URL de flux (`file://`, `phar://`, `data:`) est refusée avant même la recherche du fichier, y compris comme fichier optionnel : passez `/srv/app/config.yml`, pas `file:///srv/app/config.yml`.
+- **Une table de sections.** Un scalaire ou une liste YAML, ou un fichier PHP qui retourne une liste, est refusé. Un fichier YAML vide ou fait de commentaires se lit comme vide.
 
 ```text
 Configuration file not found: config.yml
 Configuration file is not readable: config.yml
 Configuration file config.yml: must be a mapping of sections
 Configuration file settings.json: must be YAML (.yml, .yaml) or PHP (.php)
-Configuration file config.php: must be a local path, not a stream wrapper URL
+Configuration file config.yml: must be a local path, not a stream wrapper URL
 Failed to parse configuration file [config.yml]: invalid YAML near line 5 (the parser's detail is withheld, since it can quote a secret from the file).
 ```
 

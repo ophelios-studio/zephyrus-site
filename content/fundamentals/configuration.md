@@ -246,14 +246,18 @@ $config = Configuration::fromOptionalYamlFiles([
 | `fromArray($array)` | a nested array | |
 | `defaults()` | nothing: every section uses its defaults | |
 
-All of them take the custom section map as their last argument. They raise a `ConfigurationException` for a missing or unreadable file, a file that does not parse, a refused `!env` tag, and a file that is not a mapping of sections (a YAML scalar or list, a PHP file that returns a list). An empty or comment-only YAML file reads as empty. `fromFile()`, `fromFiles()` and `fromOptionalFiles()` read only `.yml`, `.yaml` and `.php` files. A `.php` file is read only from a plain local path: a stream wrapper URL such as `file://` or `phar://` is refused. A YAML file named by a URL is not found: `file:///srv/app/config.yml` throws `Configuration file not found: config.yml`, so pass the plain path.
+All of them take the custom section map as their last argument. They raise a `ConfigurationException` for a missing or unreadable file, a file that does not parse, a refused `!env` tag, and a file that breaks one of these rules:
+
+- **Three extensions.** `fromFile()`, `fromFiles()` and `fromOptionalFiles()` read only `.yml`, `.yaml` and `.php` files.
+- **A local path only.** A file, YAML or PHP, is read from a plain local path. A stream wrapper URL (`file://`, `phar://`, `data:`) is refused before the file is looked for, even as an optional file: pass `/srv/app/config.yml`, not `file:///srv/app/config.yml`.
+- **A mapping of sections.** A YAML scalar or list, or a PHP file that returns a list, is refused. An empty or comment-only YAML file reads as empty.
 
 ```text
 Configuration file not found: config.yml
 Configuration file is not readable: config.yml
 Configuration file config.yml: must be a mapping of sections
 Configuration file settings.json: must be YAML (.yml, .yaml) or PHP (.php)
-Configuration file config.php: must be a local path, not a stream wrapper URL
+Configuration file config.yml: must be a local path, not a stream wrapper URL
 Failed to parse configuration file [config.yml]: invalid YAML near line 5 (the parser's detail is withheld, since it can quote a secret from the file).
 ```
 
