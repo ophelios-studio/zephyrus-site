@@ -114,6 +114,27 @@ Les fragments réutilisables viennent de `{include 'file.latte'}` pour un fichie
 
 Un chemin dans `{layout}` ou `{include}` est relatif au gabarit qui le contient, non au répertoire des vues. Une mise en page dans `layouts/` qui inclut `partials/nav.latte` échoue avec `Missing template file '.../layouts/partials/nav.latte'` : écrivez `../partials/nav.latte`.
 
+### Gabarits d’un paquet Composer
+
+`LatteEngine::addNamespace($namespace, $directory)` rend les gabarits d’un paquet accessibles sous `@namespace/page` : dans `render()` et `exists()`, et dans `{include}`, `{layout}`, `{embed}` et `{import}`, depuis vos vues comme depuis les gabarits du paquet lui-même :
+
+```php
+use Zephyrus\Rendering\LatteEngine;
+
+$views = new LatteEngine($root . '/app/Views', $root . '/cache/latte');
+$views->addNamespace('acme', $root . '/vendor/acme/mailer/views');
+
+$html = $views->render('@acme/mail/welcome', ['name' => 'Ada']);
+```
+
+Avec, dans le paquet, un `mail/welcome.latte` qui contient `<p>Welcome, {$name}.</p>{include '@acme/mail/footer.latte'}`, l’appel retourne `<p>Welcome, Ada.</p><footer>Acme</footer>`. Un fichier placé à `app/Views/vendor/acme/mail/welcome.latte` remplace le gabarit du paquet du même nom, sans configuration.
+
+- **Incluez un gabarit voisin par son nom à espace de noms** (`@acme/mail/footer.latte`), jamais `footer.latte`. Un nom relatif se résout contre le répertoire du fichier qui le contient : un remplacement placé dans `app/Views/vendor/acme/` qui inclut `footer.latte` échoue avec `Missing template file '.../app/Views/vendor/acme/mail/footer.latte'`.
+- **Déclarez le répertoire des vues du paquet, jamais sa racine.** L’espace de noms ouvre chaque fichier `.latte` qu’il contient à un nom de page, qui peut venir d’une saisie de l’utilisateur. Les recherches gardent les vérifications de `..`, d’octet NUL et de lien symbolique des pages ordinaires.
+- Seul un nom de la forme `@namespace/...` passe par un espace de noms : `{layout '@layout.latte'}` et `render('@layout')` restent des fichiers ordinaires.
+- Un espace de noms se compose de lettres minuscules, de chiffres, de `_` et de `-`, et commence par une lettre ou un chiffre ; le répertoire doit être absolu et exister ; un espace de noms se déclare une seule fois. Chaque erreur lève une `InvalidArgumentException`, comme `Template namespace "Acme" is invalid: use lowercase letters, digits, "_" and "-", starting with a letter or a digit.` Un espace de noms non déclaré lève une `RenderException` : `Template namespace "nope" is not declared (call LatteEngine::addNamespace() first). Declared namespaces: "acme".`
+- `addNamespace()` appartient à `LatteEngine`, pas à l’interface `RenderEngine` : gardez le moteur typé `LatteEngine` pour l’appeler.
+
 ### Fonctions et filtres
 
 Un gabarit Latte peut appeler n’importe quelle fonction PHP, et le framework fournit des assistants globaux prêts à l’emploi :

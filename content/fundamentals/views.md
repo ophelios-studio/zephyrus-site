@@ -114,6 +114,27 @@ Reusable fragments come from `{include 'file.latte'}` for a file, or `{define}` 
 
 A path in `{layout}` or `{include}` is relative to the template that contains it, not to the views directory. A layout in `layouts/` that includes `partials/nav.latte` fails with `Missing template file '.../layouts/partials/nav.latte'`: write `../partials/nav.latte`.
 
+### Templates from a Composer package
+
+`LatteEngine::addNamespace($namespace, $directory)` makes the templates of a package reachable as `@namespace/page`: in `render()` and `exists()`, and in `{include}`, `{layout}`, `{embed}` and `{import}`, from your views or from the package's own templates:
+
+```php
+use Zephyrus\Rendering\LatteEngine;
+
+$views = new LatteEngine($root . '/app/Views', $root . '/cache/latte');
+$views->addNamespace('acme', $root . '/vendor/acme/mailer/views');
+
+$html = $views->render('@acme/mail/welcome', ['name' => 'Ada']);
+```
+
+With `mail/welcome.latte` in the package holding `<p>Welcome, {$name}.</p>{include '@acme/mail/footer.latte'}`, the call returns `<p>Welcome, Ada.</p><footer>Acme</footer>`. A file at `app/Views/vendor/acme/mail/welcome.latte` replaces the package template of the same name, with no configuration.
+
+- **Include a sibling by its namespaced name** (`@acme/mail/footer.latte`), never `footer.latte`. A relative name resolves against the directory of the file that holds it, so an override in `app/Views/vendor/acme/` that includes `footer.latte` fails with `Missing template file '.../app/Views/vendor/acme/mail/footer.latte'`.
+- **Declare the views directory of the package, never its root.** The namespace opens every `.latte` file under it to a page name, which may come from user input. Lookups keep the `..`, NUL byte and symbolic link checks of plain pages.
+- Only a name of the form `@namespace/...` is namespaced: `{layout '@layout.latte'}` and `render('@layout')` stay plain files.
+- A namespace is lowercase letters, digits, `_` and `-`, starting with a letter or a digit; the directory must be absolute and exist; a namespace is declared once. Each mistake throws `InvalidArgumentException`, such as `Template namespace "Acme" is invalid: use lowercase letters, digits, "_" and "-", starting with a letter or a digit.` An undeclared namespace throws `RenderException`: `Template namespace "nope" is not declared (call LatteEngine::addNamespace() first). Declared namespaces: "acme".`
+- `addNamespace()` belongs to `LatteEngine`, not to the `RenderEngine` interface: keep the engine typed as `LatteEngine` to call it.
+
 ### Functions and filters
 
 A Latte template can call any PHP function, and the framework ships global helpers that are ready to use:
