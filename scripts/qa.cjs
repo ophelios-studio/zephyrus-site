@@ -73,9 +73,9 @@ const base = process.env.PREVIEW_URL || 'http://127.0.0.1:4173';
     await page.goto(base + '/getting-started/introduction/', { waitUntil: 'networkidle' });
     assert.equal(await page.locator('h1').textContent(), 'Introduction');
     assert.equal(await page.locator('.sidebar-link[aria-current="page"]').textContent(), 'Introduction');
-    assert.equal(await page.locator('.toc-link').count(), 4);
-    const markdownCode = await page.locator('.prose pre code').textContent();
-    await page.getByRole('button', { name: 'Copy code block' }).click();
+    assert.equal(await page.locator('.toc-link').count(), await page.locator('.prose :is(h2, h3, h4)[id]').count());
+    const markdownCode = await page.locator('.prose pre code').first().textContent();
+    await page.getByRole('button', { name: 'Copy code block' }).first().click();
     assert.equal(await page.evaluate(() => navigator.clipboard.readText()), markdownCode);
     await page.keyboard.press('Control+k');
     await page.waitForSelector('.search-dialog[open] .search-result');
@@ -89,10 +89,11 @@ const base = process.env.PREVIEW_URL || 'http://127.0.0.1:4173';
     assert.equal(await page.locator('h1').textContent(), 'Configuration');
     checks.push('Markdown, sidebar selection, TOC, copy and keyboard search');
     for (const href of await page.locator('a[href^="/"]').evaluateAll(links => links.map(link => link.getAttribute('href')))) allURLs.add(href);
-    const pages = ['/getting-started/introduction/', '/getting-started/project-structure/', '/fundamentals/routing/', '/fundamentals/http/', '/fundamentals/configuration/', '/fundamentals/localization/', '/fundamentals/data/', '/fundamentals/security/'];
+    const sections = ['getting-started', 'fundamentals', 'digging-deeper'];
+    const pages = (await Promise.all(sections.map(async section => (await fs.readdir('content/' + section)).filter(file => file.endsWith('.md')).map(file => '/' + section + '/' + file.slice(0, -3) + '/')))).flat();
     for (const prefix of ['', '/fr']) {
       const index = await (await page.request.get(base + prefix + '/search.json')).json();
-      assert.equal(index.length, 8);
+      assert.deepEqual(index.map(entry => entry.url + '/').sort(), [...pages].sort(), 'Search index ' + (prefix || '/'));
       for (const route of pages) {
         await page.goto(base + prefix + route, { waitUntil: 'networkidle' });
         assert.equal(await page.locator('html').getAttribute('lang'), prefix ? 'fr' : 'en');
@@ -107,7 +108,7 @@ const base = process.env.PREVIEW_URL || 'http://127.0.0.1:4173';
       assert.equal(response.status(), 200, 'Local link: ' + href);
       if (target.hash) assert((await response.text()).includes('id="' + target.hash.slice(1) + '"'), 'Anchor: ' + href);
     }
-    checks.push('Eight chapters in both languages, locale search indexes and every local destination');
+    checks.push('Every chapter in both languages, complete locale search indexes and every local destination');
 
     await page.goto(base + '/fundamentals/localization/#regional-fallback', { waitUntil: 'networkidle' });
     await page.locator('[data-language-link="fr"]').click();
@@ -168,7 +169,7 @@ const base = process.env.PREVIEW_URL || 'http://127.0.0.1:4173';
     await page.locator('.sidebar-link').filter({ hasText: /^Localisation$/ }).click();
     await page.waitForURL('**/fr/fundamentals/localization/');
     await page.getByRole('button', { name: 'Copier le bloc de code' }).first().click();
-    assert((await page.evaluate(() => navigator.clipboard.readText())).includes('greeting'));
+    assert.equal(await page.evaluate(() => navigator.clipboard.readText()), await page.locator('.prose pre code').first().textContent());
     checks.push('French mobile navigation, chapters and translated clipboard controls');
 
     await page.emulateMedia({ reducedMotion: 'reduce' });

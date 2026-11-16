@@ -3,7 +3,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs/promises');
 const base = process.env.PREVIEW_URL || 'http://127.0.0.1:4173';
 const production = 'https://zephyrus.ophelios.com';
-const chapters = ['getting-started/introduction', 'getting-started/project-structure', 'fundamentals/routing', 'fundamentals/http', 'fundamentals/configuration', 'fundamentals/localization', 'fundamentals/data', 'fundamentals/security'];
+const chapters = ['getting-started', 'fundamentals', 'digging-deeper'].flatMap(section => require('node:fs').readdirSync('content/' + section).filter(file => file.endsWith('.md')).map(file => section + '/' + file.slice(0, -3)));
 (async () => {
   const browser = await chromium.launch({ headless: true });
   const checked = [], titles = new Set(), descriptions = new Set();
@@ -77,8 +77,8 @@ const chapters = ['getting-started/introduction', 'getting-started/project-struc
     assert(robots.includes('Sitemap: ' + production + '/sitemap.xml'));
     await fs.mkdir('artifacts', { recursive: true });
     await fs.writeFile('artifacts/seo-qa.json', JSON.stringify({ status: 'passed', pages: checked, sitemapEntries: entries.length, imageDimensions: '1200x630' }, null, 2));
-    console.log('✓ 18 pages: unique localized metadata, canonical URLs, reciprocal hreflang and structured data');
+    console.log('✓ ' + checked.length + ' pages: unique localized metadata, canonical URLs, reciprocal hreflang and structured data');
     console.log('✓ Both social cards: localized, absolute URLs, 1200 × 630, Open Graph and Twitter');
-    console.log('✓ Sitemap: 18 indexable pages, locale alternates; error pages excluded and noindex');
+    console.log('✓ Sitemap: ' + entries.length + ' indexable pages, locale alternates; error pages excluded and noindex');
   } finally { await browser.close(); }
 })().catch(error => { console.error(error); process.exitCode = 1; });
