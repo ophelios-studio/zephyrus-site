@@ -69,7 +69,7 @@ Une route est un attribut placé sur la méthode qui la traite. L’URL, la mét
 - La [localisation](../../fundamentals/localization/) à partir de catalogues JSON.
 - Le [courriel](../../digging-deeper/mail/), les [téléversements](../../digging-deeper/uploads/) et la [cryptographie](../../digging-deeper/cryptography/).
 
-## Un premier aperçu
+## Un avant-goût
 
 Un contrôleur étend `Zephyrus\Controller\Controller`. Une route est un attribut :
 
