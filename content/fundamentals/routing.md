@@ -69,6 +69,8 @@ public function multi(): Response
 }
 ```
 
+The method is an HTTP token (RFC 9110), such as `GET` or `PROPFIND`: a method holding a space or any other character outside the token is [refused at registration](#refusals-at-build-time).
+
 Only public methods declared by the controller class itself are read. A route attribute on a method of a parent class does not register anything for the subclass.
 
 ## Prefixes with Root
@@ -342,9 +344,10 @@ A route naming a middleware or group that was never registered is refused when t
 Route middlewares are not registered: "admin" on GET /misc/admin, "auth" on 5 routes (GET /api/projects, GET /api/projects/{id}, GET /api/projects/{id}/files/{name}, ...); no middleware is registered. Register each with registerMiddleware() before build(), or, for a group, define it with Router::middlewareGroup() before the routes that name it.
 ```
 
-Path refusals (`RouteSignatureException`):
+Method and path refusals (`RouteSignatureException`):
 
 ```text
+Invalid route method "GE T" on route "/x": an HTTP method is a token of letters, digits and !#$%&'*+-.^_`|~ (RFC 9110), such as GET or PROPFIND
 Invalid route path "/a?x=1": the request path ends at "?", so this route would only match "/a"; declare "/a" and read the query string from the request
 Invalid route parameter name "id?" on route "/a/{id?}": optional placeholders are not supported; declare a second route without that segment
 Invalid route parameter name "1x" on route "/a/{1x}": a placeholder must match /^[A-Za-z_][A-Za-z0-9_]*$/D

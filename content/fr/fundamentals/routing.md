@@ -69,6 +69,8 @@ public function multi(): Response
 }
 ```
 
+La méthode est un token HTTP (RFC 9110), comme `GET` ou `PROPFIND` : une méthode qui contient un espace ou tout autre caractère hors du token est [refusée à l’enregistrement](#refus-à-la-construction).
+
 Seules les méthodes publiques déclarées par la classe du contrôleur elle-même sont lues. Un attribut de route placé sur une méthode d’une classe parente n’enregistre rien pour la sous-classe.
 
 ## Préfixes avec Root
@@ -342,9 +344,10 @@ Une route qui désigne un middleware ou un groupe jamais enregistré est refusé
 Route middlewares are not registered: "admin" on GET /misc/admin, "auth" on 5 routes (GET /api/projects, GET /api/projects/{id}, GET /api/projects/{id}/files/{name}, ...); no middleware is registered. Register each with registerMiddleware() before build(), or, for a group, define it with Router::middlewareGroup() before the routes that name it.
 ```
 
-Refus de chemin (`RouteSignatureException`) :
+Refus de méthode et de chemin (`RouteSignatureException`) :
 
 ```text
+Invalid route method "GE T" on route "/x": an HTTP method is a token of letters, digits and !#$%&'*+-.^_`|~ (RFC 9110), such as GET or PROPFIND
 Invalid route path "/a?x=1": the request path ends at "?", so this route would only match "/a"; declare "/a" and read the query string from the request
 Invalid route parameter name "id?" on route "/a/{id?}": optional placeholders are not supported; declare a second route without that segment
 Invalid route parameter name "1x" on route "/a/{1x}": a placeholder must match /^[A-Za-z_][A-Za-z0-9_]*$/D
