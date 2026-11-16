@@ -58,9 +58,10 @@
 .agents-copy .inline-link { color: #c8dda7; border-color: #465b39; }
 .agents-copy .inline-link:hover { border-bottom-color: #93b94e; }
 .agent-guide { border: 1px solid #49633d; background: #1d271e; min-width: 0; }
-.agent-guide-top { border-bottom: 1px solid #49633d; padding: 20px 25px; display: flex; justify-content: space-between; align-items: center; gap: 20px; }
-.agent-guide-top > .mono { color: #99b380; font-size: 9px; }
-.agent-ready { font: 8px var(--mono); color: var(--acid); }
+.agent-guide-top { border-bottom: 1px solid #49633d; padding: 20px 25px; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 20px; }
+.agent-guide-top > * { white-space: nowrap; }
+.agent-guide-top > .mono { color: #99b380; font-size: 10px; }
+.agent-ready { font: 10px var(--mono); color: var(--acid); }
 .agent-ready .status-dot { width: 4px; height: 4px; }
 .agent-scope { padding: 28px 25px; }
 .agent-scope > .mono { font-size: 8px; color: #84a16c; }
@@ -103,7 +104,6 @@
 @media (max-width: 1150px) {
   .header-actions { gap: 19px; }
   .agent-guide-top { padding: 18px 20px; gap: 12px; }
-  .agent-guide-top > .mono { font-size: 8px; }
   .agent-scope { padding: 25px 20px; }
   .agent-command, .agent-compatible { margin-left: 20px; margin-right: 20px; }
   .agent-install-note { margin-left: 20px; margin-right: 20px; }
@@ -129,7 +129,6 @@
   .agents-copy > p { max-width: 500px; font-size: 14px; }
   .agent-guide { max-width: 600px; }
   .agent-guide-top { padding: 20px 25px; }
-  .agent-guide-top > .mono { font-size: 9px; }
   .agent-scope { padding: 27px 25px; }
   .agent-command, .agent-compatible { margin-left: 25px; margin-right: 25px; }
   .agent-install-note { margin-left: 25px; margin-right: 25px; }
@@ -170,8 +169,6 @@
   .agent-symbol { font-size: 19px; margin-bottom: 20px; }
   .agents-copy .inline-link { font-size: 12px; }
   .agent-guide-top { padding: 17px; gap: 10px; }
-  .agent-guide-top > .mono { font-size: 7px; }
-  .agent-ready { font-size: 6px; }
   .agent-ready .status-dot { margin-right: 5px; }
   .agent-scope { padding: 24px 17px; }
   .agent-scope > .mono { font-size: 7px; }
