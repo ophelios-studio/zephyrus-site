@@ -577,7 +577,7 @@ h2 em {
 }
 
 .inline-link:hover {
-  color:#76994b;
+  border-bottom-color:#60803d;
 }
 
 .principles {
@@ -808,7 +808,7 @@ h2 em {
 }
 
 .code-footnote a:hover {
-  color:#76994b;
+  text-decoration-color:#60803d;
 }
 
 .architecture {
