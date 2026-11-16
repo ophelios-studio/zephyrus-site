@@ -17,7 +17,7 @@
     "meta_title": "Zephyrus · PHP framework, clear by design",
     "meta_description": "Build PHP applications with attribute routing, JSON localization, explicit SQL and immutable HTTP. Discover Zephyrus, its developer tools and documentation.",
     "image_alt": "Zephyrus PHP framework. Clear by design. Powerful by nature. An acid-green Z on a dark background.",
-    "meta_docs": "documentation"
+    "meta_docs": "Zephyrus documentation"
   },
   "landing": {
     "hero_kicker": "THE PHP FRAMEWORK, RECONSIDERED",

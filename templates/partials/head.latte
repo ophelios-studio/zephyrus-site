@@ -1,7 +1,7 @@
 {var $localePrefix = ($currentLocale ?? 'en') === ($defaultLocale ?? 'en') ? '' : '/' . $currentLocale}
 {var $isNotFound = $isNotFound ?? false}
 {var $pagePath = isset($section) && isset($slug) ? '/' . $section . '/' . $slug . '/' : '/'}
-{var $seoTitle = $isNotFound ? localize('error.title') . ' · Zephyrus' : (isset($section) ? $title . ' · Zephyrus ' . localize('common.meta_docs') : localize('common.meta_title'))}
+{var $seoTitle = $isNotFound ? localize('error.title') . ' · Zephyrus' : (isset($section) ? $title . ' · ' . localize('common.meta_docs') : localize('common.meta_title'))}
 {var $seoDescription = $isNotFound ? localize('error.body') : ($pageDescription ?? localize('common.meta_description'))}
 {var $canonicalUrl = $leafProductionUrl . $localePrefix . $pagePath}
 {var $socialImage = $leafProductionUrl . '/assets/images/' . ($currentLocale === 'fr' ? 'og-fr' : 'og') . '.png'}
