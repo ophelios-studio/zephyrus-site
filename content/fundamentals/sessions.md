@@ -200,6 +200,7 @@ Good to know about this handler:
 - **An empty new session is not stored.** An anonymous visitor who never writes anything gets a new cookie on each request until something is stored in the session (the CSRF token counts).
 - **Close, regenerate or destroy outside a database transaction** on the same connection: a failing session write aborts the transaction and the lock stays held until the connection closes.
 - **It turns on strict mode** (`session.use_strict_mode`) itself, so an id the client invents is not adopted. `SessionManager::start()` does the same for any handler.
+- **It generates the session ids itself**: 32 lowercase hexadecimal characters from `random_bytes()`, whatever `session.sid_length` and `session.sid_bits_per_character` say. A custom id pattern (the fourth argument) must accept them, so the constructor tries it on sample ids and refuses one that does not, with `SessionException`: `DatabaseSessionHandler issues session ids of 32 lowercase hexadecimal characters, and the idPattern "/\\A[a-v0-9]{48}\\z/" refuses them, so no new session could be stored. Pass a pattern that also accepts them.` To keep resuming the sessions stored under an older shape, accept both, such as `/\A(?:[a-v0-9]{48}|[0-9a-f]{32})\z/`. A pattern that is not a valid regular expression is refused at construction too (`The idPattern "/\\A[0-9a-f]{32}" is not a valid regular expression: No ending delimiter '/' found.`). The default pattern accepts the new ids.
 
 ### Session locking
 
