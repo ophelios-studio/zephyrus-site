@@ -246,9 +246,10 @@ $config = Configuration::fromOptionalYamlFiles([
 | `fromArray($array)` | un tableau imbriqué | |
 | `defaults()` | rien : chaque section utilise ses valeurs par défaut | |
 
-Toutes prennent la table des sections personnalisées comme dernier argument. Elles lèvent une `ConfigurationException` pour un fichier manquant ou illisible, un fichier qui ne s’analyse pas, une balise `!env` refusée et un fichier qui n’est pas une table de sections (un scalaire ou une liste YAML, un fichier PHP qui retourne une liste). Un fichier YAML vide ou fait de commentaires se lit comme vide. `fromFile()`, `fromFiles()` et `fromOptionalFiles()` ne lisent que des fichiers `.yml`, `.yaml` et `.php`, depuis un simple chemin local :
+Toutes prennent la table des sections personnalisées comme dernier argument. Elles lèvent une `ConfigurationException` pour un fichier manquant ou illisible, un fichier qui ne s’analyse pas, une balise `!env` refusée et un fichier qui n’est pas une table de sections (un scalaire ou une liste YAML, un fichier PHP qui retourne une liste). Un fichier YAML vide ou fait de commentaires se lit comme vide. `fromFile()`, `fromFiles()` et `fromOptionalFiles()` ne lisent que des fichiers `.yml`, `.yaml` et `.php`. Un fichier `.php` ne se lit que depuis un simple chemin local : une URL de flux comme `file://` ou `phar://` est refusée. Un fichier YAML désigné par une URL est introuvable : `file:///srv/app/config.yml` lève `Configuration file not found: config.yml`, passez donc le chemin simple.
 
 ```text
+Configuration file not found: config.yml
 Configuration file is not readable: config.yml
 Configuration file config.yml: must be a mapping of sections
 Configuration file settings.json: must be YAML (.yml, .yaml) or PHP (.php)

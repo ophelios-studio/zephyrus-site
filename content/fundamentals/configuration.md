@@ -246,9 +246,10 @@ $config = Configuration::fromOptionalYamlFiles([
 | `fromArray($array)` | a nested array | |
 | `defaults()` | nothing: every section uses its defaults | |
 
-All of them take the custom section map as their last argument. They raise a `ConfigurationException` for a missing or unreadable file, a file that does not parse, a refused `!env` tag, and a file that is not a mapping of sections (a YAML scalar or list, a PHP file that returns a list). An empty or comment-only YAML file reads as empty. `fromFile()`, `fromFiles()` and `fromOptionalFiles()` read only `.yml`, `.yaml` and `.php` files, from a plain local path:
+All of them take the custom section map as their last argument. They raise a `ConfigurationException` for a missing or unreadable file, a file that does not parse, a refused `!env` tag, and a file that is not a mapping of sections (a YAML scalar or list, a PHP file that returns a list). An empty or comment-only YAML file reads as empty. `fromFile()`, `fromFiles()` and `fromOptionalFiles()` read only `.yml`, `.yaml` and `.php` files. A `.php` file is read only from a plain local path: a stream wrapper URL such as `file://` or `phar://` is refused. A YAML file named by a URL is not found: `file:///srv/app/config.yml` throws `Configuration file not found: config.yml`, so pass the plain path.
 
 ```text
+Configuration file not found: config.yml
 Configuration file is not readable: config.yml
 Configuration file config.yml: must be a mapping of sections
 Configuration file settings.json: must be YAML (.yml, .yaml) or PHP (.php)
