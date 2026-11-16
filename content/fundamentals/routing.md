@@ -8,7 +8,7 @@ description: Declare routes with attributes on controller methods, constrain par
 
 A direct path to your logic.
 
-Zephyrus declares routes with PHP attributes on controller methods, and a `Router` collects them. The router is immutable: every method returns a new router, so keep the value you get back.
+Zephyrus declares routes with PHP attributes on controller methods, and a `Router` collects them. The router is immutable: every method returns a new router, so keep the value you get back. On PHP 8.5 and later, PHP warns when the result of a `with*()` method is dropped, such as `$router->withTrailingSlashTolerance();` alone (`#[\NoDiscard]`); `get()`, `post()` and `discoverControllers()` do not warn, so check those yourself.
 
 ## Your first route
 

@@ -97,7 +97,7 @@ App\Kernel::run(dirname(__DIR__));
 
 ## The builder
 
-`ApplicationBuilder` is immutable: every `with*()` method returns a new builder. A call whose result you drop mounts nothing, so chain the calls or reassign (`$builder = $builder->withMiddleware(...)`). `build()` returns the `Application`.
+`ApplicationBuilder` is immutable: every `with*()` method returns a new builder. A call whose result you drop mounts nothing, so chain the calls or reassign (`$builder = $builder->withMiddleware(...)`). On PHP 8.5 and later, the `with*()` methods of the builder, `Request`, `Response`, `Router` and `ContentSecurityPolicy` carry `#[\NoDiscard]`, so PHP warns about a dropped result: `The return value of method Zephyrus\Core\ApplicationBuilder::withRouter() should either be used or intentionally ignored by casting it as (void)`. To drop one on purpose on every supported version, assign it (`$ignored = ...`). `build()` returns the `Application`.
 
 | Method | What it wires |
 | --- | --- |

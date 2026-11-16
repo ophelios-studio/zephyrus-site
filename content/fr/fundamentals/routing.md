@@ -8,7 +8,7 @@ description: Déclarez des routes avec des attributs sur les méthodes de contr�
 
 Un chemin direct vers votre logique.
 
-Zephyrus déclare les routes avec des attributs PHP sur les méthodes de contrôleur, et un `Router` les collecte. Le routeur est immuable : chaque méthode retourne un nouveau routeur, alors conservez la valeur retournée.
+Zephyrus déclare les routes avec des attributs PHP sur les méthodes de contrôleur, et un `Router` les collecte. Le routeur est immuable : chaque méthode retourne un nouveau routeur, alors conservez la valeur retournée. Sous PHP 8.5 et plus récent, PHP avertit quand le résultat d’une méthode `with*()` est ignoré, comme `$router->withTrailingSlashTolerance();` seul (`#[\NoDiscard]`) ; `get()`, `post()` et `discoverControllers()` n’avertissent pas, vérifiez-les donc vous-même.
 
 ## Votre première route
 
