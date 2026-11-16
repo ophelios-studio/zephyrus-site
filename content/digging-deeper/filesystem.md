@@ -8,7 +8,7 @@ description: Read, write, copy and list files and directories with File and Dire
 
 Files and directories as objects.
 
-`File` and `Directory` wrap PHP's filesystem functions. A failure throws a `FileSystemException` instead of returning `false`, files the class creates get predictable permissions, and a write removes a symbolic link found at the destination instead of following it.
+`File` and `Directory` wrap PHP's filesystem functions. A failure throws a `FileSystemException` instead of returning `false`, files the class creates get predictable permissions, and a write never follows a symbolic link at the destination.
 
 ## Files
 
@@ -37,7 +37,7 @@ $file->write("replaced\n");
 | `hash($algo = 'sha256')` | The hash of the content: 64 hex characters for `sha256`. |
 | `copy($destination)` | Copies the file and returns the new `File`. Missing directories are created. |
 | `move($destination)` | Renames or moves the file and returns the `File` at the new place. |
-| `delete()` | Deletes the file. Nothing happens when it is already gone. |
+| `delete()` | Deletes the file. Nothing happens when it is already gone (see [open_basedir](#a-path-outside-open_basedir) for the exception). |
 
 `copy()` and `move()` return the file at the destination. The source object from before `move()` reports `exists()` as `false`:
 
@@ -48,7 +48,11 @@ $moved = $copy->move($root . '/storage/archive/2027.txt');
 
 A file that `File` creates (`create()`, `write()` or `copy()` onto a path that did not exist) gets `File::DEFAULT_PERMISSIONS`, `0644`, narrowed by the process umask: the mode is never wider than the umask allows. Under `umask(0077)` a file made by `File::create()` is `0600`, as with `file_put_contents()`, and under `umask(0022)` it is `0644`. A new copy is also never wider than its source: copying a `0600` file gives a `0600` file. A copy onto an existing destination keeps that file's permissions. Version 0.14.0 forced `0644` whatever the umask or the source.
 
-Before writing, `create()`, `write()` and `copy()` remove a symbolic link they find at the destination and write a regular file in its place. The check and the write are two steps, so it is not a guarantee against someone racing you in a directory they can write to. `append()` still follows a link.
+### How a write lands
+
+`create()`, `write()` and `copy()` never open a new file by its final path. They write a temporary file in the same directory, then rename it over the path, which replaces a symbolic link found there, even one swapped in during the call, instead of following it: the link's target is never written. An existing regular file is written in place through a handle, and only once that handle is checked to be the file the path still names, so it keeps its inode, hard links, owner and mode. `copy()` streams the source into the destination.
+
+`append()` never follows a link either: it refuses one at the path (`Path is a symbolic link, which is not followed: "<path>"`), so append to the real path (`realpath()` of the link) or remove the link. It appends under an exclusive `flock()`, so concurrent `append()` calls never overwrite each other. A writer that does not take that lock, such as `file_put_contents()` with `FILE_APPEND`, `error_log()` or a default Monolog `StreamHandler`, can still lose lines in the same file. The lock is awaited without limit.
 
 ## Directories
 
@@ -78,7 +82,7 @@ $archive->recursiveGlob('*.csv'); // list of paths (every level)
 
 With an `archive` directory holding `2027.txt`, `a.csv` and `deep/b.csv`, those calls gave `2027.txt`, `deep`, one path and two paths. `size()` was `9` and `isEmpty()` was `false`.
 
-`delete(true)` removes the content first and throws on the first entry it cannot remove, so a partial purge is never reported as success. A symbolic link inside is unlinked, never followed: the target survives. Deleting a path that is itself a symbolic link, live or dangling, removes only the link, with or without `true`: its target survives. Version 0.14.0 emptied the target of a live link, then threw. `delete()` without `true` on a directory that still has content throws `Failed to delete directory: <path>`.
+`delete(true)` removes the content first and throws on the first entry it cannot remove, so a partial purge is never reported as success. A symbolic link inside is unlinked, never followed: the target survives. Deleting a path that is itself a symbolic link, live or dangling, removes only the link, with or without `true`: its target survives. Version 0.14.0 emptied the target of a live link, then threw. `delete()` without `true` on a directory that still has content throws `Failed to delete directory: "<path>"`. A path written with a trailing `/.` is removed like the directory it names.
 
 ## What a node knows
 
@@ -98,7 +102,7 @@ You do not instantiate `FileSystemNode` yourself.
 
 ## Errors
 
-Every failure is a `FileSystemException`. Its messages name the path:
+Every failure is a `FileSystemException`. Its messages name the path, quoted and escaped:
 
 ```php
 use Zephyrus\FileSystem\FileSystemException;
@@ -106,11 +110,33 @@ use Zephyrus\FileSystem\FileSystemException;
 try {
     $text = (new File($root . '/storage/missing.txt'))->read();
 } catch (FileSystemException $e) {
-    // Path not found: /var/www/storage/missing.txt
+    // Path not found: "/var/www/storage/missing.txt"
 }
 ```
 
-Other messages are `Path is not readable: ...`, `Path is not writable: ...`, `Path already exists: ...` and `Failed to <operation>: ...`, for example `Failed to delete directory: ...`. They hold server paths: log them, never send them to a client.
+A line break or another control character in a path is escaped (`\n`, `\u0000`), so a path cannot forge a log line, and a path over 512 bytes keeps its last 512 bytes, followed by its length. Other messages are `Path is not readable: "..."`, `Path is not writable: "..."`, `Path already exists: "..."` and `Failed to <operation>: "..."`, for example `Failed to delete directory: "..."`. When PHP gave a reason for a failed write, copy, move or directory creation, the message ends with it, such as `Failed to create directory for: "/root/reports/2026.txt" ("mkdir(): Permission denied")` from a `File::create()` the process may not write. Messages hold server paths: log them, never send them to a client. Version 0.16 copied paths raw and left PHP's reason out: update a test that matches a message's exact text.
+
+A path the class refuses to write is refused before any directory or file is created:
+
+| Message | When |
+|---|---|
+| `Path is a stream wrapper URL, which is not written: "<path>"` | A URL such as `file://`, `phar://` or `data:` given to `create()`, `write()`, `append()`, `copy()` or `move()` (either side), `delete()`, or `Directory::ensure()`, `create()` and `delete()`. Pass the plain path, and write to a stream wrapper with `fopen()` yourself. |
+| `Path holds a NUL byte, which no file name can: "<path>"` | The same methods, where PHP raised a `ValueError`. |
+| `Path does not end with a file name: "<path>"` | A destination whose last segment is empty, `.` or `..`, such as `storage/`. |
+| `Path is not a regular file: "<path>"` | A write to a FIFO or a device, or a copy whose source is a directory. |
+| `Path is not readable, which a safe write requires: "<path>"` | An existing file the process may write but not read (mode `0200`): grant read permission. |
+| `Path belongs to another user in a shared directory, so it is not written: "<path>"` | An existing file in a sticky directory such as `/tmp` that belongs to neither the directory owner nor the process user. |
+| `Cannot copy a file onto itself: "<source>" to "<destination>"` | A copy onto the source, or onto a hard link to it. The file is left as it was. |
+
+### A path outside open_basedir
+
+A path that `open_basedir` hides prints no PHP warning (PHP's own `open_basedir restriction in effect`, which names the allowed paths). `exists()`, `isReadable()` and `isWritable()` return `false`, the methods that need the path to exist throw `Path not found`, and `Directory::files()` skips a link to a file outside the allowed paths. `File::delete()` and `Directory::delete()` throw, where version 0.16 returned as if the path were absent:
+
+```text
+Failed to delete: "/etc/hostname" ("is_link(): open_basedir restriction in effect. File(/etc/hostname) is not within the allowed path(s): (/var/www)")
+```
+
+A path that is simply absent is still deleted silently.
 
 Methods that need an existing file (`read()`, `size()`, `lines()`, `copy()`, `move()`, `permissions()`...) throw `Path not found` when it is missing. `exists()` never throws.
 
@@ -159,4 +185,5 @@ The constraint checks the name, not who may read the file: the `auth` middleware
 - **`delete(true)` is final.** A recursive delete of a wrong path removes everything under it. Build the path from your own constants.
 - **`move()` and `copy()` overwrite the destination.** Check `exists()` first when that matters.
 - **`glob()` and `recursiveGlob()` return strings**, `files()` and `directories()` return objects.
+- **Pass plain filesystem paths.** A stream wrapper URL is refused, `file://` included.
 - **The permissions apply to new files only.** An existing file keeps its mode when you `write()` to it.

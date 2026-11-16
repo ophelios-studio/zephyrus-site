@@ -8,7 +8,7 @@ description: Lisez, écrivez, copiez et listez des fichiers et des répertoires 
 
 Des fichiers et des répertoires sous forme d’objets.
 
-`File` et `Directory` enveloppent les fonctions de système de fichiers de PHP. Un échec lève une `FileSystemException` au lieu de retourner `false`, les fichiers créés par la classe reçoivent des permissions prévisibles, et une écriture supprime un lien symbolique trouvé à la destination au lieu de le suivre.
+`File` et `Directory` enveloppent les fonctions de système de fichiers de PHP. Un échec lève une `FileSystemException` au lieu de retourner `false`, les fichiers créés par la classe reçoivent des permissions prévisibles, et une écriture ne suit jamais un lien symbolique trouvé à la destination.
 
 ## Fichiers
 
@@ -37,7 +37,7 @@ $file->write("replaced\n");
 | `hash($algo = 'sha256')` | L’empreinte du contenu : 64 caractères hexadécimaux pour `sha256`. |
 | `copy($destination)` | Copie le fichier et retourne le nouveau `File`. Les répertoires manquants sont créés. |
 | `move($destination)` | Renomme ou déplace le fichier et retourne le `File` au nouvel emplacement. |
-| `delete()` | Supprime le fichier. Il ne se passe rien s’il a déjà disparu. |
+| `delete()` | Supprime le fichier. Il ne se passe rien s’il a déjà disparu (voir [open_basedir](#un-chemin-hors-du-périmètre-open_basedir) pour l’exception). |
 
 `copy()` et `move()` retournent le fichier à la destination. L’objet source d’avant `move()` indique `exists()` à `false` :
 
@@ -48,7 +48,11 @@ $moved = $copy->move($root . '/storage/archive/2027.txt');
 
 Un fichier que `File` crée (`create()`, `write()` ou `copy()` vers un chemin qui n’existait pas) reçoit `File::DEFAULT_PERMISSIONS`, `0644`, restreint par l’umask du processus : le mode n’est jamais plus large que ce que l’umask permet. Sous `umask(0077)`, un fichier créé par `File::create()` est `0600`, comme avec `file_put_contents()`, et sous `umask(0022)` il est `0644`. Une nouvelle copie n’est de plus jamais plus large que sa source : copier un fichier `0600` donne un fichier `0600`. Une copie vers une destination existante conserve les permissions de ce fichier. La version 0.14.0 forçait `0644`, quels que soient l’umask et la source.
 
-Avant d’écrire, `create()`, `write()` et `copy()` suppriment un lien symbolique trouvé à la destination et écrivent un fichier ordinaire à sa place. La vérification et l’écriture sont deux étapes : ce n’est donc pas une garantie contre quelqu’un qui vous devancerait dans un répertoire où il peut écrire. `append()` suit toujours un lien.
+### Comment une écriture se pose
+
+`create()`, `write()` et `copy()` n’ouvrent jamais un nouveau fichier par son chemin final. Ils écrivent un fichier temporaire dans le même répertoire, puis le renomment sur le chemin, ce qui remplace un lien symbolique qui s’y trouve, même un lien substitué pendant l’appel, au lieu de le suivre : la cible du lien n’est jamais écrite. Un fichier ordinaire existant est écrit sur place par un descripteur, et seulement une fois vérifié que ce descripteur désigne bien le fichier que nomme encore le chemin : il garde son inode, ses liens physiques, son propriétaire et son mode. `copy()` recopie la source dans la destination par flux.
+
+`append()` ne suit jamais un lien non plus : il en refuse un au chemin (`Path is a symbolic link, which is not followed: "<path>"`) ; ajoutez au chemin réel (`realpath()` du lien) ou retirez le lien. Il ajoute sous un `flock()` exclusif, si bien que des appels `append()` concurrents ne s’écrasent jamais. Un rédacteur qui ne prend pas ce verrou, comme `file_put_contents()` avec `FILE_APPEND`, `error_log()` ou un `StreamHandler` de Monolog par défaut, peut encore perdre des lignes dans le même fichier. Le verrou est attendu sans limite.
 
 ## Répertoires
 
@@ -78,7 +82,7 @@ $archive->recursiveGlob('*.csv'); // list of paths (every level)
 
 Avec un répertoire `archive` contenant `2027.txt`, `a.csv` et `deep/b.csv`, ces appels ont donné `2027.txt`, `deep`, un chemin et deux chemins. `size()` valait `9` et `isEmpty()` valait `false`.
 
-`delete(true)` supprime d’abord le contenu et lève une exception à la première entrée qu’il ne peut pas supprimer : une purge partielle n’est donc jamais signalée comme un succès. Un lien symbolique à l’intérieur est délié, jamais suivi : la cible survit. Supprimer un chemin qui est lui-même un lien symbolique, valide ou orphelin, ne retire que le lien, avec ou sans `true` : sa cible survit. La version 0.14.0 vidait la cible d’un lien valide, puis levait une exception. `delete()` sans `true` sur un répertoire qui a encore du contenu lève `Failed to delete directory: <path>`.
+`delete(true)` supprime d’abord le contenu et lève une exception à la première entrée qu’il ne peut pas supprimer : une purge partielle n’est donc jamais signalée comme un succès. Un lien symbolique à l’intérieur est délié, jamais suivi : la cible survit. Supprimer un chemin qui est lui-même un lien symbolique, valide ou orphelin, ne retire que le lien, avec ou sans `true` : sa cible survit. La version 0.14.0 vidait la cible d’un lien valide, puis levait une exception. `delete()` sans `true` sur un répertoire qui a encore du contenu lève `Failed to delete directory: "<path>"`. Un chemin écrit avec un `/.` final est supprimé comme le répertoire qu’il désigne.
 
 ## Ce que sait un nœud
 
@@ -98,7 +102,7 @@ Vous n’instanciez pas `FileSystemNode` vous-même.
 
 ## Erreurs
 
-Chaque échec est une `FileSystemException`. Ses messages nomment le chemin :
+Chaque échec est une `FileSystemException`. Ses messages nomment le chemin, entre guillemets et échappé :
 
 ```php
 use Zephyrus\FileSystem\FileSystemException;
@@ -106,11 +110,33 @@ use Zephyrus\FileSystem\FileSystemException;
 try {
     $text = (new File($root . '/storage/missing.txt'))->read();
 } catch (FileSystemException $e) {
-    // Path not found: /var/www/storage/missing.txt
+    // Path not found: "/var/www/storage/missing.txt"
 }
 ```
 
-Les autres messages sont `Path is not readable: ...`, `Path is not writable: ...`, `Path already exists: ...` et `Failed to <operation>: ...`, par exemple `Failed to delete directory: ...`. Ils contiennent des chemins du serveur : journalisez-les, ne les envoyez jamais à un client.
+Un saut de ligne ou un autre caractère de contrôle dans un chemin est échappé (`\n`, `\u0000`), si bien qu’un chemin ne peut pas forger une ligne de journal, et un chemin de plus de 512 octets garde ses 512 derniers octets, suivis de sa longueur. Les autres messages sont `Path is not readable: "..."`, `Path is not writable: "..."`, `Path already exists: "..."` et `Failed to <operation>: "..."`, par exemple `Failed to delete directory: "..."`. Quand PHP a donné une raison pour une écriture, une copie, un déplacement ou une création de répertoire en échec, le message se termine par elle, comme `Failed to create directory for: "/root/reports/2026.txt" ("mkdir(): Permission denied")` pour un `File::create()` là où le processus ne peut pas écrire. Les messages contiennent des chemins du serveur : journalisez-les, ne les envoyez jamais à un client. La version 0.16 copiait les chemins tels quels et omettait la raison de PHP : mettez à jour un test qui compare le texte exact d’un message.
+
+Un chemin que la classe refuse d’écrire est refusé avant la création de tout répertoire ou fichier :
+
+| Message | Quand |
+|---|---|
+| `Path is a stream wrapper URL, which is not written: "<path>"` | Une URL comme `file://`, `phar://` ou `data:` passée à `create()`, `write()`, `append()`, `copy()` ou `move()` (d’un côté comme de l’autre), `delete()`, ou à `Directory::ensure()`, `create()` et `delete()`. Passez le chemin simple, et écrivez vous-même dans un flux avec `fopen()`. |
+| `Path holds a NUL byte, which no file name can: "<path>"` | Les mêmes méthodes, là où PHP levait une `ValueError`. |
+| `Path does not end with a file name: "<path>"` | Une destination dont le dernier segment est vide, `.` ou `..`, comme `storage/`. |
+| `Path is not a regular file: "<path>"` | Une écriture dans un FIFO ou un périphérique, ou une copie dont la source est un répertoire. |
+| `Path is not readable, which a safe write requires: "<path>"` | Un fichier existant que le processus peut écrire mais pas lire (mode `0200`) : accordez la lecture. |
+| `Path belongs to another user in a shared directory, so it is not written: "<path>"` | Un fichier existant dans un répertoire à bit collant comme `/tmp`, qui n’appartient ni au propriétaire du répertoire ni à l’utilisateur du processus. |
+| `Cannot copy a file onto itself: "<source>" to "<destination>"` | Une copie sur la source, ou sur un lien physique vers elle. Le fichier reste tel quel. |
+
+### Un chemin hors du périmètre open_basedir
+
+Un chemin que `open_basedir` masque n’affiche aucun avertissement PHP (le `open_basedir restriction in effect` de PHP, qui nomme les chemins permis). `exists()`, `isReadable()` et `isWritable()` retournent `false`, les méthodes qui exigent que le chemin existe lèvent `Path not found`, et `Directory::files()` saute un lien vers un fichier hors des chemins permis. `File::delete()` et `Directory::delete()` lèvent une exception, là où la version 0.16 retournait comme si le chemin était absent :
+
+```text
+Failed to delete: "/etc/hostname" ("is_link(): open_basedir restriction in effect. File(/etc/hostname) is not within the allowed path(s): (/var/www)")
+```
+
+Un chemin simplement absent est toujours supprimé sans bruit.
 
 Les méthodes qui exigent un fichier existant (`read()`, `size()`, `lines()`, `copy()`, `move()`, `permissions()`...) lèvent `Path not found` lorsqu’il est manquant. `exists()` ne lève jamais d’exception.
 
@@ -159,4 +185,5 @@ La contrainte vérifie le nom, pas qui a le droit de lire le fichier : le middl
 - **`delete(true)` est définitif.** Une suppression récursive d’un mauvais chemin retire tout ce qui s’y trouve. Construisez le chemin à partir de vos propres constantes.
 - **`move()` et `copy()` écrasent la destination.** Vérifiez d’abord `exists()` lorsque cela importe.
 - **`glob()` et `recursiveGlob()` retournent des chaînes**, `files()` et `directories()` retournent des objets.
+- **Passez des chemins simples.** Une URL de flux est refusée, `file://` compris.
 - **Les permissions ne s’appliquent qu’aux nouveaux fichiers.** Un fichier existant conserve son mode lorsque vous y faites un `write()`.
