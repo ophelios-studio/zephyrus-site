@@ -105,10 +105,10 @@ Seuls `$_ENV` et l’environnement du processus sont lus, jamais `$_SERVER`. `$_
 Pour la même raison, un nom de variable qu’une requête ou le serveur web peut fournir est refusé, quelle que soit sa casse. Appeler directement `env('HTTP_HOST')` lève une `InvalidArgumentException` ; le même nom dans un fichier YAML (`debug: !env HTTP_HOST`) lève une `ConfigurationException` dont le message est précédé de la balise et de la clé. Les noms refusés sont ceux qui commencent par `HTTP_`, `REDIRECT_`, `ORIG_`, `SSL_` ou `H2_`, les noms CGI et serveur comme `REMOTE_ADDR`, `QUERY_STRING`, `HTTPS` ou `SERVER_NAME`, et tout nom contenant `=` ou un octet NUL.
 
 ```text
-!env tag at "application.debug": "HTTP_HOST": names starting with HTTP_ can be set per request by the client request headers, so they are never read as configuration; rename the variable.
+!env tag at "application.debug": the variable name is refused: names starting with HTTP_ can be set per request by the client request headers, so they are never read as configuration; rename the variable.
 ```
 
-`env('HTTP_HOST')` lève le même message sans le préfixe `!env tag at "application.debug": `.
+`env('HTTP_HOST')` donne la même raison, précédée du nom reçu (`"HTTP_HOST": names starting with HTTP_ ...`). Le message de `!env` omet le nom, car une valeur collée à la place du nom (un secret en base64 finit par `=`) atteindrait sinon les journaux. La version 0.16 le citait.
 
 ### La fonction utilitaire env()
 
@@ -209,6 +209,12 @@ Configuration section 'render' field 'cach' is an unknown key: did you mean "cac
 Configuration section 'mailer' field 'smtp.hots' is an unknown key: did you mean "smtp.host"?
 ```
 
+Une clé à points écrite à plat (`smtp.host: mail.example.com` directement sous `mailer:`) est refusée, avec la forme imbriquée à écrire à la place :
+
+```text
+Configuration section 'mailer' field 'smtp.host' is written flat: nest it under 'smtp', such as smtp: { host: ... }.
+```
+
 Enregistrez le mailer sous la forme `['mailer' => MailerConfig::class]` pour configurer SMTP depuis le YAML : voir [Courriel](../../digging-deeper/mail/).
 
 ### Bon à savoir
@@ -240,7 +246,17 @@ $config = Configuration::fromOptionalYamlFiles([
 | `fromArray($array)` | un tableau imbriqué | |
 | `defaults()` | rien : chaque section utilise ses valeurs par défaut | |
 
-Toutes prennent la table des sections personnalisées comme dernier argument. Un fichier manquant, un fichier qui ne s’analyse pas et une balise `!env` refusée lèvent une `ConfigurationException`.
+Toutes prennent la table des sections personnalisées comme dernier argument. Elles lèvent une `ConfigurationException` pour un fichier manquant ou illisible, un fichier qui ne s’analyse pas, une balise `!env` refusée et un fichier qui n’est pas une table de sections (un scalaire ou une liste YAML, un fichier PHP qui retourne une liste). Un fichier YAML vide ou fait de commentaires se lit comme vide. `fromFile()`, `fromFiles()` et `fromOptionalFiles()` ne lisent que des fichiers `.yml`, `.yaml` et `.php`, depuis un simple chemin local :
+
+```text
+Configuration file is not readable: config.yml
+Configuration file config.yml: must be a mapping of sections
+Configuration file settings.json: must be YAML (.yml, .yaml) or PHP (.php)
+Configuration file config.php: must be a local path, not a stream wrapper URL
+Failed to parse configuration file [config.yml]: invalid YAML near line 5 (the parser's detail is withheld, since it can quote a secret from the file).
+```
+
+L’erreur d’analyse ne cite jamais le fichier, qui peut contenir un mot de passe : ouvrez-le à cette ligne pour voir l’erreur. La version 0.16 ajoutait le message de l’analyseur, et exécutait comme du PHP un fichier `.json` ou sans extension.
 
 ## Caches et déploiement
 
@@ -266,8 +282,10 @@ USER www-data
 - Les fichiers vivent dans `var/zephyrus/`, hors de `cache/` volontairement : une application qui donne `cache/` à `www-data` lui permet de renommer un répertoire appartenant à root à l’intérieur et d’y placer son propre fichier.
 - Lancez-la en root ou en propriétaire de `config.yml` : tout autre utilisateur est refusé, car l’application ignorerait ce qu’il écrit.
 - Le réchauffage écrit `var/zephyrus/.gitignore` (`*`) s’il n’y en a pas déjà un. Une image construite par `COPY .` doit aussi lister `var/zephyrus/` dans `.dockerignore`, afin que chaque image réchauffe ses propres caches.
-- Avant d’écrire quoi que ce soit, le réchauffage vérifie chaque configuration, sa section `router:` et le propriétaire du processus. Les gardes de répertoire (mode, propriétaire, lien) s’exécutent à l’écriture de chaque fichier : un répertoire refusé peut donc laisser les caches écrits avant lui. Un fichier à l’emplacement d’un cache que le réchauffage n’a pas écrit n’est jamais remplacé ni supprimé.
-- Limites : `router:` n’est pas réchauffé depuis un `config.yml` qui est un lien symbolique (le réchauffage refuse ; le démarrage découvre les routes et journalise `no routes cache`). Un cache dont le `config.yml` a changé, ou qu’une autre version du framework a écrit, est ignoré avec une ligne `error_log` :
+- Avant d’écrire quoi que ce soit, le réchauffage vérifie chaque configuration, sa section `router:`, le propriétaire du processus et chaque chemin de cache : les gardes de répertoire (mode, propriétaire, lien), la vérification de fichier ordinaire, et deux caches qui tomberaient sur le même fichier (`Two caches would be written to <root>/var/zephyrus/config.yml.php: give router.cache another path.`, code de sortie 1). Un refus dans un `--config` ultérieur laisse donc les caches précédents non écrits, et `cache:clear` vérifie chaque fichier avant de supprimer le premier. Un fichier à l’emplacement d’un cache que le réchauffage n’a pas écrit n’est jamais remplacé ni supprimé.
+- Un `config.yml` qui est un lien symbolique est lu sous le répertoire du lien : ses caches sont `var/zephyrus/config.yml.php` et `routes.php` à côté du lien, là où l’application les lit. Un cache que la version 0.16 a écrit à côté de la cible du lien n’est plus lu : relancez `cache:warm`.
+- `router:` n’est mis en cache que depuis un `config.yml` à la racine de l’application. Depuis `--config=config/config.yml`, ses chemins relatifs se résolvent contre `config/`, et un refus se termine par `Note that router: is cached only from config.yml at the application root, and its paths were resolved against <root>/config.`
+- Un cache dont le `config.yml` a changé, ou qu’une autre version du framework a écrit, est ignoré avec une ligne `error_log` :
 
 ```text
 Zephyrus: ignored the boot cache /var/www/html/var/zephyrus/config.yml.php: it is stale, its source changed after it was written. Run vendor/bin/zephyrus cache:warm to rebuild it, or vendor/bin/zephyrus cache:clear to remove it.

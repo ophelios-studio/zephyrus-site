@@ -105,10 +105,10 @@ Only `$_ENV` and the process environment are read, never `$_SERVER`. `$_SERVER` 
 For the same reason, a variable name that a request or the web server can supply is refused, whatever its case. Calling `env('HTTP_HOST')` directly throws an `InvalidArgumentException`; the same name in a YAML file (`debug: !env HTTP_HOST`) throws a `ConfigurationException` whose message is prefixed with the tag and the key. The refused names are those starting with `HTTP_`, `REDIRECT_`, `ORIG_`, `SSL_` or `H2_`, CGI and server names such as `REMOTE_ADDR`, `QUERY_STRING`, `HTTPS` or `SERVER_NAME`, and any name holding `=` or a NUL byte.
 
 ```text
-!env tag at "application.debug": "HTTP_HOST": names starting with HTTP_ can be set per request by the client request headers, so they are never read as configuration; rename the variable.
+!env tag at "application.debug": the variable name is refused: names starting with HTTP_ can be set per request by the client request headers, so they are never read as configuration; rename the variable.
 ```
 
-`env('HTTP_HOST')` raises the same message without the `!env tag at "application.debug": ` prefix.
+`env('HTTP_HOST')` gives the same reason after the name it was called with (`"HTTP_HOST": names starting with HTTP_ ...`). The `!env` message leaves the name out, because a value pasted where the name belongs (a base64 secret ends with `=`) would otherwise reach the logs. Version 0.16 quoted it.
 
 ### The env() helper
 
@@ -209,6 +209,12 @@ Configuration section 'render' field 'cach' is an unknown key: did you mean "cac
 Configuration section 'mailer' field 'smtp.hots' is an unknown key: did you mean "smtp.host"?
 ```
 
+A dotted key written flat (`smtp.host: mail.example.com` directly under `mailer:`) is refused with the nested form to write instead:
+
+```text
+Configuration section 'mailer' field 'smtp.host' is written flat: nest it under 'smtp', such as smtp: { host: ... }.
+```
+
 Register the mailer as `['mailer' => MailerConfig::class]` to configure SMTP from YAML: see [Mail](../../digging-deeper/mail/).
 
 ### Good to know
@@ -240,7 +246,17 @@ $config = Configuration::fromOptionalYamlFiles([
 | `fromArray($array)` | a nested array | |
 | `defaults()` | nothing: every section uses its defaults | |
 
-All of them take the custom section map as their last argument. A missing file, a file that does not parse and a refused `!env` tag raise a `ConfigurationException`.
+All of them take the custom section map as their last argument. They raise a `ConfigurationException` for a missing or unreadable file, a file that does not parse, a refused `!env` tag, and a file that is not a mapping of sections (a YAML scalar or list, a PHP file that returns a list). An empty or comment-only YAML file reads as empty. `fromFile()`, `fromFiles()` and `fromOptionalFiles()` read only `.yml`, `.yaml` and `.php` files, from a plain local path:
+
+```text
+Configuration file is not readable: config.yml
+Configuration file config.yml: must be a mapping of sections
+Configuration file settings.json: must be YAML (.yml, .yaml) or PHP (.php)
+Configuration file config.php: must be a local path, not a stream wrapper URL
+Failed to parse configuration file [config.yml]: invalid YAML near line 5 (the parser's detail is withheld, since it can quote a secret from the file).
+```
+
+The parse error never quotes the file, which can hold a password: open it at that line to see the mistake. Version 0.16 appended the parser's message, and ran a `.json` or extensionless file as PHP.
 
 ## Caches and deployment
 
@@ -266,8 +282,10 @@ USER www-data
 - The files live in `var/zephyrus/`, outside `cache/` on purpose: an application that gives `cache/` to `www-data` lets it rename a root-owned directory inside it and plant its own file.
 - Run it as root or as the owner of `config.yml`: any other user is refused, because the application would ignore what it writes.
 - The warm writes `var/zephyrus/.gitignore` (`*`) unless one is there. An image built by `COPY .` must also list `var/zephyrus/` in `.dockerignore`, so that each image warms its own caches.
-- Before it writes anything the warm checks every configuration, its `router:` section and the process owner. The directory guards (mode, owner, link) run when each file is written, so a refused directory can leave the caches written before it. A file at a cache path that the warm did not write is never replaced or deleted.
-- Limits: `router:` is not warmed from a `config.yml` that is a symbolic link (the warm refuses; the boot discovers the routes and logs `no routes cache`). A cache whose `config.yml` changed, or that another framework version wrote, is ignored with one `error_log` line:
+- Before it writes anything the warm checks every configuration, its `router:` section, the process owner and every cache path: the directory guards (mode, owner, link), the regular-file check, and two caches landing on the same file (`Two caches would be written to <root>/var/zephyrus/config.yml.php: give router.cache another path.`, exit 1). A refusal in a later `--config` leaves the earlier caches unwritten, and `cache:clear` checks every file before it deletes the first. A file at a cache path that the warm did not write is never replaced or deleted.
+- A `config.yml` that is a symbolic link is read under the directory of the link: its caches are `var/zephyrus/config.yml.php` and `routes.php` beside the link, where the application reads them. A cache that version 0.16 wrote beside the link target is no longer read: run `cache:warm` again.
+- `router:` is cached only from a `config.yml` at the application root. From `--config=config/config.yml` its relative paths resolve against `config/`, and a refusal ends with `Note that router: is cached only from config.yml at the application root, and its paths were resolved against <root>/config.`
+- A cache whose `config.yml` changed, or that another framework version wrote, is ignored with one `error_log` line:
 
 ```text
 Zephyrus: ignored the boot cache /var/www/html/var/zephyrus/config.yml.php: it is stale, its source changed after it was written. Run vendor/bin/zephyrus cache:warm to rebuild it, or vendor/bin/zephyrus cache:clear to remove it.
