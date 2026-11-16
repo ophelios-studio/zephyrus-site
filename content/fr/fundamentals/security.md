@@ -60,6 +60,7 @@ final class Kernel
         $request = Request::fromGlobals(
             trustedProxies: $config->security->trustedProxies,
             trustedHeaders: $config->security->trustedHeaders,
+            maxBodySize: $config->security->maxBodySize,
         );
 
         self::application($root, $config)->handle($request)->send();
@@ -94,7 +95,7 @@ Le premier middleware ajouté s’exécute le plus à l’extérieur. `SecureHea
 
 Pour le développement local en HTTP simple, omettez ensemble `force_https` et `ForceHttpsMiddleware` (le middleware redirige toute requête simple vers `https://`, quelle que soit la configuration), ou envoyez `X-Forwarded-Proto: https` depuis un mandataire de confiance. Inscrivez aussi l’hôte local dans `allowed_hosts`, par exemple `127.0.0.1`.
 
-`Request::fromGlobals()` ne lit jamais `config.yml` : passez-lui vous-même les réglages de mandataire, comme ci-dessus (voir [mandataires de confiance](#mandataires-de-confiance-et-adresse-ip-du-client)).
+`Request::fromGlobals()` ne lit jamais `config.yml` : passez-lui vous-même les réglages de mandataire et la limite du corps, comme ci-dessus (voir [mandataires de confiance](#mandataires-de-confiance-et-adresse-ip-du-client) et [taille du corps de la requête](#taille-du-corps-de-la-requête)).
 
 ## La vérification du câblage au démarrage
 
@@ -274,6 +275,8 @@ security.csrf.exceptions[0] must start with "^" so it cannot match in the middle
 security.csrf.exceptions[0] must end with "/" (the route and everything under it) or "$" (that exact path), otherwise it also exempts every sibling route sharing the prefix: #^/webhooks# (expected a shape such as #^/webhooks/#).
 ```
 
+Un motif qui n’est pas une expression régulière valide est refusé de la même façon, avec la raison donnée par PHP entre parenthèses, même sous un gestionnaire d’erreurs qui transforme chaque avertissement en exception : `security.csrf.exceptions[0] is not a valid regex: #^/hooks/(# (Compilation failed: missing closing parenthesis at offset 9; expected a shape such as #^/webhooks/#).` Un caractère de contrôle dans le motif cité est échappé (`\n`, `\u0085`), si bien que le refus tient sur une seule ligne de journal.
+
 Une route exemptée a perdu sa protection CSRF : elle doit donc authentifier son appelant autrement, typiquement en vérifiant une signature. La [page d’authentification](../authentication/#vérifier-la-signature-dun-webhook) en montre un exemple.
 
 ### CsrfConfig
@@ -327,6 +330,8 @@ strict-transport-security: max-age=31536000
 ## Forcer HTTPS
 
 `ForceHttpsMiddleware` répond à une requête HTTP simple par une redirection 308 vers les mêmes hôte, chemin et chaîne de requête en HTTPS : `http://app.example.test/notes?page=2` mène à `https://app.example.test/notes?page=2`. Un 308 conserve la méthode et le corps, de sorte qu’un `POST` mal aiguillé n’est pas transformé en `GET` sans avertissement. Le constructeur ne prend aucun argument.
+
+Le schéma vient du serveur (`HTTPS`, `SERVER_PORT`) ou d’un [mandataire de confiance](#mandataires-de-confiance-et-adresse-ip-du-client), jamais de la ligne de requête. Un client qui envoie une cible absolue en HTTP simple (`GET https://evil.example/x HTTP/1.1`) n’en garde que le chemin et la chaîne de requête, sous le `Host` qu’il a envoyé : la requête se lit `http://app.example.test/x` et est redirigée comme les autres.
 
 Derrière un équilibreur de charge ou un mandataire inverse qui termine TLS, PHP voit du HTTP simple. À moins que le mandataire figure dans `trusted_proxies`, chaque requête paraît non sécurisée et le middleware redirige indéfiniment. Soit vous inscrivez le mandataire, soit vous laissez le mandataire faire la redirection et reconnaissez la clé avec `withAcknowledgedSecurityKeys(['forceHttps'])`.
 
@@ -419,7 +424,7 @@ Une plage dont des bits sont activés après son préfixe (`10.0.0.1/8`) est ref
 $builder = $builder->withMiddleware(new MaxBodySizeMiddleware($config->security->maxBodySize));
 ```
 
-Il mesure le `Content-Length` déclaré lorsqu’il est valide, sinon le corps brut. Le refus est un 413 : du texte brut (`Request body too large.`) quand l’en-tête `Accept` contient `text/html`, sinon `{"error":"Request body too large."}`. Le deuxième argument remplace ce message : écrivez-le donc dans la langue de vos utilisateurs :
+Il mesure la plus grande de trois tailles : le `Content-Length` déclaré lorsqu’il est valide, le corps brut et les fichiers téléversés. Quand le corps brut est vide, ce qui est l’allure d’un corps que PHP a analysé lui-même (un formulaire multipart, quel que soit son `Content-Type`), les clés et les valeurs des champs texte comptent aussi. Une requête qui déclare une longueur courte et en envoie davantage, ou un téléversement dont les fichiers dépassent la longueur déclarée, est mesuré à ce qui est arrivé. Un corps exactement à la limite passe. Le refus est un 413 : du texte brut (`Request body too large.`) quand l’en-tête `Accept` contient `text/html`, sinon `{"error":"Request body too large."}`. Le deuxième argument remplace ce message : écrivez-le donc dans la langue de vos utilisateurs :
 
 ```php
 $builder = $builder->withMiddleware(new MaxBodySizeMiddleware(
@@ -443,10 +448,13 @@ $builder = $builder->withMiddleware(new MaxBodySizeMiddleware(
 ));
 ```
 
+Passez la même limite à `Request::fromGlobals()`, comme le fait le [bootstrap](#un-bootstrap-sécurisé) avec `maxBodySize: $config->security->maxBodySize`. Sans elle, le corps entier est lu en mémoire avant que le middleware puisse le refuser. Avec elle, `php://input` est lu au plus un octet au-delà de la limite : un `Content-Length` valide au-delà de la limite laisse le corps brut vide, et un corps qui la dépasse arrive non analysé (`$request->body()->all()` est vide et `isMalformed()` vaut vrai), de sorte que le middleware refuse les deux par un 413. La valeur par défaut, `0`, lit le corps entier, et une valeur négative est refusée (`Maximum body size must be 0 (unlimited) or a positive byte count.`).
+
 ### À savoir
 
 - C’est un budget, pas une défense. Au moment où PHP s’exécute, le serveur web a déjà lu le corps. Fixez aussi la limite du serveur lui-même (`client_max_body_size` dans nginx, `LimitRequestBody` dans Apache) ainsi que `post_max_size` et `upload_max_filesize` de PHP.
-- Les téléversements multipart sont analysés par PHP avant l’exécution de votre code : leur corps brut est donc vide et seul `Content-Length` compte.
+- PHP lit lui-même un formulaire multipart ou un téléversement dans `$_POST` et `$_FILES`, jusqu’à `post_max_size`, avant que `fromGlobals()` s’exécute : l’argument `maxBodySize` ne peut pas raccourcir cette lecture. Réglez `post_max_size` sur le même budget.
+- Un formulaire envoyé sans `Content-Length` valide (envoyé en morceaux, `Transfer-Encoding: chunked`, ou qui déclare moins d’octets qu’il n’en envoie) est mesuré à ses champs texte et à ses fichiers, et refusé par un 413 quand ils dépassent la limite. La version 0.16 le laissait passer. Si un formulaire légitime est refusé, relevez `max_body_size` (et `post_max_size`) ou raccourcissez ses champs.
 - `bytes` reprend ce que le client a déclaré et peut être absurdement grand. Montrez `maxBytes` à l’utilisateur, pas `bytes`.
 - `new MaxBodySizeMiddleware(0)` est illimité ; une limite négative est refusée.
 
@@ -459,7 +467,7 @@ Avant le premier déploiement, et de nouveau chaque fois que la configuration ch
 - `hsts_max_age` défini une fois que chaque page est servie en HTTPS.
 - `allowed_hosts` énumère vos noms d’hôte.
 - `trusted_proxies` énumère vos mandataires, jamais `'*'`, et est passé à `Request::fromGlobals()`.
-- `max_body_size` correspond à ce dont vos formulaires ont besoin, et les limites du serveur web et de `post_max_size` sont aussi définies.
+- `max_body_size` correspond à ce dont vos formulaires ont besoin, est passé à `Request::fromGlobals()` comme `maxBodySize`, et les limites du serveur web et de `post_max_size` sont aussi définies.
 - Chaque formulaire qui modifie l’état affiche le champ `_csrf_token`, et chaque entrée de `csrf.exceptions` authentifie son appelant autrement.
 - Le témoin de session est `secure` et `http_only` (voir [sessions](../sessions/)), et l’identifiant de session ainsi que le jeton CSRF sont renouvelés à la connexion.
 - Les secrets (`encryption.key`, mot de passe de la base de données, jetons d’API) viennent de `!env`, pas du fichier.

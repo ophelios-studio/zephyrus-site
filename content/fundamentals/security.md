@@ -60,6 +60,7 @@ final class Kernel
         $request = Request::fromGlobals(
             trustedProxies: $config->security->trustedProxies,
             trustedHeaders: $config->security->trustedHeaders,
+            maxBodySize: $config->security->maxBodySize,
         );
 
         self::application($root, $config)->handle($request)->send();
@@ -94,7 +95,7 @@ The first middleware added runs outermost. `SecureHeadersMiddleware` comes first
 
 For local development over plain HTTP, leave `force_https` and `ForceHttpsMiddleware` out together (the middleware redirects every plain request to `https://`, whatever the configuration says), or send `X-Forwarded-Proto: https` from a trusted proxy. List the local host in `allowed_hosts` too, such as `127.0.0.1`.
 
-`Request::fromGlobals()` never reads `config.yml`: pass the proxy settings to it yourself, as above (see [trusted proxies](#trusted-proxies-and-the-client-ip)).
+`Request::fromGlobals()` never reads `config.yml`: pass the proxy settings and the body limit to it yourself, as above (see [trusted proxies](#trusted-proxies-and-the-client-ip) and [request body size](#request-body-size)).
 
 ## The boot-time wiring check
 
@@ -274,6 +275,8 @@ security.csrf.exceptions[0] must start with "^" so it cannot match in the middle
 security.csrf.exceptions[0] must end with "/" (the route and everything under it) or "$" (that exact path), otherwise it also exempts every sibling route sharing the prefix: #^/webhooks# (expected a shape such as #^/webhooks/#).
 ```
 
+A pattern that is not a valid regular expression is refused the same way, with PHP's reason in the parentheses, even under an error handler that turns every warning into an exception: `security.csrf.exceptions[0] is not a valid regex: #^/hooks/(# (Compilation failed: missing closing parenthesis at offset 9; expected a shape such as #^/webhooks/#).` A control character in the quoted pattern is escaped (`\n`, `\u0085`), so the refusal stays on one log line.
+
 An exempt route has lost its CSRF protection, so it must authenticate its caller another way, typically by verifying a signature: the [authentication page](../authentication/#verifying-a-webhook-signature) shows one.
 
 ### CsrfConfig
@@ -327,6 +330,8 @@ strict-transport-security: max-age=31536000
 ## Forcing HTTPS
 
 `ForceHttpsMiddleware` answers a plain HTTP request with a 308 redirect to the same host, path and query over HTTPS: `http://app.example.test/notes?page=2` goes to `https://app.example.test/notes?page=2`. A 308 keeps the method and body, so a misdirected `POST` is not silently turned into a `GET`. The constructor takes no argument.
+
+The scheme comes from the server (`HTTPS`, `SERVER_PORT`) or from a [trusted proxy](#trusted-proxies-and-the-client-ip), never from the request line. A client that sends an absolute target over plain HTTP (`GET https://evil.example/x HTTP/1.1`) keeps only the path and query, under the `Host` it sent: the request reads as `http://app.example.test/x` and is redirected like any other.
 
 Behind a load balancer or reverse proxy that terminates TLS, PHP sees plain HTTP. Unless the proxy is listed in `trusted_proxies`, every request looks insecure and the middleware redirects forever. Either list the proxy, or let the proxy do the redirect and acknowledge the key with `withAcknowledgedSecurityKeys(['forceHttps'])`.
 
@@ -419,7 +424,7 @@ A range with bits set after its prefix (`10.0.0.1/8`) is refused, since it rarel
 $builder = $builder->withMiddleware(new MaxBodySizeMiddleware($config->security->maxBodySize));
 ```
 
-It measures the declared `Content-Length` when it is valid, otherwise the raw body. The refusal is a 413: plain text (`Request body too large.`) when the `Accept` header lists `text/html`, otherwise `{"error":"Request body too large."}`. The second argument replaces that message, so write it in your users' language:
+It measures the largest of three sizes: the declared `Content-Length` when it is valid, the raw body, and the uploaded files. When the raw body is empty, which is what a body PHP parsed itself looks like (a multipart form, whatever its `Content-Type`), the keys and values of the text fields count too. A request that declares a short length and sends more, or an upload whose files are larger than its declared length, is measured by what arrived. A body of exactly the limit passes. The refusal is a 413: plain text (`Request body too large.`) when the `Accept` header lists `text/html`, otherwise `{"error":"Request body too large."}`. The second argument replaces that message, so write it in your users' language:
 
 ```php
 $builder = $builder->withMiddleware(new MaxBodySizeMiddleware(
@@ -443,10 +448,13 @@ $builder = $builder->withMiddleware(new MaxBodySizeMiddleware(
 ));
 ```
 
+Give `Request::fromGlobals()` the same limit, as the [bootstrap](#a-secure-bootstrap) does with `maxBodySize: $config->security->maxBodySize`. Without it, the whole body is read into memory before the middleware can refuse it. With it, `php://input` is read at most one byte past the limit: a valid `Content-Length` over the limit leaves the raw body empty, and a body that runs over it arrives unparsed (`$request->body()->all()` is empty and `isMalformed()` is true), so the middleware refuses both with a 413. The default, `0`, reads the whole body, and a negative value is refused (`Maximum body size must be 0 (unlimited) or a positive byte count.`).
+
 ### Good to know
 
 - This is a budget, not a defence. By the time PHP runs, the web server has already read the body. Set the server's own limit (`client_max_body_size` in nginx, `LimitRequestBody` in Apache) and PHP's `post_max_size` and `upload_max_filesize` as well.
-- Multipart uploads are parsed by PHP before your code runs, so their raw body is empty and only `Content-Length` counts.
+- PHP reads a multipart form or an upload into `$_POST` and `$_FILES` itself, up to `post_max_size`, before `fromGlobals()` runs: the `maxBodySize` argument cannot shorten that read. Set `post_max_size` to the same budget.
+- A form sent without a valid `Content-Length` (sent with `Transfer-Encoding: chunked`, or declaring fewer bytes than it sends) is measured by its text fields and files, and refused with a 413 when they exceed the limit. Version 0.16 let it through. If a legitimate form is refused, raise `max_body_size` (and `post_max_size`) or shorten its fields.
 - `bytes` repeats what the client declared and may be absurdly large. Show `maxBytes` to the user, not `bytes`.
 - `new MaxBodySizeMiddleware(0)` is unlimited; a negative limit is refused.
 
@@ -459,7 +467,7 @@ Before the first deploy, and again whenever the configuration changes:
 - `hsts_max_age` set once every page is served over HTTPS.
 - `allowed_hosts` lists your host names.
 - `trusted_proxies` lists your proxies, never `'*'`, and is passed to `Request::fromGlobals()`.
-- `max_body_size` matches what your forms need, and the web server and `post_max_size` limits are set too.
+- `max_body_size` matches what your forms need, is passed to `Request::fromGlobals()` as `maxBodySize`, and the web server and `post_max_size` limits are set too.
 - Every form that changes state renders the `_csrf_token` field, and every `csrf.exceptions` entry authenticates its caller another way.
 - The session cookie is `secure` and `http_only` (see [sessions](../sessions/)), and the session id and CSRF token are rotated at sign-in.
 - Secrets (`encryption.key`, database password, API tokens) come from `!env`, not from the file.
