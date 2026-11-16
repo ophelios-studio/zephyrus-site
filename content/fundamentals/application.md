@@ -45,6 +45,7 @@ final class Kernel
         $request = Request::fromGlobals(
             trustedProxies: $config->security->trustedProxies,
             trustedHeaders: $config->security->trustedHeaders,
+            maxBodySize: $config->security->maxBodySize,
         );
 
         self::application($root, $config)->handle($request)->send();
@@ -92,7 +93,7 @@ require dirname(__DIR__) . '/vendor/autoload.php';
 App\Kernel::run(dirname(__DIR__));
 ```
 
-`Request::fromGlobals()` does not read `config.yml`: pass the proxy settings yourself, as above. The `.env` file is not read either, see [Configuration](../configuration/#environment-variables).
+`Request::fromGlobals()` does not read `config.yml`: pass the proxy settings and the body limit yourself, as above (the limit keeps a body over `max_body_size` from being read into memory, see [Security](../security/#request-body-size)). The `.env` file is not read either, see [Configuration](../configuration/#environment-variables).
 
 ## The builder
 

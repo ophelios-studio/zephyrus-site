@@ -45,6 +45,7 @@ final class Kernel
         $request = Request::fromGlobals(
             trustedProxies: $config->security->trustedProxies,
             trustedHeaders: $config->security->trustedHeaders,
+            maxBodySize: $config->security->maxBodySize,
         );
 
         self::application($root, $config)->handle($request)->send();
@@ -92,7 +93,7 @@ require dirname(__DIR__) . '/vendor/autoload.php';
 App\Kernel::run(dirname(__DIR__));
 ```
 
-`Request::fromGlobals()` ne lit pas `config.yml` : transmettez vous-même les réglages de mandataire, comme ci-dessus. Le fichier `.env` n’est pas lu non plus, voir [Configuration](../configuration/#variables-denvironnement).
+`Request::fromGlobals()` ne lit pas `config.yml` : transmettez vous-même les réglages de mandataire et la limite du corps, comme ci-dessus (la limite empêche qu’un corps au-delà de `max_body_size` soit lu en mémoire, voir [Sécurité](../security/#taille-du-corps-de-la-requête)). Le fichier `.env` n’est pas lu non plus, voir [Configuration](../configuration/#variables-denvironnement).
 
 ## Le builder
 

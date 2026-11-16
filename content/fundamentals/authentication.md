@@ -441,6 +441,7 @@ final class Kernel
         $request = Request::fromGlobals(
             trustedProxies: $config->security->trustedProxies,
             trustedHeaders: $config->security->trustedHeaders,
+            maxBodySize: $config->security->maxBodySize,
         );
 
         self::application($root, $config)->handle($request)->send();

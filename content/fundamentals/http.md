@@ -20,10 +20,11 @@ use Zephyrus\Http\Request;
 $request = Request::fromGlobals(
     trustedProxies: $config->security->trustedProxies,
     trustedHeaders: $config->security->trustedHeaders,
+    maxBodySize: $config->security->maxBodySize,
 );
 ```
 
-`fromGlobals()` does not read `config.yml`: pass the proxy settings yourself (see [Security](../security/) for what a trusted proxy changes). In a test, or anywhere outside a web request, use `fromArray()`:
+`fromGlobals()` does not read `config.yml`: pass the proxy settings and the body limit yourself (see [Security](../security/) for what a trusted proxy changes, and for [the body limit](../security/#request-body-size): above `0`, a body is read at most one byte past it, and one over it arrives unparsed with `isMalformed()` true). In a test, or anywhere outside a web request, use `fromArray()`:
 
 ```php
 $request = Request::fromArray(

@@ -20,10 +20,11 @@ use Zephyrus\Http\Request;
 $request = Request::fromGlobals(
     trustedProxies: $config->security->trustedProxies,
     trustedHeaders: $config->security->trustedHeaders,
+    maxBodySize: $config->security->maxBodySize,
 );
 ```
 
-`fromGlobals()` ne lit pas `config.yml` : transmettez vous-même les réglages de mandataire (voir [Sécurité](../security/) pour ce que change un mandataire de confiance). Dans un test, ou n’importe où hors d’une requête web, utilisez `fromArray()` :
+`fromGlobals()` ne lit pas `config.yml` : transmettez vous-même les réglages de mandataire et la limite du corps (voir [Sécurité](../security/) pour ce que change un mandataire de confiance, et pour [la limite du corps](../security/#taille-du-corps-de-la-requête) : au-delà de `0`, un corps est lu au plus un octet après elle, et un corps qui la dépasse arrive non analysé, avec `isMalformed()` à vrai). Dans un test, ou n’importe où hors d’une requête web, utilisez `fromArray()` :
 
 ```php
 $request = Request::fromArray(

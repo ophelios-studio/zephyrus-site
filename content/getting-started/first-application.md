@@ -94,10 +94,11 @@ final class Kernel
     {
         $config = Configuration::fromYamlFile($root . '/config.yml');
 
-        // fromGlobals() does not read config.yml: pass the proxy settings yourself.
+        // fromGlobals() does not read config.yml: pass the proxy settings and the body limit yourself.
         $request = Request::fromGlobals(
             trustedProxies: $config->security->trustedProxies,
             trustedHeaders: $config->security->trustedHeaders,
+            maxBodySize: $config->security->maxBodySize,
         );
 
         self::application($root, $config)->handle($request)->send();
