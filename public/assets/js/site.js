@@ -139,6 +139,9 @@
   if (!dialog) return;
   const input = document.querySelector('#doc-search');
   const results = dialog.querySelector('.search-results');
+  results.id = 'search-results';
+  results.setAttribute('aria-label', input.getAttribute('aria-label'));
+  input.setAttribute('aria-controls', results.id);
   let searchIndex, selected = 0, rendered = [];
   const normalize = text => text.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[\u2018\u2019\u02bc]/g, "'").toLowerCase();
   const sectionLabel = section => document.querySelector('#ui-strings')?.getAttribute('data-section-' + section) || '';
@@ -173,20 +176,32 @@
       summary: bodyTerm === undefined ? clip(entry.page.excerpt, 120) : snippet(entry, bodyTerm),
     };
   }
+  function select(index) {
+    rendered[selected]?.classList.remove('selected'); rendered[selected]?.setAttribute('aria-selected', 'false');
+    selected = index;
+    rendered[selected].classList.add('selected'); rendered[selected].setAttribute('aria-selected', 'true');
+    input.setAttribute('aria-activedescendant', rendered[selected].id);
+  }
   function renderResults() {
     if (!searchIndex) return;
     const terms = normalize(input.value.trim()).split(/\s+/).filter(Boolean);
     const matches = searchIndex.map(entry => match(entry, terms)).filter(Boolean);
     matches.sort((a, b) => a.score - b.score || b.hits - a.hits);
     results.replaceChildren(); selected = 0;
-    matches.forEach(({ page, summary }) => {
+    matches.forEach(({ page, summary }, index) => {
+      const id = 'search-result-' + index;
       const link = document.createElement('a'); link.className = 'search-result'; link.href = localePrefix + page.url + '/';
-      const section = document.createElement('span'); section.textContent = sectionLabel(page.section);
-      const title = document.createElement('h3'); title.textContent = page.title;
-      const excerpt = document.createElement('p'); excerpt.textContent = summary;
+      link.id = id; link.setAttribute('role', 'option'); link.setAttribute('aria-selected', 'false');
+      link.setAttribute('aria-labelledby', id + '-title'); link.setAttribute('aria-describedby', id + '-section ' + id + '-excerpt');
+      const section = document.createElement('span'); section.id = id + '-section'; section.textContent = sectionLabel(page.section);
+      const title = document.createElement('h3'); title.id = id + '-title'; title.textContent = page.title;
+      const excerpt = document.createElement('p'); excerpt.id = id + '-excerpt'; excerpt.textContent = summary;
       link.append(section, title, excerpt); results.append(link);
     });
-    rendered = [...results.querySelectorAll('a')]; rendered[0]?.classList.add('selected');
+    rendered = [...results.querySelectorAll('a')];
+    // A listbox may only hold options: the loading, error and empty messages live outside that role.
+    if (rendered.length) { results.setAttribute('role', 'listbox'); select(0); }
+    else { results.removeAttribute('role'); input.removeAttribute('aria-activedescendant'); }
     if (!matches.length) { const empty = document.createElement('p'); empty.className = 'search-empty'; empty.textContent = ui.noResults; results.append(empty); }
   }
   async function openSearch() {
@@ -208,14 +223,16 @@
   dialog.querySelector('.search-close').addEventListener('click', () => dialog.close());
   dialog.addEventListener('click', event => { if (event.target === dialog) { const rect = dialog.getBoundingClientRect(); if (event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom) dialog.close(); } });
   input.addEventListener('input', renderResults);
+  results.addEventListener('focusin', event => { const index = rendered.indexOf(event.target); if (index !== -1 && index !== selected) select(index); });
   dialog.addEventListener('keydown', event => {
     if (event.key === 'Escape') { event.preventDefault(); dialog.close(); return; }
     if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
       event.preventDefault();
       if (!rendered.length) return;
-      rendered[selected]?.classList.remove('selected');
-      selected = (selected + (event.key === 'ArrowDown' ? 1 : -1) + rendered.length) % rendered.length;
-      rendered[selected].classList.add('selected'); rendered[selected].scrollIntoView({ block: 'nearest' });
+      const focusInList = rendered.includes(document.activeElement);
+      select((selected + (event.key === 'ArrowDown' ? 1 : -1) + rendered.length) % rendered.length);
+      rendered[selected].scrollIntoView({ block: 'nearest' });
+      if (focusInList) rendered[selected].focus();
     }
     if (event.key === 'Enter' && event.target === input && rendered[selected]) { event.preventDefault(); rendered[selected].click(); }
   });
