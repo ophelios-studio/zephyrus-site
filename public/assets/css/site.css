@@ -1703,6 +1703,7 @@ details[open] summary {
 
 .prose table code {
   font-size:max(10px,.82em);
+  padding-block:0;
 }
 
 /* Chromium can break a message after an opening quote: reflowing the last lines keeps "<path>" whole at most widths. */
