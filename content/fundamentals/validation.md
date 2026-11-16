@@ -291,9 +291,11 @@ The closure receives the field's value, whatever its type: check it before you u
 $input = $request->body()->all();
 
 $form = new FormValidator([
-    'confirm' => [Rule::of(fn (mixed $value): bool => $value === ($input['password'] ?? null), 'Does not match.')],
+    'confirm' => [Rule::of(fn (#[\SensitiveParameter] mixed $value): bool => $value === ($input['password'] ?? null), 'Does not match.')],
 ]);
 ```
+
+The framework hides the value under validation from a stack trace (`#[\SensitiveParameter]` on `Rule::test()`, `FormValidator::validate()` and every rule of `Rules`), so an exception thrown during a validation does not keep a password in `getTrace()`. The closure you give to `Rule::of()` is yours to mark: when it receives a secret, put `#[\SensitiveParameter]` on its parameter, as above, or its own frame of the trace still holds the value.
 
 The optional third argument is a tag. Only the tag `required` has a meaning for the validator (it is what `Rules::required()` carries). A rule is also callable by hand: `$rule->test($value)` returns the verdict, `$rule->errorMessage()` the message and `$rule->tag()` the tag.
 

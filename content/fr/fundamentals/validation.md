@@ -291,9 +291,11 @@ La fermeture reçoit la valeur du champ, quel que soit son type : vérifiez-la 
 $input = $request->body()->all();
 
 $form = new FormValidator([
-    'confirm' => [Rule::of(fn (mixed $value): bool => $value === ($input['password'] ?? null), 'Does not match.')],
+    'confirm' => [Rule::of(fn (#[\SensitiveParameter] mixed $value): bool => $value === ($input['password'] ?? null), 'Does not match.')],
 ]);
 ```
+
+Le framework masque la valeur en cours de validation dans une trace de pile (`#[\SensitiveParameter]` sur `Rule::test()`, `FormValidator::validate()` et chaque règle de `Rules`), si bien qu’une exception levée pendant une validation ne garde pas un mot de passe dans `getTrace()`. La fermeture que vous donnez à `Rule::of()` est à marquer par vous : quand elle reçoit un secret, placez `#[\SensitiveParameter]` sur son paramètre, comme ci-dessus, sinon son propre cadre de la trace contient encore la valeur.
 
 Le troisième argument facultatif est une étiquette. Seule l’étiquette `required` a un sens pour le validateur (c’est ce que porte `Rules::required()`). Une règle est aussi appelable à la main : `$rule->test($value)` retourne le verdict, `$rule->errorMessage()` le message et `$rule->tag()` l’étiquette.
 
