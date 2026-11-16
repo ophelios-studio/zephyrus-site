@@ -1701,10 +1701,14 @@ details[open] summary {
   color:#6b775f;
 }
 
-@media(max-width:480px) {
-  .balanced-table td {
-    width:50%;
-  }
+.prose table code {
+  font-size:max(10px,.82em);
+}
+
+/* Chromium can break a message after an opening quote: reflowing the last lines keeps "<path>" whole at most widths. */
+.balanced-table td {
+  width:50%;
+  text-wrap:pretty;
 }
 
 .docs-pagination {
@@ -2817,6 +2821,9 @@ html.motion-ready [data-reveal].is-visible {
   }
   .prose td,.prose th {
     padding:10px 8px;
+  }
+  .balanced-table td {
+    text-wrap:balance;
   }
   .docs-pagination {
     gap:16px;
