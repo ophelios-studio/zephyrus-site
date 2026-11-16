@@ -795,7 +795,7 @@ h2 em {
 
 .code-footnote {
   font-size:8px;
-  color:#838b78;
+  color:#677161;
   margin-top:17px;
   text-align:right;
 }
@@ -2500,7 +2500,7 @@ html.motion-ready [data-reveal].is-visible {
     display:none;
   }
   .code-footnote {
-    font-size:6px;
+    font-size:12px;
     text-align:left;
   }
   .architecture-heading {
