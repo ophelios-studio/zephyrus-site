@@ -179,6 +179,8 @@ CREATE POLICY project_owner ON project
     USING (owner_id = nullif(current_setting('app.actor_id', true), '')::bigint);
 ```
 
+**Publier ne protège rien à soi seul.** Un superutilisateur, un rôle doté de `BYPASSRLS` et le propriétaire d’une table sans `ALTER TABLE ... FORCE ROW LEVEL SECURITY` voient toutes les lignes, quel que soit l’acteur. Connectez-vous avec un rôle auquel les politiques s’appliquent.
+
 Le constructeur reçoit la `Database`, un préfixe et les clés que lisent vos politiques : `['actor_id']` sous `app` déclare le paramètre `app.actor_id`. `actAs()` ouvre une transaction, publie les valeurs, exécute la fonction (qui reçoit la `Database`) et confirme ; l’acteur prend fin avec la transaction :
 
 ```php
@@ -216,7 +218,6 @@ Les valeurs sont des chaînes non vides, pour les clés déclarées seulement. C
 
 Le constructeur refuse une connexion autre que PostgreSQL, ainsi qu’un préfixe ou une clé qui ne compte pas de 1 à 63 lettres minuscules, chiffres et soulignés sans commencer par un chiffre (`The actor key "Actor-Id" is not a valid setting name: use 1 to 63 lowercase letters, digits and underscores, not starting with a digit.`).
 
-- **Publier ne protège rien à soi seul.** Un superutilisateur, un rôle doté de `BYPASSRLS` et le propriétaire d’une table sans `ALTER TABLE ... FORCE ROW LEVEL SECURITY` voient toutes les lignes, quel que soit l’acteur. Connectez-vous avec un rôle auquel les politiques s’appliquent.
 - **Sans acteur**, un `SELECT` soumis à ces politiques ne renvoie aucune ligne et un `INSERT` est refusé, mais un `UPDATE` ou un `DELETE` touche 0 ligne sans erreur : vérifiez le nombre qu’il renvoie.
 - **L’acteur ne change qu’à la fin de sa transaction.** Une valeur posée pour toute la session avec `set_config(..., false)` est refusée de la même façon, sur n’importe quelle clé déclarée. Deux identités dans un même traitement sont deux clés d’un même acteur, publiées ensemble.
 - **Déclarez dans une seule instance toutes les clés que lisent vos politiques.** Le refus d’un second acteur couvre les clés que déclare cette instance : deux instances aux clés différentes sur la même `Database` peuvent chacune en publier un, et les acteurs s’empilent.
@@ -347,8 +348,15 @@ final class ProjectService
 - Un `null` est affecté tel quel : déclarez chaque colonne nullable en `?type`, faute de quoi l’hydratation lève une `TypeError`.
 - Une propriété de date typée `DateTimeImmutable`, `DateTimeInterface` ou `DateTime` accepte une chaîne ISO (`YYYY-MM-DD`, avec heure, fraction et décalage UTC facultatifs) et est hydratée comme un `DateTimeImmutable` (un `DateTime` pour une propriété `DateTime`). Une chaîne qui ne convient pas lève une `InvalidArgumentException` (`Invalid value for date DateTimeImmutable on property $createdAt`). La version 0.14.1 laissait la propriété non initialisée.
 - Une valeur qui ne peut pas être hydratée est refusée, là où la 0.14.1 l’ignorait ou échouait avec une erreur : une propriété typée par une autre classe, par un type union ou intersection, ou par une énumération pure lève une `InvalidArgumentException` (`Cannot hydrate property $status of App\Models\Order: type string|int is not supported`), tout comme une entité imbriquée qui reçoit autre chose qu’un objet JSON (`Invalid value for entity App\Models\Customer on property $customer`). Donnez à la propriété un type pris en charge, ou lisez la colonne comme chaîne et convertissez-la dans le service.
-- Une propriété que l’entité ne peut pas écrire est refusée par une `InvalidArgumentException`, là où PHP levait une `Error` brute : une propriété readonly déjà posée par le constructeur (`Cannot hydrate property $id of App\Models\Project: it is readonly and its constructor already set it. Leave it unset in the constructor, or drop readonly.`), une propriété `private(set)` (`... its private(set) visibility keeps Entity from writing it. Use protected(set) instead.`) et une propriété virtuelle sans crochet `set` (`... it is virtual with no set hook. Alias the column in the query, or give the property a set hook.`). Une propriété readonly laissée non initialisée et une propriété `protected(set)` sont hydratées. `json_encode()` omet une propriété virtuelle sans crochet `get`.
 - Les propriétés privées et statiques, ainsi qu’une colonne nommée `rawData`, sont ignorées.
+
+Une propriété que l’entité ne peut pas écrire est refusée par une `InvalidArgumentException`, là où PHP levait une `Error` brute. Une propriété readonly laissée non initialisée et une propriété `protected(set)` sont hydratées, et `json_encode()` omet une propriété virtuelle sans crochet `get`.
+
+| Propriété | Refus |
+|---|---|
+| `public readonly int $id`, posée par le constructeur | `Cannot hydrate property $id of App\Models\Project: it is readonly and its constructor already set it. Leave it unset in the constructor, or drop readonly.` |
+| `public private(set) string $name` | `Cannot hydrate property $name of App\Models\Project: its private(set) visibility keeps Entity from writing it. Use protected(set) instead.` |
+| `public string $label { get => ... }`, virtuelle sans crochet `set` | `Cannot hydrate property $label of App\Models\Project: it is virtual with no set hook. Alias the column in the query, or give the property a set hook.` |
 
 ### Sérialisation des entités
 
