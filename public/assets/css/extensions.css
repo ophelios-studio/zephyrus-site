@@ -56,6 +56,7 @@
 .agents-copy h2 em { color: var(--acid); }
 .agents-copy > p { color: #99ac90; font-size: 15px; line-height: 1.85; margin: 27px 0 20px; max-width: 420px; }
 .agents-copy .inline-link { color: #c8dda7; border-color: #465b39; }
+.agents-copy .inline-link:hover { border-bottom-color: #93b94e; }
 .agent-guide { border: 1px solid #49633d; background: #1d271e; min-width: 0; }
 .agent-guide-top { border-bottom: 1px solid #49633d; padding: 20px 25px; display: flex; justify-content: space-between; align-items: center; gap: 20px; }
 .agent-guide-top > .mono { color: #99b380; font-size: 9px; }
