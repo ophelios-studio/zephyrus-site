@@ -219,6 +219,8 @@
     "loading": "Loading chapters...",
     "search_error": "Search could not load. Close and reopen to try again.",
     "no_results": "No chapters found. Try “routing” or “configuration”.",
+    "results_one": "{count} chapter found",
+    "results_other": "{count} chapters found",
     "pause": "Pause hero animation",
     "resume": "Resume hero animation",
     "live": "LIVE",

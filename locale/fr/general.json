@@ -219,6 +219,8 @@
     "loading": "Chargement des chapitres...",
     "search_error": "La recherche n’a pas pu charger. Fermez-la puis réessayez.",
     "no_results": "Aucun chapitre trouvé. Essayez « routage » ou « configuration ».",
+    "results_one": "{count} chapitre trouvé",
+    "results_other": "{count} chapitres trouvés",
     "pause": "Mettre l’animation en pause",
     "resume": "Reprendre l’animation",
     "live": "EN DIRECT",

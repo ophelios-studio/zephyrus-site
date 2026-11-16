@@ -139,6 +139,7 @@
   if (!dialog) return;
   const input = document.querySelector('#doc-search');
   const results = dialog.querySelector('.search-results');
+  const status = dialog.querySelector('.search-status');
   results.id = 'search-results';
   input.setAttribute('aria-controls', results.id);
   let searchIndex, selected = 0, rendered = [];
@@ -181,6 +182,8 @@
     rendered[selected].classList.add('selected'); rendered[selected].setAttribute('aria-selected', 'true');
     input.setAttribute('aria-activedescendant', rendered[selected].id);
   }
+  const plural = new Intl.PluralRules(document.documentElement.lang);
+  const resultCount = count => (plural.select(count) === 'one' ? status.dataset.resultOne : status.dataset.resultOther).replace('{count}', count);
   function renderResults() {
     if (!searchIndex) return;
     const terms = normalize(input.value.trim()).split(/\s+/).filter(Boolean);
@@ -202,21 +205,23 @@
     if (rendered.length) { results.setAttribute('role', 'listbox'); results.setAttribute('aria-label', input.getAttribute('aria-label')); select(0); }
     else { results.removeAttribute('role'); results.removeAttribute('aria-label'); input.removeAttribute('aria-activedescendant'); }
     if (!matches.length) { const empty = document.createElement('p'); empty.className = 'search-empty'; empty.textContent = ui.noResults; results.append(empty); }
+    status.textContent = matches.length ? resultCount(matches.length) : ui.noResults;
   }
   async function openSearch() {
     if (dialog.open) return;
     closeMenu(); setSidebar(false); dialog.showModal(); input.focus();
     if (!searchIndex) {
-      results.textContent = ui.loading;
+      results.textContent = status.textContent = ui.loading;
       try {
         const response = await fetch(localePrefix + '/search.json'); if (!response.ok) throw new Error('Index unavailable');
         searchIndex = (await response.json()).map(page => ({ page, title: normalize(page.title), headings: normalize(page.headings.join('\n')), text: normalize(page.text) }));
       }
-      catch { results.textContent = ui.searchError; return; }
+      catch { results.textContent = status.textContent = ui.searchError; return; }
     }
     renderResults();
   }
   document.querySelectorAll('[data-search-open]').forEach(button => button.addEventListener('click', openSearch));
+  dialog.addEventListener('close', () => { status.textContent = ''; });
   const applePlatform = /^(mac|iphone|ipad|ipod|ios)/i.test(navigator.userAgentData?.platform ?? navigator.platform);
   if (!applePlatform) document.querySelectorAll('[data-search-open] kbd').forEach(kbd => { kbd.textContent = 'Ctrl K'; });
   dialog.querySelector('.search-close').addEventListener('click', () => dialog.close());

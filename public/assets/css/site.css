@@ -1911,6 +1911,15 @@ details[open] summary {
   line-height:1.6;
 }
 
+.search-status {
+  position:absolute;
+  width:1px;
+  height:1px;
+  overflow:hidden;
+  clip-path:inset(50%);
+  white-space:nowrap;
+}
+
 .search-empty {
   padding:25px 12px;
   color:#636f59;
