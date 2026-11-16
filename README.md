@@ -1,6 +1,6 @@
 # Zephyrus site
 
-The Zephyrus showcase and documentation preview, built with **Zephyrus Leaf**. This is a standalone static site. It does not modify or depend on the working checkout of `zephyrus-core`.
+The Zephyrus showcase and documentation, built with **Zephyrus Leaf**. This is a standalone static site. It does not modify or depend on the working checkout of `zephyrus-core`.
 
 ## Preview
 
@@ -51,7 +51,7 @@ Generated output remains committed for local previews. CI rebuilds from the temp
 - `public/assets/js/pixels.js`: the closing CTA's pixel logo. Pointer or touch movement scatters its particles, which spring back into the original brand path. It pauses outside the viewport and supports pause and reduced motion.
 - `public/assets/js/site.js`: tabs, copy buttons, search, accordions and mobile navigation.
 
-The documentation is deliberately a **visual preview**. Examples are illustrative. Setup instructions and the full API reference should be finalized after the core update.
+The landing's code samples are illustrative; the documentation pages are the reference.
 
 The installation section uses `composer require zephyrus-framework/core`. It installs the core package into an application; it does not claim to scaffold one.
 
