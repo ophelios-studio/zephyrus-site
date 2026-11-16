@@ -122,13 +122,13 @@ Un chemin que la classe refuse d’écrire est refusé avant la création de tou
 
 | Quand | Message |
 |---|---|
-| Une URL comme `file://`, `phar://` ou `data:` passée à `create()`, `write()`, `append()`, `copy()` ou `move()` (d’un côté comme de l’autre), `delete()`, ou à `Directory::ensure()`, `create()` et `delete()`. Passez le chemin simple, et écrivez vous-même dans un flux avec `fopen()`. | `Path is a stream wrapper URL, which is not written: "<path>"` |
-| Les mêmes méthodes, là où PHP levait une `ValueError`. | `Path holds a NUL byte, which no file name can: "<path>"` |
-| Une destination dont le dernier segment est vide, `.` ou `..`, comme `storage/`. | `Path does not end with a file name: "<path>"` |
-| Une écriture dans un FIFO ou un périphérique, ou une copie dont la source est un répertoire. | `Path is not a regular file: "<path>"` |
-| Un fichier existant que le processus peut écrire mais pas lire (mode `0200`) : accordez la lecture. | `Path is not readable, which a safe write requires: "<path>"` |
-| Un fichier existant dans un répertoire à bit collant comme `/tmp`, qui n’appartient ni au propriétaire du répertoire ni à l’utilisateur du processus. | `Path belongs to another user in a shared directory, so it is not written: "<path>"` |
-| Une copie sur la source, ou sur un lien physique vers elle. Le fichier reste tel quel. | `Cannot copy a file onto itself: "<source>" to "<destination>"` |
+| Une URL comme `file://`, `phar://` ou `data:` passée à `create()`, `write()`, `append()`, `copy()` ou `move()` (d’un côté comme de l’autre), `delete()`, ou à `Directory::ensure()`, `create()` et `delete()`. Passez le chemin simple, et écrivez vous-même dans un flux avec `fopen()`. | <code>Path is a stream wrapper URL, which is not written: <span class="nobr">"&lt;path&gt;"</span></code> |
+| Les mêmes méthodes, là où PHP levait une `ValueError`. | <code>Path holds a NUL byte, which no file name can: <span class="nobr">"&lt;path&gt;"</span></code> |
+| Une destination dont le dernier segment est vide, `.` ou `..`, comme `storage/`. | <code>Path does not end with a file name: <span class="nobr">"&lt;path&gt;"</span></code> |
+| Une écriture dans un FIFO ou un périphérique, ou une copie dont la source est un répertoire. | <code>Path is not a regular file: <span class="nobr">"&lt;path&gt;"</span></code> |
+| Un fichier existant que le processus peut écrire mais pas lire (mode `0200`) : accordez la lecture. | <code>Path is not readable, which a safe write requires: <span class="nobr">"&lt;path&gt;"</span></code> |
+| Un fichier existant dans un répertoire à bit collant comme `/tmp`, qui n’appartient ni au propriétaire du répertoire ni à l’utilisateur du processus. | <code>Path belongs to another user in a shared directory, so it is not written: <span class="nobr">"&lt;path&gt;"</span></code> |
+| Une copie sur la source, ou sur un lien physique vers elle. Le fichier reste tel quel. | <code>Cannot copy a file onto itself: <span class="nobr">"&lt;source&gt;"</span> to <span class="nobr">"&lt;destination&gt;"</span></code> |
 
 </div>
 

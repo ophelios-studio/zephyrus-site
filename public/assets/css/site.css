@@ -1706,7 +1706,10 @@ details[open] summary {
   padding-block:0;
 }
 
-/* Chromium can break a message after an opening quote: reflowing the last lines keeps "<path>" whole at most widths. */
+.nobr {
+  white-space:nowrap;
+}
+
 .balanced-table td {
   width:50%;
   text-wrap:pretty;
