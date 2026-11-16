@@ -1903,7 +1903,7 @@ details[open] summary {
 .search-result p {
   overflow-wrap:anywhere;
   font-size:11px;
-  color:#7f8a72;
+  color:#5a6650;
   line-height:1.6;
 }
 
@@ -2840,9 +2840,6 @@ html.motion-ready [data-reveal].is-visible {
   .search-input-row {
     padding:16px;
     gap:12px;
-  }
-  .search-input-row input {
-    font-size:14px;
   }
   .search-hint {
     padding:12px 16px;
