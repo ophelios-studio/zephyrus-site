@@ -36,7 +36,7 @@ For the `ophelios.com` DNS zone, configure:
 
 The target is the organization's Pages hostname, without a repository path. After DNS validation and certificate issuance, enable **Enforce HTTPS** in the repository's Pages settings.
 
-Generated output remains committed for local previews. CI rebuilds from the templates, Markdown, catalogs and public assets before deployment. Social cards are committed assets; regenerate them with `npm run social` when their artwork or copy changes.
+Git ignores `dist/`: build it locally to preview, and CI rebuilds it from the templates, Markdown, catalogs and public assets before deployment. Social cards are committed assets; regenerate them with `npm run social` when their artwork or copy changes.
 
 ## Editing
 
