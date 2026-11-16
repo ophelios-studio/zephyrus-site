@@ -10,12 +10,12 @@ D’un répertoire vide à une première réponse.
 
 ## Prérequis
 
-- PHP 8.4 ou plus récent.
+- PHP 8.4 ou plus récent. Zephyrus est testé sous PHP 8.4, 8.5 et 8.6.
 - Les extensions `intl`, `mbstring`, `pdo`, `sodium` et `fileinfo`.
 - `pdo_pgsql` si l’application utilise PostgreSQL.
 - [Composer](https://getcomposer.org/).
 
-Composer installe pour vous les autres dépendances : Latte, Tracy, Symfony YAML, `vlucas/phpdotenv` et PHPMailer.
+Composer installe pour vous les autres dépendances : Latte (3.1 ou plus récent), Tracy, Symfony YAML, `vlucas/phpdotenv` et PHPMailer.
 
 ## Installer le paquet
 
@@ -37,9 +37,9 @@ puis exécutez :
 composer install
 ```
 
-`^3.17` installe la dernière version 3.x. Depuis la 3.17.0, l’API est stable et suit le versionnage sémantique : les versions mineures et correctives restent compatibles, et un changement incompatible attend la 4.0, annoncé d’abord par une dépréciation. Le [journal des modifications](https://github.com/ophelios-studio/zephyrus-core/blob/dev/CHANGELOG.md) détaille ce que change chaque version. L’espace de noms `App\` vous appartient : il correspond au répertoire `app/`.
+`^3.17` installe la dernière version 3.x. Depuis la 3.17.0, l’API est stable et suit le versionnage sémantique : les versions mineures et correctives restent compatibles, et un changement incompatible attend la 4.0, annoncé d’abord par une dépréciation. Le [journal des modifications](https://github.com/ophelios-studio/zephyrus-core/blob/v3.17.0/CHANGELOG.md) détaille ce que change chaque version. L’espace de noms `App\` vous appartient : il correspond au répertoire `app/`.
 
-Vous partez de `^0.16` ? Composer ne passe pas seul de `^0.16` à `^3.17`. Changez la contrainte à la main dans `composer.json`, puis lisez le [journal des modifications](https://github.com/ophelios-studio/zephyrus-core/blob/dev/CHANGELOG.md) : les changements incompatibles de la 3.17.0 y figurent en tête, chacun avec la modification à faire.
+Vous partez de `^0.16` ? Composer ne passe pas seul de `^0.16` à `^3.17`. Changez la contrainte à la main dans `composer.json` et mettez à jour `latte/latte` avec elle (la 3.17 exige Latte 3.1), puis lisez le [journal des modifications](https://github.com/ophelios-studio/zephyrus-core/blob/v3.17.0/CHANGELOG.md) : les changements incompatibles de la 3.17.0 y figurent en tête, chacun avec la modification à faire.
 
 ## La plus petite application
 

@@ -10,12 +10,12 @@ From an empty directory to a first response.
 
 ## Requirements
 
-- PHP 8.4 or later.
+- PHP 8.4 or later. Zephyrus is tested on PHP 8.4, 8.5 and 8.6.
 - The `intl`, `mbstring`, `pdo`, `sodium` and `fileinfo` extensions.
 - `pdo_pgsql` if the application uses PostgreSQL.
 - [Composer](https://getcomposer.org/).
 
-Composer installs the other dependencies for you: Latte, Tracy, Symfony YAML, `vlucas/phpdotenv` and PHPMailer.
+Composer installs the other dependencies for you: Latte (3.1 or later), Tracy, Symfony YAML, `vlucas/phpdotenv` and PHPMailer.
 
 ## Require the package
 
@@ -37,9 +37,9 @@ then run:
 composer install
 ```
 
-`^3.17` installs the latest 3.x release. Since 3.17.0 the API is stable and follows semantic versioning: minor and patch releases stay compatible, and a breaking change waits for 4.0, announced first by a deprecation. The [changelog](https://github.com/ophelios-studio/zephyrus-core/blob/dev/CHANGELOG.md) lists what each release changes. The `App\` namespace is yours: it maps to the `app/` directory.
+`^3.17` installs the latest 3.x release. Since 3.17.0 the API is stable and follows semantic versioning: minor and patch releases stay compatible, and a breaking change waits for 4.0, announced first by a deprecation. The [changelog](https://github.com/ophelios-studio/zephyrus-core/blob/v3.17.0/CHANGELOG.md) lists what each release changes. The `App\` namespace is yours: it maps to the `app/` directory.
 
-Coming from `^0.16`? Composer does not move to `^3.17` on its own. Change the constraint by hand in `composer.json`, then read the [changelog](https://github.com/ophelios-studio/zephyrus-core/blob/dev/CHANGELOG.md): the breaking changes of 3.17.0 come first, each with the change to make.
+Coming from `^0.16`? Composer does not move to `^3.17` on its own. Change the constraint by hand in `composer.json` and update `latte/latte` with it (3.17 needs Latte 3.1), then read the [changelog](https://github.com/ophelios-studio/zephyrus-core/blob/v3.17.0/CHANGELOG.md): the breaking changes of 3.17.0 come first, each with the change to make.
 
 ## The smallest application
 

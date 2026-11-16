@@ -107,7 +107,7 @@ Any other path is a `404`, and `POST /hello` is a `405` with an `allow` header. 
 
 ## Requirements
 
-PHP 8.4 or later with the `intl`, `mbstring`, `pdo`, `sodium` and `fileinfo` extensions, and `pdo_pgsql` if you use PostgreSQL.
+PHP 8.4 or later with the `intl`, `mbstring`, `pdo`, `sodium` and `fileinfo` extensions, and `pdo_pgsql` if you use PostgreSQL. Zephyrus is tested on PHP 8.4, 8.5 and 8.6.
 
 ## License and source
 
