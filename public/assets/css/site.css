@@ -785,7 +785,7 @@ h2 em {
 }
 
 .code-window-bottom .mono {
-  font-size:8px;
+  font-size:10px;
 }
 
 .code-window-bottom .status-dot {
@@ -794,7 +794,7 @@ h2 em {
 }
 
 .code-footnote {
-  font-size:8px;
+  font-size:10px;
   color:#677161;
   margin-top:17px;
   text-align:right;
@@ -2491,9 +2491,6 @@ html.motion-ready [data-reveal].is-visible {
   }
   .code-window-bottom {
     padding:12px 15px;
-  }
-  .code-window-bottom .mono {
-    font-size:6px;
   }
   .code-window-bottom>.mono:last-child {
     display:none;
