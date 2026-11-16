@@ -1698,7 +1698,7 @@ details[open] summary {
 .prose td {
   padding:13px 12px;
   border-bottom:1px solid #d7decc;
-  color:#6b775f;
+  color:#636f59;
 }
 
 .prose table code {
@@ -1909,7 +1909,7 @@ details[open] summary {
 
 .search-empty {
   padding:25px 12px;
-  color:#7d8a6e;
+  color:#636f59;
   font-size:12px;
 }
 
