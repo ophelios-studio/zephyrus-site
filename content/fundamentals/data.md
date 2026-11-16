@@ -345,7 +345,7 @@ final class ProjectService
 - A column named in `snake_case` needs an alias (`created_at AS "createdAt"`) to reach a `camelCase` property.
 - A backed enum property takes `Enum::from()`. A value outside the enum throws an `InvalidArgumentException` that names the property, not the value.
 - A `stdClass` property keeps the decoded JSON object. A property typed as another `Entity` is built from a JSON object column.
-- A `null` is assigned as is: declare every nullable column as `?type`, or hydration throws a `TypeError`.
+- A `null` is assigned as is: declare every nullable column as `?type`, or hydration throws a `TypeError`. A union or intersection type that does not accept `null` throws it too (before 3.17 the column was skipped): use a simple type such as `?string`, not a nullable union, since a union never receives a non-null value (see the next point).
 - A date property typed `DateTimeImmutable`, `DateTimeInterface` or `DateTime` takes an ISO string (`YYYY-MM-DD`, with optional time, fraction and UTC offset) and is hydrated as a `DateTimeImmutable` (a `DateTime` for a `DateTime` property). A string that does not fit throws `InvalidArgumentException` (`Invalid value for date DateTimeImmutable on property $createdAt`). Version 0.14.1 left the property uninitialized.
 - A value that cannot be hydrated is refused, where 0.14.1 skipped it or failed with an error: a property typed with another class, a union or intersection type, or a pure enum throws `InvalidArgumentException` (`Cannot hydrate property $status of App\Models\Order: type string|int is not supported`), and so does a nested entity given something other than a JSON object (`Invalid value for entity App\Models\Customer on property $customer`). Give the property a supported type, or read the column as a string and convert it in the service.
 - Private and static properties, and a column named `rawData`, are skipped.
@@ -360,7 +360,7 @@ A property the entity cannot write is refused with `InvalidArgumentException`, w
 
 ### Serializing entities
 
-`json_encode($entity)` emits the public properties that were assigned and skips those marked `#[JsonIgnore]` (password hashes, internal identifiers). Only entities honour the attribute: a `stdClass` row, or the items of a `PaginatedResult`, serialize every selected column. Select explicit columns, or hydrate before serializing.
+`json_encode($entity)` emits the public, non-static properties that were assigned and skips those marked `#[JsonIgnore]` (password hashes, internal identifiers). Only entities honour the attribute: a `stdClass` row, or the items of a `PaginatedResult`, serialize every selected column. Select explicit columns, or hydrate before serializing.
 
 ## Errors
 

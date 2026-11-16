@@ -345,7 +345,7 @@ final class ProjectService
 - Une colonne nommée en `snake_case` a besoin d’un alias (`created_at AS "createdAt"`) pour atteindre une propriété en `camelCase`.
 - Une propriété de type énumération à valeur de support passe par `Enum::from()`. Une valeur hors de l’énumération lève une `InvalidArgumentException` qui nomme la propriété, non la valeur.
 - Une propriété `stdClass` conserve l’objet JSON décodé. Une propriété typée par une autre `Entity` est construite à partir d’une colonne contenant un objet JSON.
-- Un `null` est affecté tel quel : déclarez chaque colonne nullable en `?type`, faute de quoi l’hydratation lève une `TypeError`.
+- Un `null` est affecté tel quel : déclarez chaque colonne nullable en `?type`, faute de quoi l’hydratation lève une `TypeError`. Un type union ou intersection qui n’accepte pas `null` la lève aussi (avant 3.17, la colonne était ignorée) : utilisez un type simple comme `?string`, et non une union nullable, car une union ne reçoit jamais de valeur non nulle (voir le point suivant).
 - Une propriété de date typée `DateTimeImmutable`, `DateTimeInterface` ou `DateTime` accepte une chaîne ISO (`YYYY-MM-DD`, avec heure, fraction et décalage UTC facultatifs) et est hydratée comme un `DateTimeImmutable` (un `DateTime` pour une propriété `DateTime`). Une chaîne qui ne convient pas lève une `InvalidArgumentException` (`Invalid value for date DateTimeImmutable on property $createdAt`). La version 0.14.1 laissait la propriété non initialisée.
 - Une valeur qui ne peut pas être hydratée est refusée, là où la 0.14.1 l’ignorait ou échouait avec une erreur : une propriété typée par une autre classe, par un type union ou intersection, ou par une énumération pure lève une `InvalidArgumentException` (`Cannot hydrate property $status of App\Models\Order: type string|int is not supported`), tout comme une entité imbriquée qui reçoit autre chose qu’un objet JSON (`Invalid value for entity App\Models\Customer on property $customer`). Donnez à la propriété un type pris en charge, ou lisez la colonne comme chaîne et convertissez-la dans le service.
 - Les propriétés privées et statiques, ainsi qu’une colonne nommée `rawData`, sont ignorées.
@@ -360,7 +360,7 @@ Une propriété que l’entité ne peut pas écrire est refusée par une `Invali
 
 ### Sérialisation des entités
 
-`json_encode($entity)` émet les propriétés publiques qui ont été affectées et omet celles marquées `#[JsonIgnore]` (empreintes de mots de passe, identifiants internes). Seules les entités respectent l’attribut : une ligne `stdClass`, ou les éléments d’un `PaginatedResult`, sérialisent chaque colonne sélectionnée. Sélectionnez des colonnes explicites, ou hydratez avant de sérialiser.
+`json_encode($entity)` émet les propriétés publiques non statiques qui ont été affectées et omet celles marquées `#[JsonIgnore]` (empreintes de mots de passe, identifiants internes). Seules les entités respectent l’attribut : une ligne `stdClass`, ou les éléments d’un `PaginatedResult`, sérialisent chaque colonne sélectionnée. Sélectionnez des colonnes explicites, ou hydratez avant de sérialiser.
 
 ## Erreurs
 

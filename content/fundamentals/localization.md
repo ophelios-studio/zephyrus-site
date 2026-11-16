@@ -28,7 +28,7 @@ localization:
 | `locale_path` | The directory holding the catalogs. A relative path resolves against the `basePath` given to `withConfiguration()`; `fromConfigurationFile()` and `buildFromConfigurationFile()` pass the directory of the file (version 0.15.0 passed none, so it resolved against the current directory). |
 | `timezone` | Applied with `date_default_timezone_set()` at `build()` (default `UTC`). |
 | `currency` | The currency code `money` uses when none is passed, three letters. |
-| `date_format`, `time_format`, `datetime_format` | The default for `date`, `time` and `datetime`: an ICU preset (`short`, `medium`, `long`, `full`) or an ICU pattern such as `yyyy-MM-dd HH:mm`. Defaults `medium`, `short`, `medium`. |
+| `date_format`, `time_format`, `datetime_format` | The default for `date`, `time` and `datetime`: an ICU preset (`short`, `medium`, `long`, `full`) or an ICU pattern such as `yyyy-MM-dd HH:mm`. Defaults `medium`, `short`, `medium`. Presets ignore case and surrounding spaces, and an empty value keeps the default. `none` formats nothing and stops the boot: `Configuration section 'localization' field 'time_format' has invalid value "none": it formats nothing. Use short, medium, long, full or an ICU pattern.` |
 | `grouping_separator` | The thousands separator: `,`, `.`, `'`, a space, U+00A0, U+202F or U+2009. `''` turns grouping off, and it cannot be the decimal sign of the locale. |
 
 An unknown key stops the boot, like everywhere else in the configuration. Each key accepts its snake_case or camelCase spelling.
@@ -214,7 +214,7 @@ $fr = new Formatter('fr_CA', 'CAD');
 
 (`$d` is `2026-03-09 14:05` in the default timezone. The spaces in the French cells are non-breaking, and so is the one before `p.m.` in the `en_CA` `time` and `datetime` cells (U+202F).)
 
-- `date`, `time` and `datetime` take a `DateTimeInterface`, a Unix timestamp or a date string, and an optional preset or ICU pattern. An unparseable value throws a `FormatterException`.
+- `date`, `time` and `datetime` take a `DateTimeInterface`, a Unix timestamp or a date string, and an optional preset or ICU pattern. An unparseable value throws a `FormatterException`. An empty or blank pattern means the default, like `null`; presets ignore case and surrounding spaces; `none` throws one too: `Invalid date pattern "none": it formats nothing. Use short, medium, long, full or an ICU pattern.`
 - `timeago`, `duration`, `filesize` and `list` are written in French for a French locale and in English for any other language.
 - `money` uses, in order, the currency you pass, the default currency, and the native currency of the locale. A locale without a country (`en`, `fr`) has none: pass a currency or set `localization.currency`, otherwise it throws.
 - `list($items, 'disjunction')` joins with "or" instead of "and".
