@@ -203,7 +203,8 @@
 
 /* Native marks and a small, self-hosted subset of Tabler Icons. */
 .tabler-icon { width: 21px; height: 21px; flex-shrink: 0; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
-.github-link, #mobile-nav a:last-child { display: inline-flex; align-items: center; gap: 9px; }
+.github-link { display: inline-flex; align-items: center; gap: 9px; }
+#mobile-nav a:last-child { display: flex; align-items: center; gap: 9px; }
 .github-link .tabler-icon { width: 17px; height: 17px; }
 .ophelios-signature { display: inline-flex; align-items: center; gap: 11px; }
 .ophelios-signature img { object-fit: contain; }
