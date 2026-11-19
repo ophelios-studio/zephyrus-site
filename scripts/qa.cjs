@@ -93,7 +93,7 @@ const base = process.env.PREVIEW_URL || 'http://127.0.0.1:4173';
     const pages = (await Promise.all(sections.map(async section => (await fs.readdir('content/' + section)).filter(file => file.endsWith('.md')).map(file => '/' + section + '/' + file.slice(0, -3) + '/')))).flat();
     for (const prefix of ['', '/fr']) {
       const index = await (await page.request.get(base + prefix + '/search.json')).json();
-      assert.deepEqual(index.map(entry => entry.url + '/').sort(), [...pages].sort(), 'Search index ' + (prefix || '/'));
+      assert.deepEqual(index.map(entry => entry.url + '/').sort(), pages.map(route => prefix + route).sort(), 'Search index ' + (prefix || '/'));
       for (const route of pages) {
         await page.goto(base + prefix + route, { waitUntil: 'networkidle' });
         assert.equal(await page.locator('html').getAttribute('lang'), prefix ? 'fr' : 'en');

@@ -24,7 +24,7 @@ Stop `leaf dev` before running a separate `leaf build`, since both commands publ
 
 ## GitHub Pages deployment
 
-The public repository deploys through `.github/workflows/pages.yml`. Every push to `main`, or a manual workflow run, builds both languages with Leaf v0.1.6 and PHP 8.4, then uploads `dist/` to GitHub Pages. The Linux CLI download is checked against the release's SHA-256 digest. No deployment secrets are required.
+The public repository deploys through `.github/workflows/pages.yml`. Every push to `main`, or a manual workflow run, builds both languages with Leaf v0.1.7 and PHP 8.4, then uploads `dist/` to GitHub Pages. The Linux CLI download is checked against the release's SHA-256 digest. No deployment secrets are required.
 
 Pages uses **GitHub Actions** as its publishing source. Its custom domain is configured in the repository's Pages settings as `zephyrus.ophelios.com`. With this publishing mode, GitHub uses the domain setting rather than a `CNAME` file.
 

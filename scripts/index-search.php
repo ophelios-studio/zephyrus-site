@@ -27,10 +27,9 @@ function collapse(string $text): string
 $dist = dirname(__DIR__) . '/dist';
 $indexes = [$dist . '/search.json', ...glob($dist . '/*/search.json')];
 foreach ($indexes as $indexPath) {
-    $root = dirname($indexPath);
     $entries = json_decode(file_get_contents($indexPath), true, flags: JSON_THROW_ON_ERROR);
     foreach ($entries as &$entry) {
-        $pagePath = $root . $entry['url'] . '/index.html';
+        $pagePath = $dist . $entry['url'] . '/index.html';
         $prose = is_file($pagePath)
             ? Dom\HTMLDocument::createFromFile($pagePath, LIBXML_NOERROR)->querySelector('main .prose')
             : null;

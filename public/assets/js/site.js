@@ -193,7 +193,7 @@
     results.replaceChildren(); selected = 0;
     matches.forEach(({ page, summary }, index) => {
       const id = 'search-result-' + index;
-      const link = document.createElement('a'); link.className = 'search-result'; link.href = localePrefix + page.url + '/';
+      const link = document.createElement('a'); link.className = 'search-result'; link.href = page.url + '/';
       link.id = id; link.setAttribute('role', 'option'); link.setAttribute('aria-selected', 'false');
       link.setAttribute('aria-labelledby', id + '-title'); link.setAttribute('aria-describedby', id + '-section ' + id + '-excerpt');
       const section = document.createElement('span'); section.id = id + '-section'; section.textContent = sectionLabel(page.section);
