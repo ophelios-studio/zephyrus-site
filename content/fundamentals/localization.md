@@ -67,7 +67,7 @@ localize('cart.missing');                        // "cart.missing"
 
 `localize()` is the global helper (`i18n()` is an alias). Its third argument forces a locale. It translates for the default locale otherwise.
 
-The lookup order for a requested locale such as `fr-CA` is: `fr-CA`, then `fr`, then the default locale, then its base language. A key found in none of them returns the key itself, so a missing translation shows up as visible text rather than an error. A literal key containing dots (`"cart.flat": "..."`) wins over the nested path of the same name.
+The lookup order for a requested locale is its own name, then each shorter prefix, then the same for the default locale: `fr-CA` tries `fr-CA` then `fr`, and `zh-Hant-TW` tries `zh-Hant-TW`, `zh-Hant`, `zh`. A key found in none of them returns the key itself, so a missing translation shows up as visible text rather than an error. A literal key containing dots (`"cart.flat": "..."`) wins over the nested path of the same name.
 
 A language can also be one file, `locale/en.json`, when the directory is absent. A missing catalog is empty. An unreadable file or invalid JSON throws a `LocalizationException` the first time that locale is loaded.
 
@@ -257,4 +257,4 @@ With the English formatter this renders `Your cart`, `2 items` and `$19.99 Mar 9
 - A key missing from the requested language falls back to the default language silently. Keep the default catalog complete, and compare the key lists of the others in a test.
 - Always pass `supportedLocales` to the resolver: with an empty list any well-formed language tag is accepted (a malformed value, such as `../x` or `fr!`, is ignored), so the visitor picks the locale. `JsonLocaleLoader` refuses anything that is not a language tag (the catalog is then empty), but the allowlist is what keeps the choice yours.
 - `plural` prints the word, not the count: write `{count} {count|plural:item:items}`.
-- `localization.locale` is stored lower-cased and `supported_locales` too: `fr-CA` becomes `fr-ca`, and catalog directories named `fr-CA` or `fr_CA` still match.
+- `localization.locale` is stored lower-cased and `supported_locales` too: `fr-CA` becomes `fr-ca`. Lookup does not depend on the case: a catalog named in BCP 47 form (`zh-Hant-TW.json`, `sr-Latn/`) is found for `zh-hant-tw` or `zh_HANT_TW`, and `fr-CA`, `fr_CA`, `fr-ca` and `fr_ca` all match.

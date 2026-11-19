@@ -67,7 +67,7 @@ localize('cart.missing');                        // "cart.missing"
 
 `localize()` est la fonction globale (`i18n()` en est un alias). Son troisième argument impose une locale. Sinon, elle traduit pour la locale par défaut.
 
-L’ordre de recherche pour une locale demandée telle que `fr-CA` est le suivant : `fr-CA`, puis `fr`, puis la locale par défaut, puis sa langue de base. Une clé introuvable dans chacune d’elles retourne la clé elle-même, de sorte qu’une traduction manquante apparaît sous forme de texte visible plutôt que d’une erreur. Une clé littérale contenant des points (`"cart.flat": "..."`) l’emporte sur le chemin imbriqué du même nom.
+L’ordre de recherche pour une locale demandée est son propre nom, puis chaque préfixe plus court, puis la même chose pour la locale par défaut : `fr-CA` essaie `fr-CA` puis `fr`, et `zh-Hant-TW` essaie `zh-Hant-TW`, `zh-Hant`, `zh`. Une clé introuvable dans chacune d’elles retourne la clé elle-même, de sorte qu’une traduction manquante apparaît sous forme de texte visible plutôt que d’une erreur. Une clé littérale contenant des points (`"cart.flat": "..."`) l’emporte sur le chemin imbriqué du même nom.
 
 Une langue peut aussi tenir dans un seul fichier, `locale/en.json`, lorsque le répertoire est absent. Un catalogue manquant est vide. Un fichier illisible ou un JSON invalide lève une `LocalizationException` la première fois que cette locale est chargée.
 
@@ -257,4 +257,4 @@ Avec le formateur anglais, ceci produit `Your cart`, `2 items` et `$19.99 Mar 9,
 - Une clé absente de la langue demandée se rabat silencieusement sur la langue par défaut. Gardez le catalogue par défaut complet, et comparez les listes de clés des autres dans un test.
 - Passez toujours `supportedLocales` au résolveur : avec une liste vide, toute étiquette de langue bien formée est acceptée (une valeur mal formée, comme `../x` ou `fr!`, est ignorée) : c’est donc le visiteur qui choisit la locale. `JsonLocaleLoader` refuse tout ce qui n’est pas une étiquette de langue (le catalogue est alors vide), mais c’est la liste d’autorisation qui garantit que le choix vous appartient.
 - `plural` affiche le mot, non le nombre : écrivez `{count} {count|plural:item:items}`.
-- `localization.locale` est stockée en minuscules, et `supported_locales` aussi : `fr-CA` devient `fr-ca`, et les répertoires de catalogue nommés `fr-CA` ou `fr_CA` correspondent toujours.
+- `localization.locale` est stockée en minuscules, et `supported_locales` aussi : `fr-CA` devient `fr-ca`. La recherche ne dépend pas de la casse : un catalogue nommé à la forme BCP 47 (`zh-Hant-TW.json`, `sr-Latn/`) est trouvé pour `zh-hant-tw` ou `zh_HANT_TW`, et `fr-CA`, `fr_CA`, `fr-ca` et `fr_ca` correspondent tous.
