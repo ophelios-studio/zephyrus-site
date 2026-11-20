@@ -37,9 +37,9 @@ puis exécutez :
 composer install
 ```
 
-`^3.17` installe la dernière version 3.x. Depuis la 3.17.0, l’API est stable et suit le versionnage sémantique : les versions mineures et correctives restent compatibles, et un changement incompatible attend la 4.0, annoncé d’abord par une dépréciation. Le [journal des modifications](https://github.com/ophelios-studio/zephyrus-core/blob/v3.17.0/CHANGELOG.md) détaille ce que change chaque version. L’espace de noms `App\` vous appartient : il correspond au répertoire `app/`.
+`^3.17` installe la dernière version 3.x. Depuis la 3.17.0, l’API est stable et suit le versionnage sémantique : les versions mineures et correctives restent compatibles, et un changement incompatible attend la 4.0, annoncé d’abord par une dépréciation. Le [journal des modifications](https://github.com/ophelios-studio/zephyrus-core/blob/v3.17.1/CHANGELOG.md) détaille ce que change chaque version. La 3.17.1 fait une exception, pour un correctif de sécurité : voir son journal. L’espace de noms `App\` vous appartient : il correspond au répertoire `app/`.
 
-Vous partez de `^0.16` ? Composer ne passe pas seul de `^0.16` à `^3.17`. Changez la contrainte à la main dans `composer.json` et mettez à jour `latte/latte` avec elle (la 3.17 exige Latte 3.1), puis lisez le [journal des modifications](https://github.com/ophelios-studio/zephyrus-core/blob/v3.17.0/CHANGELOG.md) : les changements incompatibles de la 3.17.0 y figurent en tête, chacun avec la modification à faire.
+Vous partez de `^0.16` ? Composer ne passe pas seul de `^0.16` à `^3.17`. Changez la contrainte à la main dans `composer.json` et mettez à jour `latte/latte` avec elle (la 3.17 exige Latte 3.1), puis lisez le [journal des modifications](https://github.com/ophelios-studio/zephyrus-core/blob/v3.17.1/CHANGELOG.md) : les changements incompatibles de la 3.17.0 y figurent en tête, chacun avec la modification à faire. Le [guide de mise à niveau](https://github.com/ophelios-studio/zephyrus-core/blob/v3.17.1/UPGRADE.md) couvre la montée de la 0.13 à la 3.17.1.
 
 ## La plus petite application
 

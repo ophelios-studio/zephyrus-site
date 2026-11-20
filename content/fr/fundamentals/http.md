@@ -24,7 +24,7 @@ $request = Request::fromGlobals(
 );
 ```
 
-`fromGlobals()` ne lit pas `config.yml` : transmettez vous-même les réglages de mandataire et la limite du corps (voir [Sécurité](../security/) pour ce que change un mandataire de confiance, et pour [la limite du corps](../security/#taille-du-corps-de-la-requête) : au-delà de `0`, un corps est lu au plus un octet après elle, et un corps qui la dépasse arrive non analysé, avec `isMalformed()` à vrai). Dans un test, ou n’importe où hors d’une requête web, utilisez `fromArray()` :
+`fromGlobals()` ne lit pas `config.yml` : transmettez vous-même les réglages de mandataire et la limite du corps (voir [Sécurité](../security/) pour ce que change un mandataire de confiance, et pour [la limite du corps](../security/#taille-du-corps-de-la-requête) : au-delà de `0`, un corps est lu au plus un octet après elle, et un corps qui la dépasse arrive non analysé, avec `isTruncated()` et `isMalformed()` à vrai ; sans `maxBodySize`, la lecture s’arrête à 2 Mo, passez-le donc pour en accepter davantage). Dans un test, ou n’importe où hors d’une requête web, utilisez `fromArray()` :
 
 ```php
 $request = Request::fromArray(
@@ -79,7 +79,9 @@ $request->body()->has('name');   // true
 $request->body()->all();         // ['name' => 'Atlas']
 $request->body()->isEmpty();     // false
 $request->body()->raw();         // the body exactly as received
-$request->body()->isMalformed(); // true when a JSON body could not be decoded
+$request->body()->isMalformed(); // true when a JSON body could not be decoded, or the body was truncated
+$request->body()->isTruncated(); // true when the body went over the read limit of fromGlobals()
+$request->body()->readLimit();   // 2097152, 0 for none, null when fromGlobals() did not build it
 ```
 
 Un corps JSON est lu lorsque le `Content-Type` de la requête est `application/json` (ou un type `+json`). Un corps JSON mal formé se lit comme vide, alors vérifiez `isMalformed()` avant de valider et répondez vous-même 400. `raw()` est ce dont vous avez besoin pour vérifier la signature d’un webhook.

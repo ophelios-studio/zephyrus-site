@@ -24,7 +24,7 @@ $request = Request::fromGlobals(
 );
 ```
 
-`fromGlobals()` does not read `config.yml`: pass the proxy settings and the body limit yourself (see [Security](../security/) for what a trusted proxy changes, and for [the body limit](../security/#request-body-size): above `0`, a body is read at most one byte past it, and one over it arrives unparsed with `isMalformed()` true). In a test, or anywhere outside a web request, use `fromArray()`:
+`fromGlobals()` does not read `config.yml`: pass the proxy settings and the body limit yourself (see [Security](../security/) for what a trusted proxy changes, and for [the body limit](../security/#request-body-size): above `0`, a body is read at most one byte past it, and one over it arrives unparsed with `isTruncated()` and `isMalformed()` true; without `maxBodySize` the read stops at 2 MB, so pass it to accept more). In a test, or anywhere outside a web request, use `fromArray()`:
 
 ```php
 $request = Request::fromArray(
@@ -79,7 +79,9 @@ $request->body()->has('name');   // true
 $request->body()->all();         // ['name' => 'Atlas']
 $request->body()->isEmpty();     // false
 $request->body()->raw();         // the body exactly as received
-$request->body()->isMalformed(); // true when a JSON body could not be decoded
+$request->body()->isMalformed(); // true when a JSON body could not be decoded, or the body was truncated
+$request->body()->isTruncated(); // true when the body went over the read limit of fromGlobals()
+$request->body()->readLimit();   // 2097152, 0 for none, null when fromGlobals() did not build it
 ```
 
 A JSON body is read when the request's `Content-Type` is `application/json` (or a `+json` type). A malformed JSON body reads as empty, so check `isMalformed()` before validating and answer 400 yourself. `raw()` is what you need to verify a webhook signature.

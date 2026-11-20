@@ -93,7 +93,7 @@ require dirname(__DIR__) . '/vendor/autoload.php';
 App\Kernel::run(dirname(__DIR__));
 ```
 
-`Request::fromGlobals()` does not read `config.yml`: pass the proxy settings and the body limit yourself, as above (the limit keeps a body over `max_body_size` from being read into memory, see [Security](../security/#request-body-size)). The `.env` file is not read either, see [Configuration](../configuration/#environment-variables).
+`Request::fromGlobals()` does not read `config.yml`: pass the proxy settings and the body limit yourself, as above (the limit keeps a body over `max_body_size` from being read into memory; without `maxBodySize` the read stops at 2 MB, so it is required above that, see [Security](../security/#request-body-size)). The `.env` file is not read either, see [Configuration](../configuration/#environment-variables).
 
 ## The builder
 

@@ -91,7 +91,7 @@ final class Kernel
 }
 ```
 
-Le premier middleware ajouté s’exécute le plus à l’extérieur. `SecureHeadersMiddleware` vient en premier pour que chaque réponse porte les en-têtes, y compris la redirection, le 400 et le 413 que les middlewares suivants produisent d’eux-mêmes. `AllowedHostsMiddleware` précède `ForceHttpsMiddleware` : dans l’autre ordre, une requête HTTP simple pour n’importe quel `Host` reçoit une redirection 308 pouvant être mise en cache vers cet hôte avant même que l’hôte soit vérifié. `SessionMiddleware` doit s’exécuter avant `CsrfMiddleware`, qui garde son jeton dans la session.
+Le premier middleware ajouté s’exécute le plus à l’extérieur. `SecureHeadersMiddleware` vient en premier pour que chaque réponse porte les en-têtes, y compris la redirection, le 400 et le 413 que les middlewares suivants produisent d’eux-mêmes. `AllowedHostsMiddleware` précède `ForceHttpsMiddleware` : dans l’autre ordre, une requête HTTP simple pour n’importe quel `Host` reçoit une redirection 308 pouvant être mise en cache vers cet hôte avant même que l’hôte soit vérifié. `SessionMiddleware` doit s’exécuter avant `CsrfMiddleware`, qui garde son jeton dans la session. `MaxBodySizeMiddleware` aussi : un corps coupé à la limite de lecture se lit comme un formulaire vide, alors une vérification CSRF placée avant répond 403 au lieu de 413.
 
 Pour le développement local en HTTP simple, omettez ensemble `force_https` et `ForceHttpsMiddleware` (le middleware redirige toute requête simple vers `https://`, quelle que soit la configuration), ou envoyez `X-Forwarded-Proto: https` depuis un mandataire de confiance. Inscrivez aussi l’hôte local dans `allowed_hosts`, par exemple `127.0.0.1`.
 
@@ -137,7 +137,7 @@ Les noms acceptés sont `forceHttps`, `allowedHosts`, `csrf`, `maxBodySize` et `
 ### À savoir
 
 - Seules les clés déclarées sont vérifiées. Une application dont le `config.yml` n’a pas de section `security:` démarre sans aucun middleware de sécurité. C’est un choix valide pour un outil interne, pas un défaut sûr pour un site public.
-- `max_body_size` vaut `2097152` quand vous l’omettez, mais rien ne l’applique tant que `MaxBodySizeMiddleware` n’est pas monté.
+- `max_body_size` vaut `2097152` quand vous l’omettez. `Request::fromGlobals()` ne lit au plus que cela d’un corps, et le noyau répond 413 à un corps coupé là, mais la limite que vous déclarez n’est appliquée que par un `MaxBodySizeMiddleware` monté.
 - Un middleware enregistré sous un nom de route avec `registerMiddleware()`, ou enveloppé dans un autre middleware, ne compte pas. Le refus le dit : « it is registered only under route name 'csrf' ».
 - Chaque appel `with*()` retourne un nouveau builder. `$builder->withMiddleware(...)` sur sa propre ligne, résultat ignoré, ne monte rien et reçoit le même refus que l’absence de middleware : enchaînez les appels, ou écrivez `$builder = $builder->withMiddleware(...)`.
 - `trusted_proxies`, `trusted_headers` et `encryption` ne sont pas vérifiés : ils sont lus en dehors du builder (par `Request::fromGlobals()` et par votre propre code). La section `session:` ne l’est pas non plus : montez vous-même `SessionMiddleware`.
@@ -448,13 +448,13 @@ $builder = $builder->withMiddleware(new MaxBodySizeMiddleware(
 ));
 ```
 
-Passez la même limite à `Request::fromGlobals()`, comme le fait le [bootstrap](#un-bootstrap-sécurisé) avec `maxBodySize: $config->security->maxBodySize`. Sans elle, le corps entier est lu en mémoire avant que le middleware puisse le refuser. Avec elle, `php://input` est lu au plus un octet au-delà de la limite : un `Content-Length` valide au-delà de la limite laisse le corps brut vide, et un corps qui la dépasse arrive non analysé (`$request->body()->all()` est vide et `isMalformed()` vaut vrai), de sorte que le middleware refuse les deux par un 413. La valeur par défaut, `0`, lit le corps entier, et une valeur négative est refusée (`Maximum body size must be 0 (unlimited) or a positive byte count.`).
+Passez la même limite à `Request::fromGlobals()`, comme le fait le [bootstrap](#un-bootstrap-sécurisé) avec `maxBodySize: $config->security->maxBodySize`. Sans elle, `fromGlobals()` lit au plus 2 Mo (`Request::MAX_BODY_SIZE_DEFAULT`, 2097152 octets) : `maxBodySize` est donc obligatoire dès que votre limite dépasse 2 Mo, sinon les corps entre 2 Mo et votre limite sont refusés, et chacun est signalé par une `ConfigurationException` qui nomme la correction. `php://input` est lu au plus un octet au-delà de la limite : un `Content-Length` valide au-delà de la limite laisse le corps brut vide, et un corps qui la dépasse arrive non analysé (`$request->body()->all()` est vide, `isTruncated()` et `isMalformed()` valent vrai). Un tel corps n’atteint jamais un contrôleur : un `MaxBodySizeMiddleware` global le refuse par son `onFailure` ou son 413 par défaut, quelle que soit sa propre limite, et sans ce middleware le noyau répond le 413 par défaut. `maxBodySize: 0` lit le corps entier, et une valeur négative est refusée (`Maximum body size must be 0 (unlimited) or a positive byte count.`).
 
 ### À savoir
 
 - C’est un budget, pas une défense. Au moment où PHP s’exécute, le serveur web a déjà lu le corps. Fixez aussi la limite du serveur lui-même (`client_max_body_size` dans nginx, `LimitRequestBody` dans Apache) ainsi que `post_max_size` et `upload_max_filesize` de PHP.
 - PHP lit lui-même un formulaire multipart ou un téléversement dans `$_POST` et `$_FILES`, jusqu’à `post_max_size`, avant que `fromGlobals()` s’exécute : l’argument `maxBodySize` ne peut pas raccourcir cette lecture. Réglez `post_max_size` sur le même budget.
-- Un formulaire envoyé sans `Content-Length` valide (envoyé en morceaux, `Transfer-Encoding: chunked`, ou qui déclare moins d’octets qu’il n’en envoie) est mesuré à ses champs texte et à ses fichiers, et refusé par un 413 quand ils dépassent la limite. La version 0.16 le laissait passer. Si un formulaire légitime est refusé, relevez `max_body_size` (et `post_max_size`) ou raccourcissez ses champs.
+- Un formulaire envoyé sans `Content-Length` valide (envoyé en morceaux, `Transfer-Encoding: chunked`, ou qui déclare moins d’octets qu’il n’en envoie) est mesuré à ses champs texte et à ses fichiers, par `fromGlobals()` face à sa limite de lecture et par le middleware face à la sienne, et refusé par un 413 quand ils la dépassent. La version 0.16 le laissait passer. Si un formulaire légitime est refusé, relevez `max_body_size` (et `post_max_size`) ou raccourcissez ses champs.
 - `bytes` reprend ce que le client a déclaré et peut être absurdement grand. Montrez `maxBytes` à l’utilisateur, pas `bytes`.
 - `new MaxBodySizeMiddleware(0)` est illimité ; une limite négative est refusée.
 
@@ -467,7 +467,7 @@ Avant le premier déploiement, et de nouveau chaque fois que la configuration ch
 - `hsts_max_age` défini une fois que chaque page est servie en HTTPS.
 - `allowed_hosts` énumère vos noms d’hôte.
 - `trusted_proxies` énumère vos mandataires, jamais `'*'`, et est passé à `Request::fromGlobals()`.
-- `max_body_size` correspond à ce dont vos formulaires ont besoin, est passé à `Request::fromGlobals()` comme `maxBodySize`, et les limites du serveur web et de `post_max_size` sont aussi définies.
+- `max_body_size` correspond à ce dont vos formulaires ont besoin, est passé à `Request::fromGlobals()` comme `maxBodySize` (obligatoire au-delà de 2 Mo), et les limites du serveur web et de `post_max_size` sont aussi définies.
 - Chaque formulaire qui modifie l’état affiche le champ `_csrf_token`, et chaque entrée de `csrf.exceptions` authentifie son appelant autrement.
 - Le témoin de session est `secure` et `http_only` (voir [sessions](../sessions/)), et l’identifiant de session ainsi que le jeton CSRF sont renouvelés à la connexion.
 - Les secrets (`encryption.key`, mot de passe de la base de données, jetons d’API) viennent de `!env`, pas du fichier.
