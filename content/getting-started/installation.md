@@ -37,7 +37,7 @@ then run:
 composer install
 ```
 
-`^3.17` installs the latest 3.x release. Since 3.17.0 the API is stable and follows semantic versioning: minor and patch releases stay compatible, and a breaking change waits for 4.0, announced first by a deprecation. The [changelog](https://github.com/ophelios-studio/zephyrus-core/blob/v3.17.1/CHANGELOG.md) lists what each release changes. Version 3.17.1 makes one exception, for a security fix: see its changelog. The `App\` namespace is yours: it maps to the `app/` directory.
+`^3.17` installs the latest 3.x release. Since 3.17.0 the API is stable and follows semantic versioning: minor and patch releases stay compatible, and a breaking change waits for 4.0, announced first by a deprecation. The [changelog](https://github.com/ophelios-studio/zephyrus-core/blob/v3.17.1/CHANGELOG.md) lists what each release changes. Version 3.17.1 makes one exception, for a security fix: an application that accepts bodies over 2 MB must now pass its limit to `Request::fromGlobals()` (see the [upgrade guide](https://github.com/ophelios-studio/zephyrus-core/blob/v3.17.1/UPGRADE.md#from-3170-to-3171)). The `App\` namespace is yours: it maps to the `app/` directory.
 
 Coming from `^0.16`? Composer does not move to `^3.17` on its own. Change the constraint by hand in `composer.json` and update `latte/latte` with it (3.17 needs Latte 3.1), then read the [changelog](https://github.com/ophelios-studio/zephyrus-core/blob/v3.17.1/CHANGELOG.md): the breaking changes of 3.17.0 come first, each with the change to make. The [upgrade guide](https://github.com/ophelios-studio/zephyrus-core/blob/v3.17.1/UPGRADE.md) covers the climb from 0.13 to 3.17.1.
 
