@@ -453,7 +453,8 @@ Give `Request::fromGlobals()` the same limit, as the [bootstrap](#a-secure-boots
 ### Good to know
 
 - This is a budget, not a defence. By the time PHP runs, the web server has already read the body. Set the server's own limit (`client_max_body_size` in nginx, `LimitRequestBody` in Apache) and PHP's `post_max_size` and `upload_max_filesize` as well.
-- PHP reads a multipart form or an upload into `$_POST` and `$_FILES` itself, up to `post_max_size`, before `fromGlobals()` runs: the `maxBodySize` argument cannot shorten that read. Set `post_max_size` to the same budget.
+- PHP reads a multipart form or an upload into `$_POST` and `$_FILES` itself, up to `post_max_size`, before `fromGlobals()` runs: the `maxBodySize` argument cannot shorten that read. A form POST (urlencoded or multipart) is therefore read with `post_max_size` as its limit when that is below `maxBodySize` (or when `maxBodySize` is 0). Past it the kernel answers 413 before any controller, with `post_max_size` as `maxBytes`, and reports the fix (raise `post_max_size`) to your `ExceptionEvent` listeners or the error log. A JSON body, a `PUT` and any other POST keep `maxBodySize`. Keep `post_max_size` at least equal to `max_body_size`.
+- A body shorter than its `Content-Length` (unless it carries a `Content-Encoding`), or a multipart form holding an upload PHP ended without its boundary, reads as empty with `isMalformed()` true. The kernel refuses it with a 400 (`Request body incomplete.`, plain text when `Accept` lists `text/html`, otherwise `{"error":"Request body incomplete."}`) before any middleware or controller, a CSRF token sent in a header included. A `RequestEvent` listener can answer it with your own page first. A chunked body cut short, a body with a `Content-Encoding` cut short, and a multipart form cut in or between its text fields still pass as complete or partial, and CSRF does not catch the multipart cut when the token travels in a header: validate the required fields.
 - A form sent without a valid `Content-Length` (sent with `Transfer-Encoding: chunked`, or declaring fewer bytes than it sends) is measured by its text fields and files, by `fromGlobals()` against its read limit and by the middleware against its own, and refused with a 413 when they exceed it. Version 0.16 let it through. If a legitimate form is refused, raise `max_body_size` (and `post_max_size`) or shorten its fields.
 - `bytes` repeats what the client declared and may be absurdly large. Show `maxBytes` to the user, not `bytes`.
 - `new MaxBodySizeMiddleware(0)` is unlimited; a negative limit is refused.
@@ -467,7 +468,7 @@ Before the first deploy, and again whenever the configuration changes:
 - `hsts_max_age` set once every page is served over HTTPS.
 - `allowed_hosts` lists your host names.
 - `trusted_proxies` lists your proxies, never `'*'`, and is passed to `Request::fromGlobals()`.
-- `max_body_size` matches what your forms need, is passed to `Request::fromGlobals()` as `maxBodySize` (required above 2 MB), and the web server and `post_max_size` limits are set too.
+- `max_body_size` matches what your forms need, is passed to `Request::fromGlobals()` as `maxBodySize` (required above 2 MB), `post_max_size` is at least `max_body_size`, and the web server limit is set too.
 - Every form that changes state renders the `_csrf_token` field, and every `csrf.exceptions` entry authenticates its caller another way.
 - The session cookie is `secure` and `http_only` (see [sessions](../sessions/)), and the session id and CSRF token are rotated at sign-in.
 - Secrets (`encryption.key`, database password, API tokens) come from `!env`, not from the file.

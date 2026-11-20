@@ -204,14 +204,15 @@ App::setFormatter(new Formatter('en_CA'));
 `HttpKernel` traite chaque requête dans le même ordre :
 
 1. Un `RequestEvent` est émis. Un écouteur peut répondre de lui-même avec `setResponse()`, ce qui saute le routage.
-2. Le routeur fait correspondre la requête. Les paramètres de la route sont connus avant l’exécution de tout middleware.
-3. Les middlewares globaux s’exécutent, du plus externe au plus interne, autour de l’action de contrôleur trouvée. Pour un chemin inconnu ou une méthode incorrecte, ils s’exécutent plutôt autour de la réponse 404 ou 405.
-4. Le contrôleur s’exécute (les middlewares de route l’enveloppent).
-5. Un `ResponseEvent` est émis. Un écouteur peut remplacer la réponse.
+2. Un corps que `Request::fromGlobals()` a lu incomplet (plus court que son `Content-Length`) est refusé par un `400` avant le routage. Un corps qu’il a tronqué à sa limite de lecture est refusé par un `413` : par le noyau avant le routage quand aucun `MaxBodySizeMiddleware` global n’est monté, sinon par ce middleware dans le pipeline global, après le routage.
+3. Le routeur fait correspondre la requête. Les paramètres de la route sont connus avant l’exécution de tout middleware.
+4. Les middlewares globaux s’exécutent, du plus externe au plus interne, autour de l’action de contrôleur trouvée. Pour un chemin inconnu ou une méthode incorrecte, ils s’exécutent plutôt autour de la réponse 404 ou 405.
+5. Le contrôleur s’exécute (les middlewares de route l’enveloppent).
+6. Un `ResponseEvent` est émis. Un écouteur peut remplacer la réponse.
 
-Lorsque quelque chose lève une exception à l’étape 2, 3 ou 4, le noyau émet un `ExceptionEvent`, puis convertit l’exception en réponse (voir [Erreurs](../errors/)). La réponse d’erreur traverse tout de même les middlewares globaux : elle porte donc vos en-têtes de sécurité.
+Lorsque quelque chose lève une exception à l’étape 3, 4 ou 5, le noyau émet un `ExceptionEvent`, puis convertit l’exception en réponse (voir [Erreurs](../errors/)). La réponse d’erreur traverse tout de même les middlewares globaux : elle porte donc vos en-têtes de sécurité.
 
-Trois réponses contournent les middlewares globaux : un court-circuit par `RequestEvent`, la réponse de secours utilisée lorsqu’un middleware global lève lui-même une exception, et une réponse remplacée par un écouteur de `ResponseEvent`. Un en-tête qui doit atteindre chaque réponse a aussi sa place dans le serveur web ou le mandataire.
+Quatre réponses contournent les middlewares globaux : un court-circuit par `RequestEvent`, le `413` du noyau pour un corps tronqué (aucun `MaxBodySizeMiddleware` monté) ou son `400` pour un corps incomplet, la réponse de secours utilisée lorsqu’un middleware global lève lui-même une exception, et une réponse remplacée par un écouteur de `ResponseEvent`. Un en-tête qui doit atteindre chaque réponse a aussi sa place dans le serveur web ou le mandataire.
 
 Les événements sont décrits dans [Conteneur et événements](../../digging-deeper/container-and-events/#événements-du-noyau).
 

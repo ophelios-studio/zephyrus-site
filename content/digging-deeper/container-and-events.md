@@ -250,6 +250,20 @@ All three extend `KernelEvent`, whose `getRequest()` returns the current `Reques
 
 `RequestEvent::setResponse()` short-circuits the request: routing and the middlewares are skipped, no later `RequestEvent` listener runs, and the response still goes through `ResponseEvent`. It is the place for a maintenance page or an early refusal. `hasResponse()` and `getResponse()` read what a previous listener set.
 
+A listener also sees a truncated or incomplete body first: the kernel refuses them (`413` and `400`) only after `RequestEvent`, so a listener can answer with its own page. `fromGlobals()` reads an incomplete body as empty and malformed, and not truncated:
+
+```php
+use Zephyrus\Core\RequestEvent;
+use Zephyrus\Http\Response;
+
+$events->addListener(RequestEvent::class, static function (RequestEvent $event): void {
+    $body = $event->getRequest()->body();
+    if ($body->isMalformed() && !$body->isTruncated() && $body->raw() === '') {
+        $event->setResponse(Response::html('<p>Your form did not arrive whole. Please send it again.</p>', 400));
+    }
+});
+```
+
 ### KernelSubscriber
 
 `KernelSubscriber` is a base class for the two request-side events. Override `onRequest()` and `onResponse()`, and leave the one you do not need:

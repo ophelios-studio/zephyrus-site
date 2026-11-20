@@ -149,7 +149,7 @@ A request for `/avatars/<the generated name>` is answered with 200 and `Content-
 
 Three limits stack, and a file must pass all of them:
 
-1. **PHP's own limits**, `upload_max_filesize` (2M by default) and `post_max_size` (8M by default). A larger file never reaches your code as a file: `FileUpload::isValid()` is false, and `store()` throws `Upload failed: File exceeds the server maximum upload size (upload_max_filesize).` A 3 MB file sent to the default PHP settings is refused that way, whatever `maxSizeBytes` says. Raise both settings above the largest file you accept.
+1. **PHP's own limits**, `upload_max_filesize` (2M by default) and `post_max_size` (8M by default). A larger file never reaches your code as a file: `FileUpload::isValid()` is false, and `store()` throws `Upload failed: File exceeds the server maximum upload size (upload_max_filesize).` A 3 MB file sent to the default PHP settings is refused that way, whatever `maxSizeBytes` says. Raise both settings above the largest file you accept. A POST whose files push it past `post_max_size` is answered with a 413 before the controller, and the kernel reports the fix when `post_max_size` is below `max_body_size`. An upload PHP ended without its boundary (error 3, `UPLOAD_ERR_PARTIAL`) is answered with a 400 (`Request body incomplete.`) before the controller.
 2. **The body size middleware.** `MaxBodySizeMiddleware` answers 413 for a body larger than `security.max_body_size`. For a multipart body it measures the largest of the declared `Content-Length` and the files plus the text fields PHP parsed, so a request that declares a short length, or none, is still counted. It runs after PHP has read the body, which is why it does not replace the PHP settings. A 7 MB upload against a 6 MB limit is answered with `413 Content Too Large`. Pass the same limit to `Request::fromGlobals()` as `maxBodySize`: without it the read stops at 2 MB, and an upload over 2 MB is answered with a 413 whatever `max_body_size` says. See [Security](../../fundamentals/security/#request-body-size).
 3. **`maxSizeBytes`** on the uploader, checked against the real size of the file.
 
@@ -202,5 +202,5 @@ Every refusal is an `UploadException`: a PHP upload error, a missing or unreadab
 - **Never use the client's file name** for storage, in a path, or in a header. Use the path `store()` returned.
 - **Keep the root out of `public/`**, and serve through a controller that checks access.
 - **An unknown detected type is stored with no extension.** Add it to `mimeExtensionMap` if you accept it.
-- **Check PHP's limits too.** `upload_max_filesize` and `post_max_size` refuse a large file before `maxSizeBytes` is looked at.
+- **Check PHP's limits too.** `upload_max_filesize` and `post_max_size` refuse a large file before `maxSizeBytes` is looked at. Keep `post_max_size` at least equal to `max_body_size`.
 - **An existing name is not replaced.** `store()` throws unless `overwriteExisting` is true: `Refusing to overwrite the existing file "...". Pass $overwriteExisting to allow replacement.`

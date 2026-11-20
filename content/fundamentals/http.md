@@ -79,7 +79,7 @@ $request->body()->has('name');   // true
 $request->body()->all();         // ['name' => 'Atlas']
 $request->body()->isEmpty();     // false
 $request->body()->raw();         // the body exactly as received
-$request->body()->isMalformed(); // true when a JSON body could not be decoded, or the body was truncated
+$request->body()->isMalformed(); // true when a JSON body could not be decoded, or the body was truncated or incomplete (the kernel refuses an incomplete one with a 400)
 $request->body()->isTruncated(); // true when the body went over the read limit of fromGlobals()
 $request->body()->readLimit();   // 2097152, 0 for none, null when fromGlobals() did not build it
 ```
@@ -258,5 +258,5 @@ use Zephyrus\Http\SapiEmitter;
 - `$request->query` and `$request->attributes` are public arrays, but read them through `query()` and `attribute()` and never write to them: use `withAttribute()`.
 - Response header names are lower-cased on storage: use `getHeader()` and `hasHeader()` rather than the `headers` array when the case matters.
 - Never pass a request value to `redirect()` or to a header: use `localRedirect()` and the validating `withHeader()`.
-- A malformed JSON body reads as empty: check `isMalformed()`.
+- A malformed JSON body reads as empty: check `isMalformed()`. So does an incomplete body, which the kernel refuses with a 400 before your controller.
 - The client IP is only as trustworthy as your trusted-proxy configuration.

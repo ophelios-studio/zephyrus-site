@@ -204,14 +204,15 @@ App::setFormatter(new Formatter('en_CA'));
 `HttpKernel` runs every request in the same order:
 
 1. A `RequestEvent` is dispatched. A listener may answer on its own with `setResponse()`, which skips routing.
-2. The router matches the request. The route's parameters are known before any middleware runs.
-3. The global middlewares run, outermost first, around the matched controller action. For an unknown path or a wrong method they run around the 404 or 405 answer instead.
-4. The controller runs (route middlewares wrap it).
-5. A `ResponseEvent` is dispatched. A listener may replace the response.
+2. A body `Request::fromGlobals()` read incomplete (shorter than its `Content-Length`) is refused with a `400` before routing. One it truncated at its read limit is refused with a `413`: by the kernel before routing when no global `MaxBodySizeMiddleware` is mounted, otherwise by that middleware in the global pipeline, after routing.
+3. The router matches the request. The route's parameters are known before any middleware runs.
+4. The global middlewares run, outermost first, around the matched controller action. For an unknown path or a wrong method they run around the 404 or 405 answer instead.
+5. The controller runs (route middlewares wrap it).
+6. A `ResponseEvent` is dispatched. A listener may replace the response.
 
-When something throws in step 2, 3 or 4, the kernel dispatches an `ExceptionEvent`, then converts the exception into a response (see [Errors](../errors/)). The error response still passes through the global middlewares, so it carries your security headers.
+When something throws in step 3, 4 or 5, the kernel dispatches an `ExceptionEvent`, then converts the exception into a response (see [Errors](../errors/)). The error response still passes through the global middlewares, so it carries your security headers.
 
-Three responses skip the global middlewares: a `RequestEvent` short-circuit, the fallback used when a global middleware itself throws, and a response replaced by a `ResponseEvent` listener. A header that must reach every response also belongs in the web server or the proxy.
+Four responses skip the global middlewares: a `RequestEvent` short-circuit, the kernel's own `413` for a truncated body (no `MaxBodySizeMiddleware` mounted) or `400` for an incomplete one, the fallback used when a global middleware itself throws, and a response replaced by a `ResponseEvent` listener. A header that must reach every response also belongs in the web server or the proxy.
 
 The events are covered in [Container and events](../../digging-deeper/container-and-events/#kernel-events).
 

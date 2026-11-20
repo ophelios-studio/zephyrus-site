@@ -79,7 +79,7 @@ $request->body()->has('name');   // true
 $request->body()->all();         // ['name' => 'Atlas']
 $request->body()->isEmpty();     // false
 $request->body()->raw();         // the body exactly as received
-$request->body()->isMalformed(); // true when a JSON body could not be decoded, or the body was truncated
+$request->body()->isMalformed(); // true when a JSON body could not be decoded, or the body was truncated or incomplete (the kernel refuses an incomplete one with a 400)
 $request->body()->isTruncated(); // true when the body went over the read limit of fromGlobals()
 $request->body()->readLimit();   // 2097152, 0 for none, null when fromGlobals() did not build it
 ```
@@ -258,5 +258,5 @@ use Zephyrus\Http\SapiEmitter;
 - `$request->query` et `$request->attributes` sont des tableaux publics, mais lisez-les par `query()` et `attribute()` et ne les modifiez jamais : utilisez `withAttribute()`.
 - Les noms d’en-têtes de réponse sont mis en minuscules au stockage : utilisez `getHeader()` et `hasHeader()` plutôt que le tableau `headers` quand la casse compte.
 - Ne passez jamais une valeur de la requête à `redirect()` ni à un en-tête : utilisez `localRedirect()` et le `withHeader()` qui valide.
-- Un corps JSON mal formé se lit comme vide : vérifiez `isMalformed()`.
+- Un corps JSON mal formé se lit comme vide : vérifiez `isMalformed()`. Un corps incomplet aussi : le noyau le refuse par un 400 avant votre contrôleur.
 - L’IP du client n’est pas plus fiable que votre configuration de mandataires de confiance.
