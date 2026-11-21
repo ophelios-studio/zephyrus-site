@@ -18,7 +18,7 @@ render:
 
 leaf:
   name: "Zephyrus"
-  version: "3.17"
+  version: "3.18"
   description: "A cohesive PHP framework. Clear by design. Powerful by nature."
   github_url: "https://github.com/zephyrus-framework/core"
   content_path: "content"

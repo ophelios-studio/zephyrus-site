@@ -30,7 +30,7 @@ $file->write("replaced\n");
 | `read()` | Tout le contenu, sous forme de chaîne. |
 | `lines($trimNewlines = true)` | Le contenu sous forme de liste de lignes. |
 | `write($content)` | Remplace le contenu. |
-| `append($content, $lockWaitSeconds = 10.0)` | Ajoute à la fin. Attend au plus `$lockWaitSeconds` ses verrous. |
+| `append($content, $lockWaitSeconds = 10.0)` | Ajoute à la fin. Attend au plus `$lockWaitSeconds` pour obtenir ses verrous. |
 | `size()` | La taille en octets. |
 | `mimeType()` | Le type de média détecté à partir du contenu : `text/plain` pour le fichier ci-dessus. |
 | `extension()` | L’extension sans le point, `txt`. |
@@ -52,7 +52,7 @@ Un fichier que `File` crée (`create()`, `write()` ou `copy()` vers un chemin qu
 
 `create()`, `write()` et `copy()` n’ouvrent jamais un nouveau fichier par son chemin final. Ils écrivent un fichier temporaire dans le même répertoire, puis le renomment sur le chemin, ce qui remplace un lien symbolique qui s’y trouve, même un lien substitué pendant l’appel, au lieu de le suivre : la cible du lien n’est jamais écrite. Un fichier ordinaire existant est écrit sur place par un descripteur, et seulement une fois vérifié que ce descripteur désigne bien le fichier que nomme encore le chemin : il garde son inode, ses liens physiques, son propriétaire et son mode. `copy()` recopie la source dans la destination par flux.
 
-`append()` ne suit jamais un lien non plus : il en refuse un au chemin (`Path is a symbolic link, which is not followed: "<path>"`) ; ajoutez au chemin réel (`realpath()` du lien) ou retirez le lien. Il ajoute sous un `flock()` exclusif, si bien que des appels `append()` concurrents ne s’écrasent jamais. Un rédacteur qui ne prend pas ce verrou, comme `file_put_contents()` avec `FILE_APPEND`, `error_log()` ou un `StreamHandler` de Monolog par défaut, peut encore perdre des lignes dans le même fichier. `append()` attend au plus `$lockWaitSeconds` en tout (10 secondes par défaut) ce verrou et, lorsqu’il crée le fichier, un verrou sur son dossier, puis lève une `FileSystemException` ; `0.0` fait une seule tentative par verrou, et une valeur négative, `NAN` ou infinie lève une `InvalidArgumentException` (`Lock wait must be a finite number of seconds, zero or more: <valeur>`). Une application qui détient volontairement un verrou sur le fichier passe une valeur plus grande : `$file->append($line, 60.0)`.
+`append()` ne suit jamais un lien non plus : il en refuse un au chemin (`Path is a symbolic link, which is not followed: "<path>"`) ; ajoutez au chemin réel (`realpath()` du lien) ou retirez le lien. Il ajoute sous un `flock()` exclusif, si bien que des appels `append()` concurrents ne s’écrasent jamais. Un rédacteur qui ne prend pas ce verrou, comme `file_put_contents()` avec `FILE_APPEND`, `error_log()` ou un `StreamHandler` de Monolog par défaut, peut encore perdre des lignes dans le même fichier. `append()` attend au plus `$lockWaitSeconds` en tout (10 secondes par défaut) ce verrou et, lorsqu’il crée le fichier avec un PHP thread-safe (ZTS) ou sur un système de fichiers sans liens physiques, un verrou sur son répertoire, puis lève une `FileSystemException` ; `0.0` fait une seule tentative par verrou, et une valeur négative, `NAN` ou infinie lève une `InvalidArgumentException` (`Lock wait must be a finite number of seconds, zero or more: <valeur>`). Une application qui détient volontairement un verrou sur le fichier passe une valeur plus grande : `$file->append($line, 60.0)`.
 
 ## Répertoires
 
@@ -129,7 +129,7 @@ Un chemin que la classe refuse d’écrire est refusé avant la création de tou
 | Un fichier existant que le processus peut écrire mais pas lire (mode `0200`) : accordez la lecture. | <code>Path is not readable, which a safe write requires: <span class="nobr">"&lt;path&gt;"</span></code> |
 | Un fichier existant dans un répertoire à bit collant comme `/tmp`, qui n’appartient ni au propriétaire du répertoire ni à l’utilisateur du processus. | <code>Path belongs to another user in a shared directory, so it is not written: <span class="nobr">"&lt;path&gt;"</span></code> |
 | Une copie sur la source, ou sur un lien physique vers elle. Le fichier reste tel quel. | <code>Cannot copy a file onto itself: <span class="nobr">"&lt;source&gt;"</span> to <span class="nobr">"&lt;destination&gt;"</span></code> |
-| Verrou du fichier ou du dossier non obtenu à temps par `append()`. | <code>Lock on the file not acquired within the 10-second wait: <span class="nobr">"&lt;path&gt;"</span></code>, ou <code>Lock on the directory not acquired within the 10-second wait: <span class="nobr">"&lt;directory&gt;"</span></code> |
+| Un verrou sur le fichier ou sur son répertoire encore détenu par un autre processus après l’attente : passez un `$lockWaitSeconds` plus grand, ou trouvez ce qui détient le verrou. | <code>Lock on the file not acquired within the 10-second wait: <span class="nobr">"&lt;path&gt;"</span></code>, ou <code>Lock on the directory not acquired within the 10-second wait: <span class="nobr">"&lt;directory&gt;"</span></code> |
 
 </div>
 
