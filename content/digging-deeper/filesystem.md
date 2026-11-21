@@ -30,7 +30,7 @@ $file->write("replaced\n");
 | `read()` | The whole content, as a string. |
 | `lines($trimNewlines = true)` | The content as a list of lines. |
 | `write($content)` | Replaces the content. |
-| `append($content)` | Adds to the end. |
+| `append($content, $lockWaitSeconds = 10.0)` | Adds to the end. Waits at most `$lockWaitSeconds` for its locks. |
 | `size()` | The size in bytes. |
 | `mimeType()` | The media type detected from the content: `text/plain` for the file above. |
 | `extension()` | The extension without the dot, `txt`. |
@@ -52,7 +52,7 @@ A file that `File` creates (`create()`, `write()` or `copy()` onto a path that d
 
 `create()`, `write()` and `copy()` never open a new file by its final path. They write a temporary file in the same directory, then rename it over the path, which replaces a symbolic link found there, even one swapped in during the call, instead of following it: the link's target is never written. An existing regular file is written in place through a handle, and only once that handle is checked to be the file the path still names, so it keeps its inode, hard links, owner and mode. `copy()` streams the source into the destination.
 
-`append()` never follows a link either: it refuses one at the path (`Path is a symbolic link, which is not followed: "<path>"`), so append to the real path (`realpath()` of the link) or remove the link. It appends under an exclusive `flock()`, so concurrent `append()` calls never overwrite each other. A writer that does not take that lock, such as `file_put_contents()` with `FILE_APPEND`, `error_log()` or a default Monolog `StreamHandler`, can still lose lines in the same file. The lock is awaited without limit.
+`append()` never follows a link either: it refuses one at the path (`Path is a symbolic link, which is not followed: "<path>"`), so append to the real path (`realpath()` of the link) or remove the link. It appends under an exclusive `flock()`, so concurrent `append()` calls never overwrite each other. A writer that does not take that lock, such as `file_put_contents()` with `FILE_APPEND`, `error_log()` or a default Monolog `StreamHandler`, can still lose lines in the same file. `append()` waits at most `$lockWaitSeconds` in total (10 seconds by default) for that lock and, when it creates the file, for a lock on its directory, then throws `FileSystemException`; `0.0` makes a single attempt per lock, and a negative, `NAN` or infinite value throws `InvalidArgumentException` (`Lock wait must be a finite number of seconds, zero or more: <value>`). An application that holds a lock on the file on purpose passes a larger value: `$file->append($line, 60.0)`.
 
 ## Directories
 
@@ -129,6 +129,7 @@ A path the class refuses to write is refused before any directory or file is cre
 | An existing file the process may write but not read (mode `0200`): grant read permission. | <code>Path is not readable, which a safe write requires: <span class="nobr">"&lt;path&gt;"</span></code> |
 | An existing file in a sticky directory such as `/tmp` that belongs to neither the directory owner nor the process user. | <code>Path belongs to another user in a shared directory, so it is not written: <span class="nobr">"&lt;path&gt;"</span></code> |
 | A copy onto the source, or onto a hard link to it. The file is left as it was. | <code>Cannot copy a file onto itself: <span class="nobr">"&lt;source&gt;"</span> to <span class="nobr">"&lt;destination&gt;"</span></code> |
+| Lock on the file or directory not acquired in time by `append()`. | <code>Lock on the file not acquired within the 10-second wait: <span class="nobr">"&lt;path&gt;"</span></code>, or <code>Lock on the directory not acquired within the 10-second wait: <span class="nobr">"&lt;directory&gt;"</span></code> |
 
 </div>
 
